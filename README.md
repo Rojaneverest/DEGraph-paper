@@ -26,7 +26,9 @@ lineage tools cannot answer before a merge:
 | `experiments/` | `impact_eval.py`, `diff_eval.py`, `extractor_precision.py`, `tool_comparison.py`, and the LLM-judge harness |
 | `results/graphs/` | extracted graphs, including the committed real-code fixture so the third-party scenarios reproduce without the external repo |
 | `results/metrics/` | evaluation outputs |
-| `paper/main.tex` | preprint source |
+
+The preprint source is **not** mirrored here. It lives on arXiv, which is the single
+canonical copy; keeping a second one in this repository only invites the two to drift.
 
 ## What is not here, and why
 
