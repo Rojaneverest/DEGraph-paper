@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>DEGraph — dbdemos_retail_sdp</title>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape-expand-collapse@4.1.1/cytoscape-expand-collapse.js"></script>
+<style>
+  html,body{margin:0;height:100%;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+  #cy{position:absolute;left:0;right:0;top:52px;bottom:0;background:#0f1115;}
+  #bar{position:absolute;left:0;right:0;top:0;height:52px;background:#171a21;color:#e8eaed;
+       display:flex;align-items:center;gap:14px;padding:0 16px;box-sizing:border-box;border-bottom:1px solid #2a2f3a;}
+  #bar b{font-size:15px;} #bar .muted{color:#9aa3b2;font-size:12px;}
+  #bar input{background:#0f1115;border:1px solid #2a2f3a;color:#e8eaed;border-radius:6px;padding:6px 9px;width:230px;}
+  #bar button{background:#222734;border:1px solid #2a2f3a;color:#cfd6e4;border-radius:6px;padding:6px 10px;cursor:pointer;}
+  #bar button:hover{background:#2b3242;}
+  #legend{position:absolute;right:14px;top:66px;background:#171a21ee;border:1px solid #2a2f3a;border-radius:8px;
+          padding:10px 12px;color:#cfd6e4;font-size:12px;line-height:1.7;max-width:230px;z-index:5;}
+  #legend .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:7px;vertical-align:middle;}
+  #legend h4{margin:2px 0 6px;font-size:12px;color:#e8eaed;}
+  #tip{position:absolute;z-index:9;pointer-events:none;background:#0b0d11f2;color:#e8eaed;border:1px solid #2a2f3a;
+       border-radius:6px;padding:7px 9px;font-size:12px;max-width:340px;display:none;box-shadow:0 4px 18px #0008;}
+  .pill{padding:1px 6px;border-radius:10px;font-size:11px;}
+</style>
+</head>
+<body>
+<div id="bar">
+  <b>DEGraph lineage</b><span class="muted">dbdemos_retail_sdp · 16 tables · 48 columns · 24 edges</span>
+  <input id="search" placeholder="search column… (Enter)"/>
+  <button id="expand">Expand all</button>
+  <button id="collapse">Collapse all</button>
+  <button id="reset">Reset highlight</button>
+  <button id="fit">Fit</button>
+  <span class="muted">click a column → impact + provenance · click a table to drill in</span>
+</div>
+<div id="cy"></div>
+<div id="legend">
+  <h4>Tiers</h4>
+  <div><span class="sw" style="background:#3a2f1a;border:1px solid #cd7f32"></span>source (read-only)</div>
+  <div><span class="sw" style="background:#26303a;border:1px solid #8aa0b6"></span>intermediate</div>
+  <div><span class="sw" style="background:#33291a;border:1px solid #d4af37"></span>sink (write-only)</div>
+  <h4 style="margin-top:9px">Column role</h4>
+  <div><span class="sw" style="background:#6b7280"></span>source</div>
+  <div><span class="sw" style="background:#3b82f6"></span>derived</div>
+  <div><span class="sw" style="background:#a855f7"></span>aggregate</div>
+  <div><span class="sw" style="background:#14b8a6"></span>group key</div>
+  <div><span class="sw" style="background:#64748b"></span>passthrough</div>
+  <div><span class="sw" style="background:#ef4444"></span>opaque</div>
+  <h4 style="margin-top:9px">On click</h4>
+  <div><span class="sw" style="background:#ef4444"></span>downstream impact</div>
+  <div><span class="sw" style="background:#22c55e"></span>upstream provenance</div>
+</div>
+<div id="tip"></div>
+<script>
+var ELEMENTS = [{"data": {"id": "tbl::churn_users_protected", "label": "churn_users_protected", "kind": "table"}, "classes": "table tier-source"}, {"data": {"id": "tbl::simple_mask", "label": "simple_mask", "kind": "table"}, "classes": "table tier-source"}, {"data": {"id": "tbl::country_filter", "label": "country_filter", "kind": "table"}, "classes": "table tier-source"}, {"data": {"id": "tbl::churn_app_events", "label": "churn_app_events", "kind": "table"}, "classes": "table tier-mid"}, {"data": {"id": "tbl::churn_orders_bronze", "label": "churn_orders_bronze", "kind": "table"}, "classes": "table tier-mid"}, {"data": {"id": "tbl::churn_users_bronze", "label": "churn_users_bronze", "kind": "table"}, "classes": "table tier-mid"}, {"data": {"id": "tbl::churn_users", "label": "churn_users", "kind": "table"}, "classes": "table tier-mid"}, {"data": {"id": "tbl::churn_orders", "label": "churn_orders", "kind": "table"}, "classes": "table tier-mid"}, {"data": {"id": "tbl::churn_features", "label": "churn_features", "kind": "table"}, "classes": "table tier-mid"}, {"data": {"id": "churn_features.platform", "parent": "tbl::churn_features", "label": "platform", "kind": "column", "role": "passthrough", "dtype": "<unresolved>", "detail": "role: passthrough | from: churn_users.platform"}, "classes": "column role-passthrough"}, {"data": {"id": "churn_features.event_count", "parent": "tbl::churn_features", "label": "event_count", "kind": "column", "role": "passthrough", "dtype": "<unresolved>", "detail": "role: passthrough | from: churn_users.event_count"}, "classes": "column role-passthrough"}, {"data": {"id": "churn_features.session_count", "parent": "tbl::churn_features", "label": "session_count", "kind": "column", "role": "passthrough", "dtype": "<unresolved>", "detail": "role: passthrough | from: churn_users.session_count"}, "classes": "column role-passthrough"}, {"data": {"id": "churn_features.last_event", "parent": "tbl::churn_features", "label": "last_event", "kind": "column", "role": "passthrough", "dtype": "<unresolved>", "detail": "role: passthrough | from: churn_users.last_event"}, "classes": "column role-passthrough"}, {"data": {"id": "churn_features.order_count", "parent": "tbl::churn_features", "label": "order_count", "kind": "column", "role": "passthrough", "dtype": "<unresolved>", "detail": "role: passthrough | from: churn_users.order_count"}, "classes": "column role-passthrough"}, {"data": {"id": "churn_features.total_amount", "parent": "tbl::churn_features", "label": "total_amount", "kind": "column", "role": "passthrough", "dtype": "<unresolved>", "detail": "role: passthrough | from: churn_users.total_amount"}, "classes": "column role-passthrough"}, {"data": {"id": "churn_features.total_item", "parent": "tbl::churn_features", "label": "total_item", "kind": "column", "role": "passthrough", "dtype": "<unresolved>", "detail": "role: passthrough | from: churn_users.total_item"}, "classes": "column role-passthrough"}, {"data": {"id": "churn_features.last_transaction", "parent": "tbl::churn_features", "label": "last_transaction", "kind": "column", "role": "passthrough", "dtype": "<unresolved>", "detail": "role: passthrough | from: churn_users.last_transaction"}, "classes": "column role-passthrough"}, {"data": {"id": "churn_features.days_since_creation", "parent": "tbl::churn_features", "label": "days_since_creation", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: churn_users.creation_date"}, "classes": "column role-derived"}, {"data": {"id": "churn_features.days_since_last_activity", "parent": "tbl::churn_features", "label": "days_since_last_activity", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: churn_users.last_activity_date"}, "classes": "column role-derived"}, {"data": {"id": "churn_features.days_last_event", "parent": "tbl::churn_features", "label": "days_last_event", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: churn_users.last_event"}, "classes": "column role-derived"}, {"data": {"id": "tbl::churn_prediction", "label": "churn_prediction", "kind": "table"}, "classes": "table tier-sink"}, {"data": {"id": "churn_prediction.churn_prediction", "parent": "tbl::churn_prediction", "label": "churn_prediction", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived"}, "classes": "column role-derived"}, {"data": {"id": "tbl::spark_churn_users_bronze", "label": "spark_churn_users_bronze", "kind": "table"}, "classes": "table tier-source"}, {"data": {"id": "tbl::spark_churn_users", "label": "spark_churn_users", "kind": "table"}, "classes": "table tier-sink"}, {"data": {"id": "spark_churn_users.user_id", "parent": "tbl::spark_churn_users", "label": "user_id", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: spark_churn_users_bronze.id"}, "classes": "column role-derived"}, {"data": {"id": "spark_churn_users.email", "parent": "tbl::spark_churn_users", "label": "email", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: spark_churn_users_bronze.email"}, "classes": "column role-derived"}, {"data": {"id": "spark_churn_users.creation_date", "parent": "tbl::spark_churn_users", "label": "creation_date", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: spark_churn_users_bronze.creation_date"}, "classes": "column role-derived"}, {"data": {"id": "spark_churn_users.last_activity_date", "parent": "tbl::spark_churn_users", "label": "last_activity_date", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: spark_churn_users_bronze.last_activity_date"}, "classes": "column role-derived"}, {"data": {"id": "spark_churn_users.firstname", "parent": "tbl::spark_churn_users", "label": "firstname", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: spark_churn_users_bronze.firstname"}, "classes": "column role-derived"}, {"data": {"id": "spark_churn_users.lastname", "parent": "tbl::spark_churn_users", "label": "lastname", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: spark_churn_users_bronze.lastname"}, "classes": "column role-derived"}, {"data": {"id": "spark_churn_users.age_group", "parent": "tbl::spark_churn_users", "label": "age_group", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: spark_churn_users_bronze.age_group"}, "classes": "column role-derived"}, {"data": {"id": "spark_churn_users.gender", "parent": "tbl::spark_churn_users", "label": "gender", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: spark_churn_users_bronze.gender"}, "classes": "column role-derived"}, {"data": {"id": "spark_churn_users.churn", "parent": "tbl::spark_churn_users", "label": "churn", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: spark_churn_users_bronze.churn"}, "classes": "column role-derived"}, {"data": {"id": "tbl::spark_churn_orders_bronze", "label": "spark_churn_orders_bronze", "kind": "table"}, "classes": "table tier-source"}, {"data": {"id": "tbl::spark_churn_orders", "label": "spark_churn_orders", "kind": "table"}, "classes": "table tier-sink"}, {"data": {"id": "spark_churn_orders.order_id", "parent": "tbl::spark_churn_orders", "label": "order_id", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: spark_churn_orders_bronze.id"}, "classes": "column role-derived"}, {"data": {"id": "spark_churn_orders.amount", "parent": "tbl::spark_churn_orders", "label": "amount", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: spark_churn_orders_bronze.amount"}, "classes": "column role-derived"}, {"data": {"id": "spark_churn_orders.item_count", "parent": "tbl::spark_churn_orders", "label": "item_count", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: spark_churn_orders_bronze.item_count"}, "classes": "column role-derived"}, {"data": {"id": "spark_churn_orders.creation_date", "parent": "tbl::spark_churn_orders", "label": "creation_date", "kind": "column", "role": "derived", "dtype": "<unresolved>", "detail": "role: derived | from: spark_churn_orders_bronze.transaction_date"}, "classes": "column role-derived"}, {"data": {"id": "tbl::spark_churn_features", "label": "spark_churn_features", "kind": "table"}, "classes": "table tier-source"}, {"data": {"id": "tbl::<unresolved>", "label": "<unresolved>", "kind": "table"}, "classes": "table tier-source"}, {"data": {"id": "churn_users.platform", "parent": "tbl::churn_users", "label": "platform", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e0", "source": "churn_users.platform", "target": "churn_features.platform", "role": "passthrough"}, "classes": "edge role-passthrough"}, {"data": {"id": "churn_users.event_count", "parent": "tbl::churn_users", "label": "event_count", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e1", "source": "churn_users.event_count", "target": "churn_features.event_count", "role": "passthrough"}, "classes": "edge role-passthrough"}, {"data": {"id": "churn_users.session_count", "parent": "tbl::churn_users", "label": "session_count", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e2", "source": "churn_users.session_count", "target": "churn_features.session_count", "role": "passthrough"}, "classes": "edge role-passthrough"}, {"data": {"id": "churn_users.last_event", "parent": "tbl::churn_users", "label": "last_event", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e3", "source": "churn_users.last_event", "target": "churn_features.last_event", "role": "passthrough"}, "classes": "edge role-passthrough"}, {"data": {"id": "churn_users.order_count", "parent": "tbl::churn_users", "label": "order_count", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e4", "source": "churn_users.order_count", "target": "churn_features.order_count", "role": "passthrough"}, "classes": "edge role-passthrough"}, {"data": {"id": "churn_users.total_amount", "parent": "tbl::churn_users", "label": "total_amount", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e5", "source": "churn_users.total_amount", "target": "churn_features.total_amount", "role": "passthrough"}, "classes": "edge role-passthrough"}, {"data": {"id": "churn_users.total_item", "parent": "tbl::churn_users", "label": "total_item", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e6", "source": "churn_users.total_item", "target": "churn_features.total_item", "role": "passthrough"}, "classes": "edge role-passthrough"}, {"data": {"id": "churn_users.last_transaction", "parent": "tbl::churn_users", "label": "last_transaction", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e7", "source": "churn_users.last_transaction", "target": "churn_features.last_transaction", "role": "passthrough"}, "classes": "edge role-passthrough"}, {"data": {"id": "churn_users.creation_date", "parent": "tbl::churn_users", "label": "creation_date", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e8", "source": "churn_users.creation_date", "target": "churn_features.days_since_creation", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "churn_users.last_activity_date", "parent": "tbl::churn_users", "label": "last_activity_date", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e9", "source": "churn_users.last_activity_date", "target": "churn_features.days_since_last_activity", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "e10", "source": "churn_users.last_event", "target": "churn_features.days_last_event", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "spark_churn_users_bronze.id", "parent": "tbl::spark_churn_users_bronze", "label": "id", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e11", "source": "spark_churn_users_bronze.id", "target": "spark_churn_users.user_id", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "spark_churn_users_bronze.email", "parent": "tbl::spark_churn_users_bronze", "label": "email", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e12", "source": "spark_churn_users_bronze.email", "target": "spark_churn_users.email", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "spark_churn_users_bronze.creation_date", "parent": "tbl::spark_churn_users_bronze", "label": "creation_date", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e13", "source": "spark_churn_users_bronze.creation_date", "target": "spark_churn_users.creation_date", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "spark_churn_users_bronze.last_activity_date", "parent": "tbl::spark_churn_users_bronze", "label": "last_activity_date", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e14", "source": "spark_churn_users_bronze.last_activity_date", "target": "spark_churn_users.last_activity_date", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "spark_churn_users_bronze.firstname", "parent": "tbl::spark_churn_users_bronze", "label": "firstname", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e15", "source": "spark_churn_users_bronze.firstname", "target": "spark_churn_users.firstname", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "spark_churn_users_bronze.lastname", "parent": "tbl::spark_churn_users_bronze", "label": "lastname", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e16", "source": "spark_churn_users_bronze.lastname", "target": "spark_churn_users.lastname", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "spark_churn_users_bronze.age_group", "parent": "tbl::spark_churn_users_bronze", "label": "age_group", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e17", "source": "spark_churn_users_bronze.age_group", "target": "spark_churn_users.age_group", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "spark_churn_users_bronze.gender", "parent": "tbl::spark_churn_users_bronze", "label": "gender", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e18", "source": "spark_churn_users_bronze.gender", "target": "spark_churn_users.gender", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "spark_churn_users_bronze.churn", "parent": "tbl::spark_churn_users_bronze", "label": "churn", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e19", "source": "spark_churn_users_bronze.churn", "target": "spark_churn_users.churn", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "spark_churn_orders_bronze.id", "parent": "tbl::spark_churn_orders_bronze", "label": "id", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e20", "source": "spark_churn_orders_bronze.id", "target": "spark_churn_orders.order_id", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "spark_churn_orders_bronze.amount", "parent": "tbl::spark_churn_orders_bronze", "label": "amount", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e21", "source": "spark_churn_orders_bronze.amount", "target": "spark_churn_orders.amount", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "spark_churn_orders_bronze.item_count", "parent": "tbl::spark_churn_orders_bronze", "label": "item_count", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e22", "source": "spark_churn_orders_bronze.item_count", "target": "spark_churn_orders.item_count", "role": "derived"}, "classes": "edge role-derived"}, {"data": {"id": "spark_churn_orders_bronze.transaction_date", "parent": "tbl::spark_churn_orders_bronze", "label": "transaction_date", "kind": "column", "role": "source", "dtype": "", "detail": "intermediate (extractor-named)"}, "classes": "column role-source"}, {"data": {"id": "e23", "source": "spark_churn_orders_bronze.transaction_date", "target": "spark_churn_orders.creation_date", "role": "derived"}, "classes": "edge role-derived"}];
+cytoscape.use(cytoscapeDagre);
+cytoscape.use(cytoscapeExpandCollapse);
+
+var cy = cytoscape({
+  container: document.getElementById('cy'),
+  elements: ELEMENTS,
+  wheelSensitivity: 0.2,
+  style: [
+    {selector:'node[kind="table"]', style:{
+      'label':'data(label)','font-size':13,'color':'#e8eaed','text-valign':'top','text-halign':'center',
+      'text-margin-y':-4,'shape':'round-rectangle','border-width':2,'padding':10,'font-weight':'bold'}},
+    {selector:'.tier-source', style:{'background-color':'#1c1810','border-color':'#cd7f32'}},
+    {selector:'.tier-mid',    style:{'background-color':'#141b22','border-color':'#8aa0b6'}},
+    {selector:'.tier-sink',   style:{'background-color':'#1d1710','border-color':'#d4af37'}},
+    {selector:'.derived-table', style:{'border-style':'dashed','border-color':'#5b6675'}},
+    {selector:'node[kind="column"]', style:{
+      'label':'data(label)','font-size':10,'color':'#dfe3ea','text-valign':'center','text-halign':'center',
+      'width':'label','height':16,'padding':'5px','shape':'round-rectangle','background-color':'#6b7280'}},
+    {selector:'.role-derived',    style:{'background-color':'#3b82f6'}},
+    {selector:'.role-aggregate',  style:{'background-color':'#a855f7'}},
+    {selector:'.role-group_key',  style:{'background-color':'#14b8a6'}},
+    {selector:'.role-passthrough',style:{'background-color':'#64748b'}},
+    {selector:'.role-opaque',     style:{'background-color':'#ef4444'}},
+    {selector:'.role-source',     style:{'background-color':'#6b7280'}},
+    {selector:'edge', style:{
+      'width':1.4,'line-color':'#3a4150','target-arrow-color':'#3a4150','target-arrow-shape':'triangle',
+      'curve-style':'bezier','arrow-scale':0.8,'opacity':0.75}},
+    {selector:'node:selected', style:{'border-width':3,'border-color':'#fde047'}},
+    {selector:'.cy-expand-collapse-collapsed-node', style:{'shape':'round-rectangle'}},
+    // highlight states
+    {selector:'.faded', style:{'opacity':0.12}},
+    {selector:'.seed', style:{'border-width':3,'border-color':'#fde047','background-color':'#fde047','color':'#111'}},
+    {selector:'.imp', style:{'background-color':'#ef4444','color':'#fff'}},
+    {selector:'.prov', style:{'background-color':'#22c55e','color':'#06210f'}},
+    {selector:'edge.imp', style:{'line-color':'#ef4444','target-arrow-color':'#ef4444','opacity':1,'width':2.2}},
+    {selector:'edge.prov', style:{'line-color':'#22c55e','target-arrow-color':'#22c55e','opacity':1,'width':2.2}},
+  ],
+});
+
+var layoutOpts = {name:'dagre', rankDir:'LR', nodeSep:18, rankSep:80, edgeSep:8, animate:false};
+function runLayout(){ cy.layout(layoutOpts).run(); }
+
+var api = cy.expandCollapse({
+  layoutBy: layoutOpts, fisheye:false, animate:false, undoable:false,
+  expandCollapseCueSize:12, expandCollapseCueLineSize:8,
+});
+api.collapseAll();           // start as a table-level overview
+runLayout(); cy.fit(undefined, 30);
+
+function clearHi(){ cy.elements().removeClass('faded seed imp prov'); }
+function highlight(node){
+  clearHi();
+  var imp = node.successors();      // forward blast radius == impact.py reachability
+  var prov = node.predecessors();   // backward provenance
+  cy.elements().addClass('faded');
+  prov.removeClass('faded').addClass('prov');
+  imp.removeClass('faded').addClass('imp');
+  node.removeClass('faded').addClass('seed');
+}
+
+cy.on('tap','node[kind="column"]', function(e){ highlight(e.target); });
+cy.on('tap', function(e){ if(e.target === cy){ clearHi(); } });
+
+// tooltip
+var tip = document.getElementById('tip');
+cy.on('mouseover','node[kind="column"]', function(e){
+  var d = e.target.data();
+  tip.innerHTML = '<b>'+d.label+'</b> <span class="pill" style="background:#222">'+(d.dtype||'')+'</span><br>'+(d.detail||'');
+  tip.style.display='block';
+});
+cy.on('mousemove','node[kind="column"]', function(e){
+  var p = e.renderedPosition || e.target.renderedPosition();
+  tip.style.left = (p.x+14)+'px'; tip.style.top = (p.y+58)+'px';
+});
+cy.on('mouseout','node[kind="column"]', function(){ tip.style.display='none'; });
+
+// controls
+document.getElementById('expand').onclick = function(){ api.expandAll(); runLayout(); cy.fit(undefined,30); };
+document.getElementById('collapse').onclick = function(){ clearHi(); api.collapseAll(); runLayout(); cy.fit(undefined,30); };
+document.getElementById('reset').onclick = clearHi;
+document.getElementById('fit').onclick = function(){ cy.fit(undefined,30); };
+document.getElementById('search').addEventListener('keydown', function(ev){
+  if(ev.key!=='Enter') return;
+  var q = this.value.trim().toLowerCase(); if(!q) return;
+  var hit = cy.nodes('[kind="column"]').filter(function(n){ return n.data('label').toLowerCase().indexOf(q)>=0; });
+  if(hit.length){
+    var n = hit[0];
+    if(n.parent().hasClass('cy-expand-collapse-collapsed-node') || n.style('display')==='none'){ api.expand(n.parent()); runLayout(); }
+    highlight(n); cy.animate({center:{eles:n}, zoom:1.4}, {duration:350});
+  }
+});
+</script>
+</body>
+</html>

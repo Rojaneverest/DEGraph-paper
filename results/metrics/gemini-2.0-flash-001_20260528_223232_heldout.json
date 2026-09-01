@@ -1,0 +1,45 @@
+{
+  "runs": [
+    {
+      "meta": {
+        "backend": "gemini",
+        "model": "gemini-2.0-flash-001",
+        "context_mode": "raw_source",
+        "context_tokens": 0,
+        "timestamp": "20260528_223232",
+        "context_limit": null
+      },
+      "scores": {},
+      "results": [
+        {
+          "id": "HQ1",
+          "category": "struct-array-shape",
+          "difficulty": "medium",
+          "question": "What is the schema and population logic of the `other_diagnoses` column? List each field inside the inner struct, where each comes from, and describe how null entries are removed.",
+          "context_mode": "raw_source",
+          "context_tokens": 11405,
+          "prompt_tokens": 11523,
+          "reference_answer": "`other_diagnoses` is an `array<struct>` of up to 5 ranked-diagnosis records, built by a Python loop over `range(1, MAX_DIAG + 1)` with `MAX_DIAG = 5`. For each rank `i`, a struct is wrapped in `when(col(f'diagnosis_{i}_code').isNotNull(), struct(...))` so absent ranks become array elements of NULL. The inner struct has exactly 8 fields, in this order: (1) `reference_id` \u2014 `lit(None).cast('string')` (always NULL placeholder); (2) `sequence_number` \u2014 `diagnosis_{i}_priority`; (3) `codeset` \u2014 `diagnosis_{i}_code`; (4) `codeset_display` \u2014 `diagnosis_{i}_description`; (5) `diagnosis_type` \u2014 `diagnosis_{i}_type`; (6) `present_on_admission_code` \u2014 `diagnosis_{i}_poa`; (7) `codeset_system` \u2014 `lit('ICD-10-CM')` (always the literal string 'ICD-10-CM'); (8) `diagnosis_group` \u2014 `lit(None).cast('string')` (always NULL placeholder). The 5 conditional structs are wrapped in `array(*diag_structs)` to produce an intermediate column `other_diagnoses_raw`, then `array_sort(expr(\"filter(other_diagnoses_raw, x -> x is not null)\"))` drops the NULL elements (ranks with no matching diagnosis) and alphabetically sorts what remains by the natural struct ordering. The intermediate `other_diagnoses_raw` is then dropped from the DataFrame.",
+          "model_answer": "[ERROR: Gemini gave up after 6 retries. Last error: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\\nPlease retry in 58.521312867s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '58s'}]}}]",
+          "elapsed_s": 0.0,
+          "score": null,
+          "notes": ""
+        },
+        {
+          "id": "HQ2",
+          "category": "rule-logic",
+          "difficulty": "hard",
+          "question": "How exactly is a claim classified as `'Maternity'` in the `claim_category` column? Which specific columns are scanned, and what code range is the test against?",
+          "context_mode": "raw_source",
+          "context_tokens": 11405,
+          "prompt_tokens": 11520,
+          "reference_answer": "A claim is classified as `'Maternity'` iff (a) the higher-precedence Behavioral Health predicate did NOT fire (since claim_category is a first-match chain with BH ordered before Maternity), AND (b) the Maternity predicate `cond_maternity` evaluates to true. The Maternity predicate is implemented entirely in `F.expr(...)` SQL: it `flatten(array(...))` of SIX diagnosis-code columns \u2014 `primary_diag_code_hdr`, `diagnosis_1_code`, `diagnosis_2_code`, `diagnosis_3_code`, `diagnosis_4_code`, `diagnosis_5_code` \u2014 then `filter(..., x -> x is not null AND trim(x) != '')` to drop nulls and whitespace-only entries, then `exists(..., d -> upper(trim(d)) >= 'O00' AND upper(trim(d)) <= 'O9A')` to test whether ANY remaining code lies in the ICD-10 O-chapter (obstetric / maternity / puerperium codes, O00 through O9A). Two key contrasts with the Behavioral Health predicate (Q2 reference): (i) BH only checks `primary_diag_code_hdr`, Maternity checks the primary PLUS all 5 ranked diagnosis columns; (ii) BH uses chained PySpark Column predicates with `&`, Maternity is a single `F.expr` SQL string using flatten/filter/exists.",
+          "model_answer": "[ERROR: Gemini gave up after 6 retries. Last error: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\\nPlease retry in 58.455591632s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-2.0-flash', 'location': 'global'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'model': 'gemini-2.0-flash', 'location': 'global'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '58s'}]}}]",
+          "elapsed_s": 0.0,
+          "score": null,
+          "notes": ""
+        }
+      ]
+    }
+  ]
+}

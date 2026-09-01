@@ -1,0 +1,31 @@
+{
+  "runs": [
+    {
+      "meta": {
+        "backend": "gemini",
+        "model": "gemini-2.0-flash-001",
+        "context_mode": "raw_source",
+        "context_tokens": 0,
+        "timestamp": "20260528_223739",
+        "context_limit": null
+      },
+      "scores": {},
+      "results": [
+        {
+          "id": "HQ1",
+          "category": "direct-cross-file-impact",
+          "difficulty": "medium",
+          "question": "If the column `session_id` is renamed in BOTH `bronze.events_raw` AND `bronze.marketing_attribution_raw`, which silver and gold files require code changes? Be specific about what breaks in each.",
+          "context_mode": "raw_source",
+          "context_tokens": 23683,
+          "prompt_tokens": 23807,
+          "reference_answer": "`session_id` is the join key between marketing attribution and event tracking, and it shows up in three specific places. Two files break directly:\n\n(1) `silver/marketing_touchpoints.py` \u2014 three independent uses of session_id ALL break: (a) the inner join `attribution_df.join(events_df, on='session_id', how='inner')`; (b) the window `Window.partitionBy('session_id').orderBy(F.col('visit_ts').asc())` that picks first-touch per session; (c) the aggregate `F.countDistinct('session_id').alias('session_count')` inside the final groupBy. Renaming would require updating all three. The produced silver table `silver.marketing_touchpoints` carries forward a derived `session_count` column (the countDistinct result), not `session_id` itself, so the silver schema does not need to expose the renamed name.\n\n(2) `gold/attribution_funnel_daily.py` \u2014 two CTEs reference `ev.session_id` in `COUNT(DISTINCT ev.session_id)` aggregates: the `cart_events` CTE and the `checkout_events` CTE. Both filter `events_raw` and use session_id as the distinct-counted column. Note that the `visits` CTE counts `session_count` from `marketing_touchpoints` (not `session_id` directly), so renaming bronze session_id does NOT directly break the `visits` CTE \u2014 only the two event-driven CTEs.\n\nNo other file in the repo references `session_id` by name. `silver.customer_profile`, `silver.shipments_timeline`, `silver.refunds_enriched`, all bronze ingest files, and gold/{customer_ltv, customer_return_rate, product_performance, inventory_turnover_daily, revenue_forecast_features} are unaffected. Total: 2 files, 1 silver table indirectly affected (marketing_touchpoints derives session_count from session_id), and 1 gold table affected (attribution_funnel_daily).",
+          "model_answer": "[ERROR: Gemini gave up after 6 retries. Last error: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\\nPlease retry in 58.504559154s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '58s'}]}}]",
+          "elapsed_s": 0.0,
+          "score": null,
+          "notes": ""
+        }
+      ]
+    }
+  ]
+}

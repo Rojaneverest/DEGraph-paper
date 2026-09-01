@@ -1,0 +1,370 @@
+DEGraph Q&A Experiment Report
+=================================================================
+Backend:   openrouter / anthropic/claude-3.5-haiku
+Mode:      compact_graph_dsl
+Tokens:    ~4,302
+Timestamp: 20260528_231819
+
+AGGREGATE SCORES
+----------------------------------------
+  Not graded yet. Edit the JSON file and set 'score' for each answer.
+
+INDIVIDUAL ANSWERS
+=================================================================
+
+[HQ1] direct-cross-file-impact / medium
+Q: If the column `country_code` in `main.dbdemos_ecom.customers_raw` is renamed to `ctry_code`, which silver and gold tables need updating? Be specific about every place country_code is referenced.
+Score: None
+
+REFERENCE:
+Two tables affected, and `country_code` is referenced in FOUR distinct places across them.
+
+Silver: `silver.customer_profile` — `customer_id` is read via `spark.table(f'{database}.customers_raw')` in `silver/customer_profile.py`. `country_code` is used as one of the four group keys in the final aggregate: `.groupBy('customer_id', 'email', 'country_code', 'signup_ts').agg(...)`. Renaming the bronze column would break the groupBy reference. The output silver table `customer_profile` exposes `country_code` as a top-level column (it survives the groupBy as a group key).
+
+Gold: `gold.customer_ltv` — uses `country_code` in THREE separate places inside its `spark.sql` block: (a) The `base` CTE selects `country_code` from `customer_profile`; (b) The `country_avg` CTE groups BY `country_code` and computes `AVG(lifetime_revenue) AS avg_country_ltv`; (c) The `ranked` CTE LEFT JOINs back to `country_avg` via `USING (country_code)`, which both attaches `avg_country_ltv` to each customer and feeds the `b.lifetime_revenue / NULLIF(ca.avg_country_ltv, 0) AS ltv_vs_country_avg` derivation. All three references would need updating. The output gold table `customer_ltv` also carries `country_code` forward.
+
+NOT affected: `silver.orders_cleaned` (does not consume customers_raw); `gold.product_performance` (groups by product_id, order_date — does not touch country_code). `bronze.products_raw` is an orphan (no consumers) so it cannot be affected by anything.
+
+MODEL (anthropic/claude-3.5-haiku):
+Based on the DEGraph lineage, if `country_code` is renamed to `ctry_code` in `main.dbdemos_ecom.customers_raw`, the following tables would need updating:
+
+Silver Tables:
+1. `main.dbdemos_ecom.customer_profile` (T4)
+   - Directly uses `country_code` as a group key and passthrough column from customers_raw
+
+Gold Tables:
+1. `main.dbdemos_ecom.customer_ltv` (T5)
+   - Passes through `country_code` from customer_profile
+   - Uses `country_code` in aggregation/grouping logic
+
+Specific Impact:
+- In `silver/customer_profile.py`, update column references from `country_code` to `ctry_code`
+- In `gold/customer_ltv.py`, update column references from `country_code` to `ctry_code`
+- Any join or aggregation operations involving `country_code` would need column name adjustment
+
+The changes would need to be propagated through the lineage from the source table (customers_raw) through customer_profile and ultimately to customer_ltv.
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ2] producer-consumer / easy
+Q: Which file produces `main.dbdemos_ecom.customer_ltv`, and which files in this repo consume `customer_ltv` as a source?
+Score: None
+
+REFERENCE:
+Producer: `gold/customer_ltv.py` is the sole writer of `main.dbdemos_ecom.customer_ltv`. It writes via `.saveAsTable(f'{database}.customer_ltv')` with `mode=overwrite` and `format=delta`.
+
+Consumers: NONE in this repo. No file under `data/benchmarks/repo_synthetic_small/` reads `customer_ltv` — it is a terminal gold table for this benchmark. (This contrasts with the medium benchmark where `gold/revenue_forecast_features.py` reads `customer_ltv` to inherit lifetime_revenue and other features; the small benchmark does not include that file.) The graph should therefore show `customer_ltv` with `written_by=[gold/customer_ltv.py]` and `read_by=[]`. Because no file reads it, removing or breaking customer_ltv would cause no downstream cascade within this benchmark, and there is no need for the graph to emit an orphan-table warning for it (the warning specifically targets tables with neither a writer nor a reader, and customer_ltv has a writer).
+
+MODEL (anthropic/claude-3.5-haiku):
+Based on the @TABLES section of the DEGraph:
+
+- Producer (by=): `gold/customer_ltv.py` creates `main.dbdemos_ecom.customer_ltv`
+- Consumers (rb=): No files in this repo consume `customer_ltv` as a source (the rb= field is empty)
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ3] transitive-multi-hop-impact / medium
+Q: If the column `signup_ts` in `bronze.customers_raw` becomes nullable, which downstream silver and gold columns are affected, and what is the nature of the impact (row-loss / null-propagation / aggregate semantics)?
+Score: None
+
+REFERENCE:
+Two downstream effects, both null-propagation rather than row-loss (no filter drops on signup_ts anywhere in the small benchmark).
+
+(1) `silver.customer_profile` — `signup_ts` is the FOURTH group key in `.groupBy('customer_id', 'email', 'country_code', 'signup_ts').agg(...)`. PySpark `groupBy` treats NULL as a valid group value (different from SQL's standard, where NULL ≠ NULL groups separately). So nullable signup_ts means: customers with NULL signup_ts will all GROUP TOGETHER into a single (customer_id, email, country_code, NULL) row IF they share customer_id, email, and country_code with another null-signup_ts row. More importantly, the same customer with two different signup_ts records (one NULL, one timestamped) would produce TWO output rows — a row-multiplication risk. The aggregate outputs (total_orders, lifetime_revenue, last_order_ts, last_event_ts, distinct_products_ordered) become reliable only if signup_ts is genuinely a stable per-customer attribute.
+
+(2) `gold.customer_ltv` — `signup_ts` is propagated forward in the `base` CTE `SELECT customer_id, email, country_code, signup_ts, ...` and stays in the final `ranked` SELECT. It is not used in any aggregation, NTILE ordering, or derived computation in customer_ltv.py — so NULL signup_ts in gold means the output column itself is NULL but no derived value (avg_country_ltv, ltv_vs_country_avg, days_since_last_order, revenue_quartile, ltv_tier) is corrupted by the NULL.
+
+NOT affected: `gold.product_performance` does not consume customer_profile (it reads orders_cleaned directly) and is unaffected by customers_raw changes entirely.
+
+MODEL (anthropic/claude-3.5-haiku):
+Let's trace the lineage of `signup_ts` through the data pipeline:
+
+1. Source Column Tracing:
+- `T1.signup_ts` (customers_raw) is a passthrough column from the raw source
+- Propagated directly to `T4.signup_ts` (customer_profile) as a GROUP key
+- Further propagated to `T5.signup_ts` (customer_ltv) as a passthrough
+
+Impact Analysis:
+- GROUP KEY Impact: Since `signup_ts` is a group key in customer_profile aggregation, making it nullable could potentially:
+  1. Cause row loss during grouping if null values are excluded
+  2. Potentially change aggregation results for `total_orders`, `lifetime_revenue`, etc.
+
+- Null Propagation: The column will become nullable in downstream tables T4 and T5
+
+Specific Risks:
+- Aggregations in `customer_profile.py` might change semantics
+- Potential loss of customer records if null `signup_ts` causes filtering
+- Downstream analytics and reporting could be affected
+
+Recommendation:
+- Review aggregation logic in `silver/customer_profile.py`
+- Add null handling strategies (e.g., replace with default, filter, or allow nulls)
+- Test impact on aggregation results and record counts
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ4] reverse-lineage / hard
+Q: Which bronze-layer columns contribute, directly or transitively, to `gold.customer_ltv.ltv_tier`? Trace the full chain through every intermediate column and edge.
+Score: None
+
+REFERENCE:
+A single bronze column: `main.dbdemos_ecom.orders_raw.total_amount`. The reverse trace is a chain of derive-and-aggregate edges:
+
+(1) `gold.customer_ltv.ltv_tier` ← Python-side `withColumn` after the SQL block: `F.when(revenue_quartile == 1, lit('platinum')).when(... == 2, 'gold').when(... == 3, 'silver').otherwise('bronze')`. Sole source column: `revenue_quartile`.
+
+(2) `revenue_quartile` ← SQL `NTILE(4) OVER (ORDER BY b.lifetime_revenue DESC)` inside the `ranked` CTE. Sole source column: `lifetime_revenue` (from the `base` CTE alias `b`).
+
+(3) `lifetime_revenue` in the `ranked` CTE ← `b.lifetime_revenue` (projected from `base`). The `country_avg` CTE also reads `lifetime_revenue` to compute `avg_country_ltv`, but `ltv_tier` does not depend on `avg_country_ltv` — only on `revenue_quartile`, which uses `lifetime_revenue` directly. So country_avg is on a sibling path, not the ltv_tier path.
+
+(4) `lifetime_revenue` in the `base` CTE ← `SELECT lifetime_revenue FROM {database}.customer_profile`. Sole source: `silver.customer_profile.lifetime_revenue`.
+
+(5) `silver.customer_profile.lifetime_revenue` ← `F.sum('total_amount').alias('lifetime_revenue')` in the final aggregate of `silver/customer_profile.py`. Sole source column: `total_amount`, which was carried through the 3-way join from `orders_df` (which is `spark.table(f'{database}.orders_raw')`).
+
+(6) Bronze terminus: `main.dbdemos_ecom.orders_raw.total_amount`.
+
+Summary: 5 hops, exactly one bronze contributor. Note that despite ltv_tier being a categorical (string) label, its information content reduces all the way back to the single decimal `total_amount`. The country_code path that influences `ltv_vs_country_avg` does NOT influence `ltv_tier`.
+
+MODEL (anthropic/claude-3.5-haiku):
+I'll trace the lineage from bronze layer columns to `gold.customer_ltv.ltv_tier` step by step:
+
+1. Bronze Layer Source Columns:
+   - From `orders_raw` (T0):
+     * `total_amount` - directly used in calculating lifetime revenue
+   - From `customers_raw` (T1):
+     * `customer_id`
+     * `email`
+     * `country_code`
+     * `signup_ts`
+
+2. Intermediate Transformations:
+   - Silver Layer `customer_profile` (T4):
+     * Derives `lifetime_revenue` by summing `total_amount`
+     * Derives `revenue_quartile` based on `lifetime_revenue`
+
+3. Gold Layer `customer_ltv` (T5):
+   - `revenue_quartile` is used to determine `ltv_tier`
+   - Uses predicate rules X0, X1, X2 to map quartiles to tiers:
+     * X0 (quartile 1) → 'platinum'
+     * X1 (quartile 2) → 'gold'
+     * X2 (quartile 3) → 'silver'
+     * else → 'bronze'
+
+So the full chain of bronze columns contributing to `ltv_tier` is:
+- `orders_raw.total_amount`
+- `customers_raw.customer_id`
+- `customers_raw.email`
+- `customers_raw.country_code`
+- `customers_raw.signup_ts`
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ5] counterfactual / hard
+Q: If `NTILE(4)` in `gold/customer_ltv.py` were changed to `NTILE(10)`, what specifically changes in the lineage graph, and what changes in the data semantics of the downstream `ltv_tier` column?
+Score: None
+
+REFERENCE:
+Graph changes are MINIMAL — close to zero. The DerivesEdge for `revenue_quartile` has a `window_spec` (order_cols=[lifetime_revenue desc], no partition) and an expression that evaluates to `NTILE(4)`. Changing the literal `4` to `10` would: (a) update the expression text on that DerivesEdge but leave the edge type, source column, target column, and window_spec partition/order keys identical; (b) leave the downstream `ltv_tier` DerivesEdge structurally unchanged — it still sources from `revenue_quartile` with the same when-chain.
+
+Data semantics change is SIGNIFICANT for ltv_tier. The ltv_tier when-chain only names tiers for `revenue_quartile == 1, 2, 3`; the `.otherwise(lit('bronze'))` branch catches everything else. With NTILE(4), every customer has revenue_quartile in {1,2,3,4} and the bronze tier captures exactly quartile 4 (the bottom 25% of customers by lifetime_revenue). The other three quartiles each get a named tier (platinum=top 25%, gold=second 25%, silver=third 25%).
+
+With NTILE(10): revenue_quartile (now actually a decile) ranges over {1..10}. The when-chain still only names quartiles 1, 2, 3 as platinum/gold/silver; ALL OTHER customers — those with decile 4, 5, 6, 7, 8, 9, 10 (70% of customers) — fall into the otherwise branch as 'bronze'. So 'bronze' becomes a HUGELY dominant category, and the named tiers each represent only the top 10% rather than the top 25%. Downstream analytics expecting a balanced 25/25/25/25 split would silently see a 10/10/10/70 distribution. The graph itself does not flag this semantic shift because both NTILE(4) and NTILE(10) produce equally valid Derives edges from the same source column — the breakage is in the downstream when-chain's assumption about the range of `revenue_quartile`.
+
+No new warnings are emitted; no edge types change; only the literal `4` in the expression text changes.
+
+MODEL (anthropic/claude-3.5-haiku):
+Based on the DEGraph lineage, here's a precise analysis:
+
+1. Lineage Impact:
+   - The `revenue_quartile` column (currently using 4 buckets via `NTILE(4)`) is derived in this line of the @PROV section:
+     `T5.revenue_quartile=D:T4.lifetime_revenue;win=ord(lifetime_revenue desc)`
+
+2. Semantic Changes:
+   - Changing from `NTILE(4)` to `NTILE(10)` would increase the granularity of the revenue segmentation from 4 to 10 buckets.
+   - The predicate rules (`X0`, `X1`, `X2`) would need to be updated to match the new 10-bucket segmentation.
+
+3. Downstream Impact:
+   - The `ltv_tier` column (in the `D15` transformation) uses these predicates to map revenue quartiles to tiers:
+     `ltv_tier=rl=X0=>F.lit('platinum');X1=>F.lit('gold');X2=>F.lit('silver');else=>F.lit('bronze')`
+   - This rule would need to be modified to handle 10 buckets instead of 4.
+
+4. Specific Lineage Graph Changes:
+   - No structural changes to the edges or tables
+   - Only the predicate rules and tier mapping logic would need adjustment
+
+Recommendation: The rule would need to be expanded to map the 10 buckets to appropriate tiers, potentially creating more granular tier classifications.
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ6] producer-consumer / easy
+Q: Which file in this repo READS `main.dbdemos_ecom.customers_raw`, and is `main.dbdemos_ecom.products_raw` read by any file?
+Score: None
+
+REFERENCE:
+`customers_raw`: exactly ONE consumer — `silver/customer_profile.py` reads it via `customers_df = spark.table(f'{database}.customers_raw')`. No other file references customers_raw. Its `written_by` is also empty in this benchmark — the small benchmark does NOT include a `bronze/02_ingest_customers.py` file (the bronze ingest files present are `01_ingest_orders.py` and `03_ingest_events.py` only). So customers_raw exists in the DDL/catalog layer but has no producer file in the repo; the table is assumed to be pre-populated by an out-of-repo job. Despite the missing producer, customers_raw does NOT emit an orphan-table warning because the orphan-table category specifically requires NEITHER a reader NOR a writer; customers_raw has a reader (customer_profile.py), so it is not orphan.
+
+`products_raw`: ZERO consumers AND zero producers in this repo. No file reads it; no file writes it. It is declared in `ddl/bronze_tables.sql` but referenced nowhere in code. This is the SINGLE orphan-table in the small benchmark and is the subject of the `orphan-table` GraphWarning (the only orphan-table warning in the graph, per the existing tuning-Q10).
+
+MODEL (anthropic/claude-3.5-haiku):
+Based on the DEGraph lineage:
+
+1. `silver/customer_profile.py` reads `main.dbdemos_ecom.customers_raw` (T1). This can be seen in the `@TABLES` section where `rb=silver/customer_profile.py` is listed for T1.
+
+2. `main.dbdemos_ecom.products_raw` (T2) is NOT read by any file in this repository. This is confirmed by the `@WARN` section, which explicitly notes: "(assembler)|orphan-table|Table 'main.dbdemos_ecom.products_raw' appears in DDL but is never read or written by any file in this repo."
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ7] aggregate-semantics / medium
+Q: `gold/customer_ltv.py` contains TWO aggregations inside its `spark.sql` block. Identify both — their group keys, aggregation functions, and outputs — and describe how each feeds the downstream `ltv_vs_country_avg` and `revenue_quartile` columns.
+Score: None
+
+REFERENCE:
+Two aggregations, with very different shapes.
+
+(1) `country_avg` CTE — a CLASSIC GROUP BY aggregate. Group key: `country_code` (single key). Aggregate function: `AVG(lifetime_revenue) AS avg_country_ltv`. Source: the `base` CTE which projects 8 columns from `silver.customer_profile`. Output: ONE row per distinct country_code with the per-country mean lifetime_revenue. This aggregate is fully static (no dynamic markers) and the graph should emit a regular AggregatesEdge with `dynamic=False`, `group_keys=['country_code']`, `agg_ops=['avg']`, `output_cols=['avg_country_ltv']`.
+
+(2) `NTILE(4) OVER (ORDER BY b.lifetime_revenue DESC)` in the `ranked` CTE — a WINDOW aggregate (not a GROUP BY). Important difference: window aggregates produce one output row PER INPUT ROW, not one per group. Window spec: NO PARTITION BY clause (global ordering across the entire `base` set), order by `lifetime_revenue` DESCENDING. NTILE(4) assigns each row an integer 1..4 representing which quartile of lifetime_revenue it falls into (1 = top quartile, 4 = bottom). DEGraph emits this as a DerivesEdge with `window_spec` populated, NOT as an AggregatesEdge — the schema distinguishes group-by aggregates from window-function derivations.
+
+Feed paths to downstream columns:
+- `ltv_vs_country_avg` (in the `ranked` CTE) = `b.lifetime_revenue / NULLIF(ca.avg_country_ltv, 0)` — sources `lifetime_revenue` from `base b` and `avg_country_ltv` from `country_avg ca` joined via `LEFT JOIN ... USING (country_code)`. So `ltv_vs_country_avg` depends on the (1) country_avg AGGREGATE.
+- `revenue_quartile` = `NTILE(4) OVER (...)` — sources ONLY `lifetime_revenue` (no country_avg involvement). So `revenue_quartile` depends on the (2) NTILE WINDOW only.
+
+The two aggregations are SIBLINGS — neither depends on the other; they both consume `base.lifetime_revenue`. The downstream `ltv_tier` depends only on `revenue_quartile` (and thus only on the window aggregate), not on `ltv_vs_country_avg`.
+
+MODEL (anthropic/claude-3.5-haiku):
+Based on the DEGraph lineage, I'll analyze the aggregations in `gold/customer_ltv.py`:
+
+1st Aggregation (in D10|D11):
+- Group Key: `country_code`
+- Aggregation Function: `avg(lifetime_revenue)`
+- Output Column: `avg_country_ltv`
+- Purpose: Calculates the average lifetime revenue per country
+- Feeds: `ltv_vs_country_avg` column via a left join (D10|D11|D12)
+
+2nd Aggregation (in D26|D27):
+- Group Key: `customer_id, email, country_code, signup_ts`
+- Aggregation Functions:
+  - `count(order_id)` → `total_orders`
+  - `sum(total_amount)` → `lifetime_revenue`
+  - `max(order_ts)` → `last_order_ts`
+  - `max(event_ts_last_event)` → `last_event_ts`
+  - `countDistinct(product_id)` → `distinct_products_ordered`
+- Output: Writes to `T4` (customer_profile table)
+- Indirectly feeds `revenue_quartile` via the window specification on `lifetime_revenue`
+
+The aggregations work together to compute customer lifetime value metrics at both country and individual customer levels.
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ8] window-function-impact / medium
+Q: The `NTILE(4)` window in `gold/customer_ltv.py` has an ORDER BY but no PARTITION BY. What does this mean semantically, and how would the data semantics of `revenue_quartile` change if you added `PARTITION BY country_code`?
+Score: None
+
+REFERENCE:
+Current behavior (`OVER (ORDER BY b.lifetime_revenue DESC)` with NO partition): NTILE buckets the ENTIRE customer base into 4 globally-equal-sized groups by descending lifetime_revenue. Quartile 1 = the top 25% of customers by revenue ACROSS THE WHOLE DATASET, regardless of country. A small country with mostly low-revenue customers might have zero quartile-1 customers; a large country might dominate quartile 1. The boundary thresholds are global revenue percentiles.
+
+Graph representation: the DerivesEdge for `revenue_quartile` has `window_spec` with `order_cols=['lifetime_revenue desc']` and `partition_cols=[]` (empty). The empty partition list is the structural fingerprint of a global window.
+
+If changed to `PARTITION BY country_code`: NTILE would bucket WITHIN EACH COUNTRY separately. Every country (with any customers at all) would have exactly some Q1 customers — the top 25% of customers IN THAT COUNTRY by revenue. A high-spending US customer might rank in quartile 1 nationally and quartile 1 globally; a high-spending customer in a tiny country with only 3 other customers would also get quartile 1 even if their absolute revenue is mid-range globally. The graph DerivesEdge would now have `partition_cols=['country_code']`, which is the only structural change.
+
+Downstream impact on `ltv_tier`: the when-chain mapping (quartile 1→platinum, 2→gold, 3→silver, otherwise→bronze) doesn't change syntactically, but the SEMANTIC POPULATION of each tier shifts. With country-partitioned NTILE, EVERY country contributes platinum/gold/silver/bronze customers proportionally — useful for per-country marketing campaigns. With global NTILE, the platinum tier may be heavily concentrated in a few high-spending markets. Same column name, very different business meaning.
+
+The `ltv_vs_country_avg` column is independent of this change — it uses the country_avg AGGREGATE (a group-by), not the NTILE window — so it would not be affected by adding the partition.
+
+MODEL (anthropic/claude-3.5-haiku):
+Based on the DEGraph lineage, I can analyze the current implementation of the revenue quartile calculation:
+
+Current Implementation:
+- In the @PROV section, `T5.revenue_quartile=D:T4.lifetime_revenue;win=ord(lifetime_revenue desc)` shows a window function ordering by lifetime revenue in descending order, but with NO partition.
+
+Semantic Meaning:
+- Without a PARTITION BY, the NTILE(4) will divide the ENTIRE dataset into 4 equal-sized buckets based on lifetime_revenue
+- This means the quartile is calculated across ALL customers globally, not segmented by any group
+
+If you added `PARTITION BY country_code`:
+- The quartile calculation would be LOCAL to each country
+- Each country would have its own independent 1-4 quartile ranking
+- A customer with high lifetime revenue in a low-spending country could be in quartile 4 locally, whereas they might have been in a lower quartile in the global ranking
+
+The change would make the quartile a relative measure within each country's customer base, providing a more localized view of customer spending distribution.
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ9] custom-sink / medium
+Q: In `gold/product_performance.py`, the `DeltaMergeSink` is instantiated with three kwargs and then `.run(daily_perf)` is called. Name the three kwargs and their values, and describe how DEGraph resolves the f-string `target_table=f'{database}.product_performance'` into a concrete table FQN given that `database` is imported via `%run ../_resources/setup`.
+Score: None
+
+REFERENCE:
+Three kwargs at the call site: (1) `target_table=f'{database}.product_performance'` — an f-string referencing the `database` symbol with a literal `.product_performance` suffix; (2) `merge_keys=['product_id', 'order_date']` — a literal list of two column names defining the merge join condition (SCD-Type-1 on (product, day) grain); (3) `mode='merge'` — the write mode literal. After instantiation, `sink.run(daily_perf)` is the actual write trigger; `daily_perf` is the DataFrame produced by the groupBy+agg step.
+
+Resolution of the f-string: DEGraph's SafeEvaluator handles this via the `%run ../_resources/setup` mechanism plus the cell-aware notebook preprocessor (per Decision 3.6 in methodology). The `%run` directive cross-includes `_resources/setup.py` into the file's symbol namespace at extraction time; `setup.py` defines `database = 'main.dbdemos_ecom'` (or similar — the literal string is what matters). When the extractor reaches the f-string `f'{database}.product_performance'`, the SafeEvaluator looks up `database` in the now-merged symbol table, sees the literal `'main.dbdemos_ecom'`, and computes the f-string result as `'main.dbdemos_ecom.product_performance'`. This becomes the `target` of the WritesEdge — no `<unresolved>` marker, no GraphWarning.
+
+This is the registered-sink-with-resolvable-target happy path. Contrast with what would happen if `database` came from `os.environ.get('DB_NAME')` instead of a literal in setup.py: SafeEvaluator cannot resolve env-var lookups, so the target would be `<unresolved>` and the WritesEdge would be emitted with that marker plus a dynamic-target GraphWarning. The benchmark does not exercise that path; the small-benchmark sinks all resolve cleanly.
+
+MODEL (anthropic/claude-3.5-haiku):
+I apologize, but I cannot fully answer this question based solely on the provided DEGraph lineage graph. The DEGraph context does not include the actual source code of `gold/product_performance.py` or the `_resources/setup` script, so I cannot definitively state the three kwargs or how the f-string is resolved.
+
+From the DEGraph, I can only confirm:
+1. The target table is `main.dbdemos_ecom.product_performance` (T7 in the lineage)
+2. A `DeltaMergeSink` is used in the write operation
+3. Merge keys are `product_id` and `order_date`
+
+To fully answer the question, I would need to see the actual source code of the referenced files.
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ10] coverage-of-unknowns / medium
+Q: Suppose `utils.event_parsers.parse_event_payload` were registered in `.degraph/helpers.json` with `kind=passthrough`. Which of the three current GraphWarnings would change or disappear, what new column-set propagation would become possible, and what would still be unknown to DEGraph?
+Score: None
+
+REFERENCE:
+Current state (per tuning Q10): three warnings — `orphan-table` for `products_raw`, `opaque-call-fallback` for `parse_event_payload`, `dynamic-aggregation` for product_performance.py.
+
+After registering `parse_event_payload` as `kind=passthrough`:
+
+(1) `opaque-call-fallback` warning DISAPPEARS. The warning fires only when an unrecognized helper is called; once registered, the extractor no longer emits the fallback warning. The OpaqueTransform edge for the call site at `bronze/03_ingest_events.py:53` changes from `is_passthrough=false`, `opaque_kind=unknown` to `is_passthrough=true`, `opaque_kind=passthrough`.
+
+(2) `orphan-table` warning for products_raw IS UNCHANGED. The orphan-table category is about table-level connectivity (writer + reader presence), unrelated to helper registration. products_raw still has no producer or consumer in the repo.
+
+(3) `dynamic-aggregation` warning for product_performance.py is UNCHANGED. The dynamic-aggregation warning is triggered by the runtime-loaded JSON config in product_performance.py (`os.environ.get('METRIC_CONFIG_PATH')` + `json.load(f)`), which has nothing to do with parse_event_payload.
+
+NEW propagation enabled: with passthrough registration, DEGraph asserts that parse_event_payload preserves the INPUT column set. But — and this is the critical caveat — the docstring of parse_event_payload (and the file-level commentary in bronze/03_ingest_events.py per the existing Q10 reference) says the helper actually DROPS `payload` and ADDS `page_url`, `referrer`, `user_agent`, `cart_total`. So registering it as `passthrough` would be INCORRECT — DEGraph would emit edges that misrepresent the column set. The correct registration for this helper would not be a simple `passthrough` but something richer (or a `kind=opaque` + an explicit column-rewrite spec, which the current registry schema does not support without an extension).
+
+What would STILL be unknown after the (hypothetical, incorrect) passthrough registration: column-level lineage through parse_event_payload. Even with `is_passthrough=true`, DEGraph does not know which output column derives from which input column inside the helper — passthrough is a column-SET claim, not a per-column derivation. So even after registration, a question like 'which input column does page_url depend on?' is still unanswerable from the graph.
+
+Summary: registration would silence one warning but at the cost of structurally incorrect lineage; the correct fix is to either (a) extend the registry to support `kind=column_rewrite` with explicit drop/add lists, or (b) leave it unregistered and let the opaque-call-fallback warning honestly flag the gap. The benchmark's current state (unregistered) is the more honest representation.
+
+MODEL (anthropic/claude-3.5-haiku):
+Let's analyze this systematically:
+
+1. Current Warnings:
+   - Bronze events ingest has an unregistered function `utils.event_parsers.parse_event_payload`
+   - Product performance has a dynamic aggregation with star-unpacked runtime variable
+   - `products_raw` table is an orphan (never read/written)
+
+2. If `parse_event_payload` were registered as `passthrough`:
+   - The first warning about the unregistered function would disappear
+   - DEGraph would now understand that the column set is unchanged by this operation
+   - Column-set propagation would become fully predictable for the events parsing step
+
+3. What would still be unknown:
+   - The content/transformation of the payload itself
+   - The specific runtime-variable aggregation in product performance
+   - The orphan `products_raw` table status
+
+4. Remaining Warnings:
+   - The dynamic aggregation warning would persist
+   - The orphan table warning would remain unchanged
+
+The key change is that DEGraph would now have explicit knowledge about the column preservation during the event payload parsing step, removing the "opaque-call-fallback" warning.
+
+Notes: 
+-----------------------------------------------------------------

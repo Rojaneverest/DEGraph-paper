@@ -1,0 +1,33 @@
+{
+  "runs": [
+    {
+      "meta": {
+        "backend": "openrouter",
+        "model": "google/gemini-3.1-flash-lite-20260507",
+        "context_mode": "raw_source",
+        "context_tokens": 23683,
+        "timestamp": "20260519_222801",
+        "context_limit": null
+      },
+      "scores": {
+        "message": "No scores yet \u2014 grade results manually then re-run with --score"
+      },
+      "results": [
+        {
+          "id": "Q1",
+          "category": "direct-cross-file-impact",
+          "difficulty": "medium",
+          "question": "If the column `customer_id` in `main.dbdemos_ecom.orders_raw` is renamed to `cust_id`, which silver and gold tables in this repo need updating? List each affected table and the reason it is affected.",
+          "context_mode": "raw_source",
+          "context_tokens": 23683,
+          "prompt_tokens": 23810,
+          "reference_answer": "Per the graph, `orders_raw` is read by 4 silver files: `silver/orders_cleaned.py`, `silver/customer_profile.py`, `silver/refunds_enriched.py`, and `silver/shipments_timeline.py`. Affected silver tables: (1) `silver.orders_cleaned` \u2014 `customer_id` passes through the column-set propagation chain (trim \u2192 withColumns \u2192 drop \u2192 filter) unchanged. (2) `silver.customer_profile` \u2014 `customer_id` is the join key with `customers_raw` and a `groupBy` key in the aggregate. (3) `silver.refunds_enriched` \u2014 the file joins refunds \u2192 returns \u2192 orders, and `customer_id` propagates from `orders_raw` into the silver output. (4) `silver.shipments_timeline` \u2014 joins shipments with `orders_raw.select(order_id, customer_id)`; the renamed column breaks that select. Affected gold tables: (5) `gold.customer_ltv` \u2014 inherits from `customer_profile` via the SQL `base` CTE. (6) `gold.customer_return_rate` \u2014 joins `customer_profile` (via customer_id). (7) `gold.revenue_forecast_features` \u2014 inherits from `customer_ltv`. NOT affected: `silver.returns_cleaned` (reads `returns_raw` not `orders_raw`), `silver.inventory_daily`, `silver.marketing_touchpoints`, `gold.product_performance` (groups by product_id and order_date only), `gold.inventory_turnover_daily`, `gold.attribution_funnel_daily` (the orders_cleaned-side branch uses order_id and order_date, not customer_id directly).",
+          "model_answer": "Based on the provided source code, renaming `customer_id` to `cust_id` in `main.dbdemos_ecom.orders_raw` would break the following downstream tables:\n\n### Silver Layer\n1.  **`silver/customer_profile.py`**: This notebook performs an inner join between `customers_raw` and `orders_raw` on the `customer_id` column. The join operation will fail because the column name no longer exists in the `orders_raw` source.\n2.  **`silver/refunds_enriched.py`**: This notebook joins `refunds_raw` to `returns_raw` and then to `orders_raw` on `order_id`. While the join itself is on `order_id`, the resulting `enriched` DataFrame includes all columns from `orders_raw`. The downstream logic (and any subsequent gold tables relying on this silver table) will be impacted by the missing `customer_id` column.\n3.  **`silver/shipments_timeline.py`**: This notebook performs an inner join between the aggregated shipment timeline and `orders_raw` on `order_id`. Similar to `refunds_enriched`, it explicitly selects `customer_id` from `orders_raw` to enrich the silver table. This selection will fail.\n\n### Gold Layer\n1.  **`gold/attribution_funnel_daily.py`**: This notebook joins `orders_cleaned` (which is derived from `orders_raw`) to `marketing_touchpoints` using `customer_id`. Since `orders_cleaned` is built from `orders_raw`, the column rename will propagate through the silver layer, breaking the join in this gold table.\n2.  **`gold/customer_ltv.py`**: While this table is built from `customer_profile`, it relies on the schema produced by `silver/customer_profile.py`. If the silver table is updated to reflect the rename, this gold table's SQL block (which selects `customer_id`) will need to be updated to select `cust_id`.\n3.  **`gold/customer_return_rate.py`**: This notebook joins `customer_profile` and `returns_cleaned`. It selects `customer_id` from `customer_base` (derived from `customer_profile`). If the upstream silver tables are updated, this gold table must be updated to reference the new column name.\n4.  **`gold/revenue_forecast_features.py`**: This notebook joins `customer_ltv` and other tables. It relies on the `customer_id` column being present in the `ltv` DataFrame. If the upstream gold/silver tables are updated to use `cust_id`, this table's join and grouping logic will require updates.\n\n**Note:** Any table that performs a `SELECT *` or explicitly references `customer_id` in its SQL/PySpark logic will require a code change to point to the new `cust_id` column name.",
+          "elapsed_s": 4.61,
+          "score": null,
+          "notes": ""
+        }
+      ]
+    }
+  ]
+}

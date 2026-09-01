@@ -1,0 +1,394 @@
+DEGraph Q&A Experiment Report
+=================================================================
+Backend:   openrouter / meta-llama/llama-3.3-70b-instruct
+Mode:      raw_source
+Tokens:    ~11,405
+Timestamp: 20260528_231821
+
+AGGREGATE SCORES
+----------------------------------------
+  Not graded yet. Edit the JSON file and set 'score' for each answer.
+
+INDIVIDUAL ANSWERS
+=================================================================
+
+[HQ1] struct-array-shape / medium
+Q: What is the schema and population logic of the `other_diagnoses` column? List each field inside the inner struct, where each comes from, and describe how null entries are removed.
+Score: None
+
+REFERENCE:
+`other_diagnoses` is an `array<struct>` of up to 5 ranked-diagnosis records, built by a Python loop over `range(1, MAX_DIAG + 1)` with `MAX_DIAG = 5`. For each rank `i`, a struct is wrapped in `when(col(f'diagnosis_{i}_code').isNotNull(), struct(...))` so absent ranks become array elements of NULL. The inner struct has exactly 8 fields, in this order: (1) `reference_id` — `lit(None).cast('string')` (always NULL placeholder); (2) `sequence_number` — `diagnosis_{i}_priority`; (3) `codeset` — `diagnosis_{i}_code`; (4) `codeset_display` — `diagnosis_{i}_description`; (5) `diagnosis_type` — `diagnosis_{i}_type`; (6) `present_on_admission_code` — `diagnosis_{i}_poa`; (7) `codeset_system` — `lit('ICD-10-CM')` (always the literal string 'ICD-10-CM'); (8) `diagnosis_group` — `lit(None).cast('string')` (always NULL placeholder). The 5 conditional structs are wrapped in `array(*diag_structs)` to produce an intermediate column `other_diagnoses_raw`, then `array_sort(expr("filter(other_diagnoses_raw, x -> x is not null)"))` drops the NULL elements (ranks with no matching diagnosis) and alphabetically sorts what remains by the natural struct ordering. The intermediate `other_diagnoses_raw` is then dropped from the DataFrame.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+The `other_diagnoses` column is an array of structs, where each struct represents a diagnosis. The schema of the inner struct is as follows:
+
+* `reference_id`: set to `None` (comes from `lit(None).cast("string")`)
+* `sequence_number`: comes from `diagnosis_{i}_priority` (e.g. `diagnosis_1_priority`, `diagnosis_2_priority`, etc.)
+* `codeset`: comes from `diagnosis_{i}_code` (e.g. `diagnosis_1_code`, `diagnosis_2_code`, etc.)
+* `codeset_display`: comes from `diagnosis_{i}_description` (e.g. `diagnosis_1_description`, `diagnosis_2_description`, etc.)
+* `diagnosis_type`: comes from `diagnosis_{i}_type` (e.g. `diagnosis_1_type`, `diagnosis_2_type`, etc.)
+* `present_on_admission_code`: comes from `diagnosis_{i}_poa` (e.g. `diagnosis_1_poa`, `diagnosis_2_poa`, etc.)
+* `codeset_system`: set to `"ICD-10-CM"` (comes from `lit("ICD-10-CM")`)
+* `diagnosis_group`: set to `None` (comes from `lit(None).cast("string")`)
+
+Null entries are removed using the `filter` function, which filters out any null values from the `other_diagnoses_raw` array. The `other_diagnoses_raw` array is created using the `array` function, which creates an array of structs, where each struct represents a diagnosis. The `when` function is used to check if the `diagnosis_{i}_code` is not null, and if so, creates a struct with the corresponding fields. If the `diagnosis_{i}_code` is null, the `when` function returns null, which is then filtered out by the `filter` function.
+
+The population logic can be summarized as follows:
+
+1. Create an array of structs, where each struct represents a diagnosis, using the `array` function.
+2. Use the `when` function to check if the `diagnosis_{i}_code` is not null, and if so, create a struct with the corresponding fields.
+3. Use the `filter` function to remove any null values from the `other_diagnoses_raw` array.
+4. Assign the filtered array to the `other_diagnoses` column.
+
+The relevant code snippet is:
+```python
+diag_structs = []
+for i in range(1, MAX_DIAG + 1):
+    diag_structs.append(
+        when(
+            col(f"diagnosis_{i}_code").isNotNull(),
+            struct(
+                lit(None).cast("string").alias("reference_id"),
+                col(f"diagnosis_{i}_priority").alias("sequence_number"),
+                col(f"diagnosis_{i}_code").alias("codeset"),
+                col(f"diagnosis_{i}_description").alias("codeset_display"),
+                col(f"diagnosis_{i}_type").alias("diagnosis_type"),
+                col(f"diagnosis_{i}_poa").alias("present_on_admission_code"),
+                lit("ICD-10-CM").alias("codeset_system"),
+                lit(None).cast("string").alias("diagnosis_group"),
+            ),
+        )
+    )
+
+pivoted_diag_df = (
+    pivoted_diag_df
+    .withColumn("other_diagnoses_raw", array(*diag_structs))
+    .withColumn(
+        "other_diagnoses",
+        array_sort(expr("filter(other_diagnoses_raw, x -> x is not null)")),
+    )
+    .drop("other_diagnoses_raw")
+)
+```
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ2] rule-logic / hard
+Q: How exactly is a claim classified as `'Maternity'` in the `claim_category` column? Which specific columns are scanned, and what code range is the test against?
+Score: None
+
+REFERENCE:
+A claim is classified as `'Maternity'` iff (a) the higher-precedence Behavioral Health predicate did NOT fire (since claim_category is a first-match chain with BH ordered before Maternity), AND (b) the Maternity predicate `cond_maternity` evaluates to true. The Maternity predicate is implemented entirely in `F.expr(...)` SQL: it `flatten(array(...))` of SIX diagnosis-code columns — `primary_diag_code_hdr`, `diagnosis_1_code`, `diagnosis_2_code`, `diagnosis_3_code`, `diagnosis_4_code`, `diagnosis_5_code` — then `filter(..., x -> x is not null AND trim(x) != '')` to drop nulls and whitespace-only entries, then `exists(..., d -> upper(trim(d)) >= 'O00' AND upper(trim(d)) <= 'O9A')` to test whether ANY remaining code lies in the ICD-10 O-chapter (obstetric / maternity / puerperium codes, O00 through O9A). Two key contrasts with the Behavioral Health predicate (Q2 reference): (i) BH only checks `primary_diag_code_hdr`, Maternity checks the primary PLUS all 5 ranked diagnosis columns; (ii) BH uses chained PySpark Column predicates with `&`, Maternity is a single `F.expr` SQL string using flatten/filter/exists.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+A claim is classified as `'Maternity'` in the `claim_category` column if any diagnosis code in the columns `primary_diag_code_hdr`, `diagnosis_1_code`, `diagnosis_2_code`, `diagnosis_3_code`, `diagnosis_4_code`, or `diagnosis_5_code` falls within the ICD-10 code range `'O00'` to `'O9A'`.
+
+This is implemented in the `build_claim_criteria` function as follows:
+```python
+cond_maternity = F.expr("""
+    exists(
+        filter(
+            flatten(array(
+                primary_diag_code_hdr,
+                diagnosis_1_code, diagnosis_2_code,
+                diagnosis_3_code, diagnosis_4_code, diagnosis_5_code
+            )),
+            x -> x is not null AND trim(x) != ''
+        ),
+        d -> upper(trim(d)) >= 'O00' AND upper(trim(d)) <= 'O9A'
+    )
+""")
+```
+This condition checks if any of the diagnosis codes in the specified columns are not null, not empty, and have a value within the range `'O00'` to `'O9A'` (inclusive). If such a code is found, the claim is classified as `'Maternity'`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ3] rule-logic / medium
+Q: Describe the `'Inpatient Rehabilitation'` category predicate. What two conditions must BOTH be satisfied, and what specific revenue codes are checked?
+Score: None
+
+REFERENCE:
+A claim qualifies as Inpatient Rehabilitation iff BOTH of the following hold (compound AND): (1) `upper(trim(type_of_bill_hdr))` matches the SQL `LIKE '11%'` pattern — i.e. the Type of Bill string starts with the two characters '11' (inpatient facility classification), tested case-insensitively after trimming; AND (2) an `exists(...)` over the `revenue_code_list` array returns true, where the lambda is `x -> x is not null AND trim(x) != '' AND lpad(regexp_replace(trim(x), '[^0-9]', ''), 4, '0') IN ('0118', '0128', '0129', '0138', '0158')`. The revenue-code test normalizes each entry by trimming, stripping non-digit characters via `regexp_replace(..., '[^0-9]', '')`, left-padding to 4 digits with `lpad(..., 4, '0')`, and then membership-testing against the literal CMS rehabilitation revenue-code set `{0118, 0128, 0129, 0138, 0158}`. The TOB-only condition is necessary but not sufficient; the revenue-code-only condition is necessary but not sufficient; only their conjunction classifies the claim as Inpatient Rehabilitation. This is in contrast to the Hospice predicate (TOB '81%' + a different revenue set {0651, 0652, 0655, 0656}) and the Home Health predicate (TOB '32%' OR '33%' alone, no revenue check).
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+The `'Inpatient Rehabilitation'` category predicate is defined as follows:
+
+*   Two conditions must BOTH be satisfied:
+    1.  The Type of Bill (TOB) code must be `11x` (Inpatient Rehabilitation).
+    2.  The claim must contain specific rehabilitation revenue codes.
+*   The specific revenue codes checked are:
+    *   `0118`
+    *   `0128`
+    *   `0129`
+    *   `0138`
+    *   `0158`
+
+These conditions are implemented in the `build_claim_criteria` function as follows:
+
+```python
+cond_rehab = (
+    F.upper(F.trim(F.col("type_of_bill_hdr"))).like("11%")
+    & F.expr("""
+        exists(
+            revenue_code_list,
+            x -> x is not null
+                AND trim(x) != ''
+                AND lpad(regexp_replace(trim(x), '[^0-9]', ''), 4, '0')
+                    IN ('0118', '0128', '0129', '0138', '0158')
+        )
+    """)
+)
+```
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ4] join-condition / hard
+Q: Inside the `provider_specialty_df` `spark.sql` block, what is the full chain of CTEs and how are they joined together? Specify the ON clauses, join types, the role of `provider_rank`, and which CTE supplies the `any_pcp_flag` signal.
+Score: None
+
+REFERENCE:
+The CTE chain has three named CTEs followed by an outer SELECT — four logical steps. (1) `ranked_providers` — `SELECT ... FROM {BRONZE}.claim_provider WHERE provider_role = 'Rendering'` with `ROW_NUMBER() OVER (PARTITION BY claim_id ORDER BY seq_num DESC NULLS LAST) AS provider_rank` appended. (2) `primary_provider` — `FROM ranked_providers rp LEFT JOIN {BRONZE}.provider_registry pr ON rp.rendering_npi = pr.npi AND rp.taxonomy_code = pr.taxonomy_code WHERE rp.provider_rank = 1`. The join is a TWO-KEY LEFT JOIN (rendering_npi AND taxonomy_code paired) and the `WHERE rp.provider_rank = 1` keeps only the top-ranked rendering provider per claim. Returns specialty_code_reg, specialty_desc_reg, is_pcp_eligible_reg, taxonomy_group_reg from the registry. (3) `any_pcp_signal` — `FROM ranked_providers rp LEFT JOIN {BRONZE}.provider_registry pr ON rp.rendering_npi = pr.npi AND rp.taxonomy_code = pr.taxonomy_code GROUP BY rp.claim_id` with `MAX(CASE WHEN pr.is_pcp_eligible = true THEN 1 ELSE 0 END) AS any_pcp_flag` and `COUNT(DISTINCT rp.rendering_npi) AS distinct_rendering_npis`. Same two-key LEFT JOIN as `primary_provider` but WITHOUT the rank=1 filter, so all rendering providers contribute to the aggregation. (4) Outer SELECT — `FROM primary_provider pp LEFT JOIN any_pcp_signal aps ON pp.claim_id = aps.claim_id` — a single-key claim-level LEFT JOIN combining the rank-1 primary provider columns with the claim-level any-PCP flag. Result: one row per claim with the primary rendering NPI's registry details plus the any-PCP indicator and distinct-rendering-NPI count.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+Inside the `provider_specialty_df` `spark.sql` block, the full chain of CTEs is as follows:
+
+1. `ranked_providers`: This CTE ranks the `claim_provider` rows within each claim by `seq_num` in descending order (so the most recently added record wins on ties). The `provider_rank` column is assigned using the `ROW_NUMBER()` function.
+
+2. `primary_provider`: This CTE joins `ranked_providers` with `provider_registry` on two columns: `rendering_npi` and `taxonomy_code`. The join type is `LEFT JOIN`, and only the top-ranked provider for each claim is considered (i.e., `provider_rank = 1`).
+
+3. `any_pcp_signal`: This CTE generates the `any_pcp_flag` signal by checking if any rendering provider on the claim is PCP-eligible. It joins `ranked_providers` with `provider_registry` on `rendering_npi` and `taxonomy_code`, and then groups the results by `claim_id`. The `any_pcp_flag` is set to 1 if at least one PCP-eligible provider is found for the claim.
+
+The final result is obtained by joining `primary_provider` with `any_pcp_signal` on the `claim_id` column.
+
+Here's a summary of the joins:
+
+- `ranked_providers` → `primary_provider`: No direct join; `primary_provider` uses the ranked results from `ranked_providers`.
+- `ranked_providers` → `any_pcp_signal`: The `any_pcp_signal` CTE uses the same ranked results as `primary_provider`.
+- `primary_provider` → `any_pcp_signal`: `LEFT JOIN` on `claim_id`.
+
+The `provider_rank` column plays a crucial role in identifying the top-ranked provider for each claim, which is then used to join with the `provider_registry` and generate the `any_pcp_flag` signal. The `any_pcp_flag` signal is supplied by the `any_pcp_signal` CTE.
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ5] column-derive / medium
+Q: How is `member_uid` derived? What happens when `member_uid_mbr` (from `bronze.member_eligibility`) is NULL?
+Score: None
+
+REFERENCE:
+`member_uid` is derived as `coalesce(col('member_uid_mbr'), concat_ws('_', col('subscriber_id_hdr'), col('member_seq_hdr')))`. Preference order: (1) Use `member_uid_mbr` — the member_uid value carried on the bronze.member_eligibility record (suffixed `_mbr` by `suffix_rename` before the join cascade) when non-null; (2) Otherwise, fall back to a constructed surrogate key by joining `subscriber_id_hdr` and `member_seq_hdr` from the claim header with an underscore separator via `concat_ws('_', ..., ...)`. The behavior of `concat_ws` on null inputs is to skip nulls (treat as empty), not to propagate null — so if `member_uid_mbr` is NULL and `subscriber_id_hdr='S123'` and `member_seq_hdr=NULL`, the result is the string `'S123'` (no trailing underscore, no NULL). The final `member_uid` column is NULL only if `member_uid_mbr` is NULL AND BOTH `subscriber_id_hdr` and `member_seq_hdr` are NULL (concat_ws of all-null produces empty string in Spark, but coalesce would still surface that empty string rather than NULL — so strictly, member_uid is NULL only when all three of member_uid_mbr / subscriber_id_hdr / member_seq_hdr are NULL, otherwise it is a non-null possibly-empty string). `member_uid` is then used both as a top-level silver column and as the left half of the `coverage_plans.policy_id` concat_ws expression.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+`member_uid` is derived using the following expression:
+
+```python
+final_df = final_df.withColumn(
+    "member_uid",
+    coalesce(
+        col("member_uid_mbr"),
+        concat_ws("_", col("subscriber_id_hdr"), col("member_seq_hdr")),
+    ),
+)
+```
+
+When `member_uid_mbr` (from `bronze.member_eligibility`) is NULL, the `coalesce` function will return the result of the `concat_ws` function, which concatenates `subscriber_id_hdr` and `member_seq_hdr` with an underscore (`_`) separator. This ensures that `member_uid` will always have a value, even if `member_uid_mbr` is NULL.
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ6] window-tiebreak / medium
+Q: Inside the `provider_specialty_df` SQL CTE, what window function is used to pick the primary rendering provider per claim? Give the full PARTITION BY / ORDER BY specification, and explain how it differs from the diagnosis-ranking Window in the PySpark section.
+Score: None
+
+REFERENCE:
+The CTE uses `ROW_NUMBER() OVER (PARTITION BY claim_id ORDER BY seq_num DESC NULLS LAST) AS provider_rank` inside `ranked_providers`. Partition key: `claim_id` (one ranking sequence per claim). Sort: `seq_num` DESCENDING with NULLS LAST. DESC means the LATEST/HIGHEST `seq_num` value wins — interpreted as the most-recently-added rendering-provider record on the claim. The `WHERE rp.provider_rank = 1` in the downstream `primary_provider` CTE keeps only that rank-1 row per claim. There is no secondary tiebreaker, so two records with identical seq_num are non-deterministically ordered relative to each other (Spark may pick either).
+
+Differences from the diagnosis-ranking Window (`Window.partitionBy('claim_id_hdr').orderBy(F.col('diag_priority').asc_nulls_last(), F.col('icd10_code').asc_nulls_last())`): (a) Implementation site — diag window is a PySpark `Window` object built via `Window.partitionBy().orderBy()` then passed to `.over(diag_rank_window)`; provider window is inline SQL inside `spark.sql("""...""")` using `OVER (PARTITION BY ... ORDER BY ...)`. (b) Sort direction — diag is ASCENDING (lowest priority number / earliest ICD-10 code wins, i.e. clinically most significant); provider is DESCENDING (highest seq_num wins, i.e. latest-added). (c) Tiebreaker — diag has a two-key sort (priority, then code as tiebreaker); provider has a single ordering key (seq_num). (d) Filter use — diag rank is consumed by a wide-pivot `MAX(CASE WHEN diag_rank = i THEN ...)`; provider rank is consumed by `WHERE provider_rank = 1` to keep just the top row.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+Inside the `provider_specialty_df` SQL CTE, the window function used to pick the primary rendering provider per claim is `ROW_NUMBER()`. The full PARTITION BY / ORDER BY specification is:
+
+```sql
+ROW_NUMBER() OVER (
+    PARTITION BY claim_id
+    ORDER BY seq_num DESC NULLS LAST
+)
+```
+
+This window function assigns a unique row number to each row within a partition of the result set. The partitioning is done by `claim_id`, meaning that the row numbering starts over for each unique `claim_id`. The rows are ordered by `seq_num` in descending order, with null values placed last.
+
+In contrast, the diagnosis-ranking Window in the PySpark section uses `row_number()` with the following specification:
+
+```python
+diag_rank_window = Window.partitionBy("claim_id_hdr").orderBy(
+    F.col("diag_priority").asc_nulls_last(),
+    F.col("icd10_code").asc_nulls_last(),
+)
+```
+
+The key differences between these two window functions are:
+
+1. **Ordering columns**: The `provider_specialty_df` window orders by `seq_num` in descending order, while the diagnosis-ranking window orders by `diag_priority` and `icd10_code` in ascending order.
+2. **Null handling**: Both windows use `NULLS LAST` or `asc_nulls_last()` to place null values last in the ordering. However, the `provider_specialty_df` window uses the SQL `NULLS LAST` clause, while the diagnosis-ranking window uses the PySpark `asc_nulls_last()` function.
+3. **Purpose**: The `provider_specialty_df` window is used to select the primary rendering provider per claim, based on the `seq_num` column. The diagnosis-ranking window is used to rank diagnoses within a claim, based on `diag_priority` and `icd10_code`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ7] struct-array-shape / medium
+Q: What is the schema of the `identifiers` column? How many entries are in the array, what is the struct-of-struct shape, and which entry uses a derived (computed) identifier rather than a direct column passthrough?
+Score: None
+
+REFERENCE:
+`identifiers` is an `array<struct>` with exactly 6 entries built statically (no loop, no conditional `when`, no filter step). Each entry is a struct with 2 outer fields: `key` (a string literal label) and `value` (a nested struct with 4 fields). The inner `value` struct schema is uniform across all 6 entries: (i) `reference_id` — `lit(None).cast('string')` (always NULL placeholder); (ii) `identifier_type` — a string literal that equals the outer `key`; (iii) `identifier` — the actual identifier value; (iv) `identifier_source` — `lit('meridian')` (always the literal string 'meridian'). The 6 entries are:
+1. key='claim_id', identifier=`col('claim_id_hdr')` (direct column);
+2. key='subscriber_id', identifier=`col('subscriber_id_hdr')` (direct column);
+3. key='member_id', identifier=`col('member_id_hdr')` (direct column);
+4. key='payer_claim_control_number', identifier=`col('icn_hdr')` (direct column, ICN = internal control number);
+5. key='provider_claim_id', identifier=`concat_ws('_', col('claim_id_hdr'), col('billing_npi_prov'))` — THE ONLY DERIVED ENTRY: joins the claim_id and the billing-provider NPI with an underscore separator;
+6. key='group_number', identifier=`col('group_number_hdr')` (direct column).
+Entries 1–4 and 6 are pure column-passthrough; entry 5 ('provider_claim_id') is the only computed identifier in the array.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+The schema of the `identifiers` column is an array of structs, where each struct has two fields: `key` and `value`. The `value` field is itself a struct with the following fields:
+- `reference_id`: a string
+- `identifier_type`: a string
+- `identifier`: a string
+- `identifier_source`: a string
+
+There are 6 entries in the array:
+1. `claim_id`
+2. `subscriber_id`
+3. `member_id`
+4. `payer_claim_control_number`
+5. `provider_claim_id`
+6. `group_number`
+
+The entry that uses a derived (computed) identifier rather than a direct column passthrough is `provider_claim_id`. Its `identifier` field is computed by concatenating `claim_id_hdr` and `billing_npi_prov` using the `concat_ws` function. 
+
+Here is the relevant code snippet:
+```python
+struct(
+    lit("provider_claim_id").alias("key"),
+    struct(
+        lit(None).cast("string").alias("reference_id"),
+        lit("provider_claim_id").alias("identifier_type"),
+        concat_ws("_", col("claim_id_hdr"), col("billing_npi_prov")).alias("identifier"),
+        lit("meridian").alias("identifier_source"),
+    ).alias("value"),
+)
+```
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ8] join-condition / medium
+Q: After the per-table aggregations and pivots are built, `final_df` is constructed by cascading `.join()` calls on `claim_hdr_df`. How many sequential PySpark joins are in this cascade, what is each join's right-side DataFrame and key, and what join type is used?
+Score: None
+
+REFERENCE:
+Seven sequential `.join()` calls are chained off `claim_hdr_df` to build `final_df`. ALL seven are `how='left'`, preserving every `claim_hdr_df` row even when the right side has no match. Six joins use a `claim_id`-style key; one uses `member_id`. In order:
+1. `pivoted_diag_df` ON `claim_hdr_df['claim_id_hdr'] == pivoted_diag_df['claim_id_diag']` — attaches diagnosis_1..5_* wide columns + the `other_diagnoses` overflow array.
+2. `pivoted_proc_df` ON `claim_hdr_df['claim_id_hdr'] == pivoted_proc_df['claim_id_proc']` — attaches procedure_1..4_* wide columns + the `other_procedures` overflow array.
+3. `aggregated_cob_df` ON `claim_hdr_df['claim_id_hdr'] == aggregated_cob_df['claim_id_cob']` — attaches the per-line COB/payable sums from the `spark.sql` CTE.
+4. `claim_prov_df` ON `claim_hdr_df['claim_id_hdr'] == claim_prov_df['claim_id_prov']` — attaches claim-level provider role assignments (billing, rendering, referring) with the `_prov` suffix.
+5. `member_df` ON `claim_hdr_df['member_id_hdr'] == member_df['member_id_mbr']` — THE SOLE EXCEPTION: this join is on `member_id`, not `claim_id`, because member eligibility data lives at member grain (one record per member), not claim grain.
+6. `occ_agg_df` ON `claim_hdr_df['claim_id_hdr'] == occ_agg_df['claim_id_occ']` — attaches the per-claim `occurrence_codes` array<struct>.
+7. `interest_agg_df` ON `claim_hdr_df['claim_id_hdr'] == interest_agg_df['claim_id_int_agg']` — attaches `total_interest_amount` and `interest_line_count`.
+The provider-specialty join (claim_hdr → provider_specialty_df) is NOT part of this cascade — it happens later in a separate `final_df = final_df.join(provider_specialty_df, ...)` after `final_df` has already been built.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+There are 7 sequential PySpark joins in the cascade. Here are the details of each join:
+
+1. **Join 1**:
+   - Right-side DataFrame: `pivoted_diag_df`
+   - Join key: `claim_id_hdr` (left) and `claim_id_diag` (right)
+   - Join type: LEFT JOIN
+
+2. **Join 2**:
+   - Right-side DataFrame: `pivoted_proc_df`
+   - Join key: `claim_id_hdr` (left) and `claim_id_proc` (right)
+   - Join type: LEFT JOIN
+
+3. **Join 3**:
+   - Right-side DataFrame: `aggregated_cob_df`
+   - Join key: `claim_id_hdr` (left) and `claim_id_cob` (right)
+   - Join type: LEFT JOIN
+
+4. **Join 4**:
+   - Right-side DataFrame: `claim_prov_df`
+   - Join key: `claim_id_hdr` (left) and `claim_id_prov` (right)
+   - Join type: LEFT JOIN
+
+5. **Join 5**:
+   - Right-side DataFrame: `member_df`
+   - Join key: `member_id_hdr` (left) and `member_id_mbr` (right)
+   - Join type: LEFT JOIN
+
+6. **Join 6**:
+   - Right-side DataFrame: `occ_agg_df`
+   - Join key: `claim_id_hdr` (left) and `claim_id_occ` (right)
+   - Join type: LEFT JOIN
+
+7. **Join 7**:
+   - Right-side DataFrame: `interest_agg_df`
+   - Join key: `claim_id_hdr` (left) and `claim_id_int_agg` (right)
+   - Join type: LEFT JOIN
+
+All joins in this cascade are LEFT JOINs, ensuring that every row from `claim_hdr_df` is preserved in the resulting `final_df`, even if there are no matching rows in the joined DataFrames.
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ9] fallback-chain / medium
+Q: How is `provider_specialty_description` derived, and why is its fallback chain logically simpler than `provider_specialty_code`?
+Score: None
+
+REFERENCE:
+`provider_specialty_description` is a single `coalesce` over three arguments: `coalesce(col('specialty_desc_reg'), col('rendering_specialty'), lit(None).cast('string'))`. Order of preference (first non-null wins): (1) `specialty_desc_reg` — the human-readable specialty description from `bronze.provider_registry` joined via the `primary_provider` CTE on (rendering_npi, taxonomy_code); (2) `rendering_specialty` — the specialty value submitted on the claim by the billing provider, used as a fallback even though it is a *code* value rather than a description (the column is reused because no other description signal exists at this point); (3) `lit(None).cast('string')` — explicit NULL terminator.
+
+It is logically simpler than `provider_specialty_code` for three reasons: (a) IMPLEMENTATION — it uses `coalesce` (built-in first-non-null) whereas `provider_specialty_code` uses a four-branch `when(...).when(...).when(...).when(...).otherwise(None)` chain; (b) NUMBER OF SIGNALS — it has 2 real fallback levels (registry desc, claim rendering specialty) plus an explicit NULL; `provider_specialty_code` has 4 (PCP-from-registry, any-PCP-on-claim, registry-code, claim rendering specialty) plus the otherwise NULL; (c) NO PCP OVERRIDE — the PCP-eligibility signals (`is_pcp_eligible_reg.cast('boolean') == True` and `any_pcp_flag == 1`) override the *code* to the string `'PCP'`, but they do NOT contribute to the *description* at all; the description path never tests `is_pcp_eligible_reg` or `any_pcp_flag`.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+`provider_specialty_description` is derived using the following fallback chain:
+
+1. `specialty_desc_reg` from the `provider_registry` table (if available)
+2. `rendering_specialty` from the `claim_provider` table (if available)
+3. `None` (if neither of the above is available)
+
+This fallback chain is logically simpler than `provider_specialty_code` because it does not involve any conditional logic or signal precedence. It simply checks for the availability of `specialty_desc_reg` and uses it if available, otherwise falls back to `rendering_specialty`, and finally defaults to `None` if neither is available.
+
+In contrast, `provider_specialty_code` involves a more complex signal precedence logic, where the code is derived from:
+
+1. `is_pcp_eligible` flag (if true, sets the code to "PCP")
+2. `any_pcp_flag` (if true, sets the code to "PCP")
+3. `specialty_code_reg` from the `provider_registry` table (if available)
+4. `rendering_specialty` from the `claim_provider` table (if available)
+5. `None` (if none of the above is available)
+
+This additional complexity arises from the need to prioritize the "PCP" code based on the `is_pcp_eligible` and `any_pcp_flag` signals, which is not required for `provider_specialty_description`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ10] write-sink / easy
+Q: Before the final write, what data-quality (DQ) filters are applied to `silver_df`? List every filter condition and name the resulting DataFrame.
+Score: None
+
+REFERENCE:
+Three sequential `.filter()` filters are applied to `silver_df` (the canonical column projection), producing `dq_passed_df`. All three are hard `isNotNull()` checks: (1) `.filter(F.col('claim_id').isNotNull())` — drops rows where the primary claim grain key is NULL; (2) `.filter(F.col('member_id').isNotNull())` — drops rows where the member identifier is NULL; (3) `.filter(F.col('service_from_date').isNotNull())` — drops rows where the service date is NULL (this is also the partition column for the downstream Delta write, so NULL would break partitioning). All three target primary-key / partition-critical columns. Soft DQ violations (missing NPI, missing diagnosis code, missing provider role, etc.) are NOT filtered — those pass through to silver and are captured in the `extension_source_values` audit array. The code does not emit a DQ metric for the dropped rows; they are silently filtered out. `dq_passed_df` is the DataFrame that is actually written to `meridian.silver.clinical_claims` — not `silver_df` directly.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+Before the final write, the following data-quality (DQ) filters are applied to `silver_df`:
+
+1. `claim_id` is not null: `F.col("claim_id").isNotNull()`
+2. `member_id` is not null: `F.col("member_id").isNotNull()`
+3. `service_from_date` is not null: `F.col("service_from_date").isNotNull()`
+
+The resulting DataFrame after applying these filters is named `dq_passed_df`.
+
+Notes: 
+-----------------------------------------------------------------

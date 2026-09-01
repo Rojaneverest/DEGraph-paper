@@ -1,0 +1,12 @@
+{
+  "$comment": "Known-helper registry per dev/methodology.md Decision 3.7 and paper/outline.md §4.4. Maps imported helper-function names to their column-transformation semantics. Registered helpers produce semantically-rich edges (passthrough OpaqueTransform, or explicit per-column Derives for suffix_rename) instead of the default opaque-with-warning. parse_event_payload is DELIBERATELY NOT registered so the benchmark exercises the default opaque-with-warning path.",
+  "trim_string_columns": {
+    "module": "utils.column_transformations",
+    "kind": "passthrough"
+  },
+  "rename_columns_with_suffix": {
+    "module": "utils.column_transformations",
+    "kind": "suffix_rename",
+    "suffix_arg": 1
+  }
+}

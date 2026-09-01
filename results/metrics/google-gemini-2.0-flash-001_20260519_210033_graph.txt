@@ -1,0 +1,26 @@
+DEGraph Q&A Experiment Report
+=================================================================
+Backend:   openrouter / google/gemini-2.0-flash-001
+Mode:      compact_graph
+Tokens:    ~23,761
+Timestamp: 20260519_210033
+
+AGGREGATE SCORES
+----------------------------------------
+  Not graded yet. Edit the JSON file and set 'score' for each answer.
+
+INDIVIDUAL ANSWERS
+=================================================================
+
+[Q14] join-chain / hard
+Q: In `silver/shipments_timeline.py`, the file joins shipments_raw with orders_raw. What is the join key, and what columns from orders_raw propagate into the silver output?
+Score: None
+
+REFERENCE:
+Join key: `order_id` (inner join). The orders side is narrowed via `.select('order_id', 'customer_id')` before the join, so only `customer_id` propagates into `silver.shipments_timeline` from `orders_raw` (in addition to the join key `order_id`). The other orders columns (quantity, total_amount, currency, etc.) do not appear in the silver output because of that projection. The aggregated shipment columns (shipment_count, first_ship_ts, last_delivered_ts, carriers_used) come from the shipments aggregate, not from orders_raw.
+
+MODEL (google/gemini-2.0-flash-001):
+[ERROR: OpenRouter HTTP 429: {"error":{"message":"Provider returned error","code":429,"metadata":{"raw":"google/gemini-2.0-flash-001 is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations","provider_name":"Google","is_byok":false}},"user_id":"user_3Dvo2YHDAb4tPJNAOQQexAgULqX"}]
+
+Notes: 
+-----------------------------------------------------------------

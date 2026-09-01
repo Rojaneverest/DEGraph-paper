@@ -1,0 +1,62 @@
+DEGraph Q&A Experiment Report
+=================================================================
+Backend:   openrouter / google/gemini-2.0-flash-001
+Mode:      compact_graph
+Tokens:    ~23,274
+Timestamp: 20260519_210807
+
+AGGREGATE SCORES
+----------------------------------------
+  Not graded yet. Edit the JSON file and set 'score' for each answer.
+
+INDIVIDUAL ANSWERS
+=================================================================
+
+[Q4] reverse-lineage / hard
+Q: Which bronze-layer columns contribute, directly or transitively, to `gold.revenue_forecast_features.lifetime_revenue`? List each source table and column and the path it takes through the silver and gold layers.
+Score: None
+
+REFERENCE:
+A single bronze column: `main.dbdemos_ecom.orders_raw.total_amount`. The reverse trace is 5 hops: `gold.revenue_forecast_features.lifetime_revenue` ← (Python `F.first('lifetime_revenue')` aggregate in revenue_forecast_features.py groupBy step) ← `gold.customer_ltv.lifetime_revenue` (read via `spark.table(customer_ltv)` in revenue_forecast_features.py) ← (Projects passthrough through `base` CTE in customer_ltv.py) ← `silver.customer_profile.lifetime_revenue` (read via `FROM customer_profile` in customer_ltv.py base CTE) ← `F.sum('total_amount').alias('lifetime_revenue')` in customer_profile.py (AggregatesEdge with agg_ops including 'sum') ← `bronze.orders_raw.total_amount` (after joins with customers_raw and events_raw). Note: this 5-hop reverse trace is precisely the multi-hop pattern the small-benchmark Q4 failed on for the 2B model; here the chain is one hop deeper.
+
+MODEL (google/gemini-2.0-flash-001):
+Here's the lineage of `gold.revenue_forecast_features.lifetime_revenue`:
+
+1.  `main.dbdemos_ecom.revenue_forecast_features.lifetime_revenue` is derived via aggregation (`first`) from `main.dbdemos_ecom.customer_ltv.lifetime_revenue`.
+2.  `main.dbdemos_ecom.customer_ltv.lifetime_revenue` is a passthrough from `main.dbdemos_ecom.customer_profile.lifetime_revenue`.
+3.  `main.dbdemos_ecom.customer_profile.lifetime_revenue` is derived via aggregation (`sum`) from `main.dbdemos_ecom.orders_raw.total_amount`.
+4.  `main.dbdemos_ecom.orders_raw.total_amount` is a passthrough from `ext:/Volumes/main/dbdemos_ecom/landing/orders.total_amount`.
+
+Therefore, the bronze-layer column that contributes to `gold.revenue_forecast_features.lifetime_revenue` is `ext:/Volumes/main/dbdemos_ecom/landing/orders.total_amount` via the path:
+
+*   `ext:/Volumes/main/dbdemos_ecom/landing/orders.total_amount` -> `main.dbdemos_ecom.orders_raw.total_amount` -> `main.dbdemos_ecom.customer_profile.lifetime_revenue` -> `main.dbdemos_ecom.customer_ltv.lifetime_revenue` -> `main.dbdemos_ecom.revenue_forecast_features.lifetime_revenue`
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q14] join-chain / hard
+Q: In `silver/shipments_timeline.py`, the file joins shipments_raw with orders_raw. What is the join key, and what columns from orders_raw propagate into the silver output?
+Score: None
+
+REFERENCE:
+Join key: `order_id` (inner join). The orders side is narrowed via `.select('order_id', 'customer_id')` before the join, so only `customer_id` propagates into `silver.shipments_timeline` from `orders_raw` (in addition to the join key `order_id`). The other orders columns (quantity, total_amount, currency, etc.) do not appear in the silver output because of that projection. The aggregated shipment columns (shipment_count, first_ship_ts, last_delivered_ts, carriers_used) come from the shipments aggregate, not from orders_raw.
+
+MODEL (google/gemini-2.0-flash-001):
+The join key is `order_id`. The columns `order_id` and `customer_id` from `orders_raw` propagate into the silver output `main.dbdemos_ecom.shipments_timeline`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q23] reverse-lineage / medium
+Q: Which bronze table(s) contribute to `silver.refunds_enriched.refund_ratio`, and which specific columns?
+Score: None
+
+REFERENCE:
+Two bronze contributions: (1) `bronze.refunds_raw.refund_amount` (numerator of the ratio, passed through unchanged from refunds_raw). (2) `bronze.orders_raw.total_amount` (denominator, joined into the file via the chain refunds → returns → orders on (return_id, then order_id)). `bronze.returns_raw` sits on the join path between refunds_raw and orders_raw but does not contribute a column to refund_ratio itself; it provides the `return_id → order_id` mapping that makes the orders join possible.
+
+MODEL (google/gemini-2.0-flash-001):
+The `refund_ratio` column in `silver.refunds_enriched` is derived from `main.dbdemos_ecom.refunds_raw.refund_amount` and `main.dbdemos_ecom.orders_raw.total_amount`. Thus, the bronze tables contributing to `silver.refunds_enriched.refund_ratio` are `main.dbdemos_ecom.refunds_raw` and `main.dbdemos_ecom.orders_raw`. The specific columns are `refund_amount` from `main.dbdemos_ecom.refunds_raw` and `total_amount` from `main.dbdemos_ecom.orders_raw`.
+
+Notes: 
+-----------------------------------------------------------------

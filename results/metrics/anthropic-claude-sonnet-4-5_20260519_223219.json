@@ -1,0 +1,33 @@
+{
+  "runs": [
+    {
+      "meta": {
+        "backend": "openrouter",
+        "model": "anthropic/claude-sonnet-4-5",
+        "context_mode": "raw_source",
+        "context_tokens": 23683,
+        "timestamp": "20260519_223219",
+        "context_limit": null
+      },
+      "scores": {
+        "message": "No scores yet \u2014 grade results manually then re-run with --score"
+      },
+      "results": [
+        {
+          "id": "Q1",
+          "category": "direct-cross-file-impact",
+          "difficulty": "medium",
+          "question": "If the column `customer_id` in `main.dbdemos_ecom.orders_raw` is renamed to `cust_id`, which silver and gold tables in this repo need updating? List each affected table and the reason it is affected.",
+          "context_mode": "raw_source",
+          "context_tokens": 23683,
+          "prompt_tokens": 23810,
+          "reference_answer": "Per the graph, `orders_raw` is read by 4 silver files: `silver/orders_cleaned.py`, `silver/customer_profile.py`, `silver/refunds_enriched.py`, and `silver/shipments_timeline.py`. Affected silver tables: (1) `silver.orders_cleaned` \u2014 `customer_id` passes through the column-set propagation chain (trim \u2192 withColumns \u2192 drop \u2192 filter) unchanged. (2) `silver.customer_profile` \u2014 `customer_id` is the join key with `customers_raw` and a `groupBy` key in the aggregate. (3) `silver.refunds_enriched` \u2014 the file joins refunds \u2192 returns \u2192 orders, and `customer_id` propagates from `orders_raw` into the silver output. (4) `silver.shipments_timeline` \u2014 joins shipments with `orders_raw.select(order_id, customer_id)`; the renamed column breaks that select. Affected gold tables: (5) `gold.customer_ltv` \u2014 inherits from `customer_profile` via the SQL `base` CTE. (6) `gold.customer_return_rate` \u2014 joins `customer_profile` (via customer_id). (7) `gold.revenue_forecast_features` \u2014 inherits from `customer_ltv`. NOT affected: `silver.returns_cleaned` (reads `returns_raw` not `orders_raw`), `silver.inventory_daily`, `silver.marketing_touchpoints`, `gold.product_performance` (groups by product_id and order_date only), `gold.inventory_turnover_daily`, `gold.attribution_funnel_daily` (the orders_cleaned-side branch uses order_id and order_date, not customer_id directly).",
+          "model_answer": "I'll trace the impact of renaming `customer_id` to `cust_id` in `main.dbdemos_ecom.orders_raw` by following the lineage through the pipeline.\n\n## Affected Tables\n\n### Silver Layer\n\n1. **`main.dbdemos_ecom.orders_cleaned`**\n   - **Reason**: Directly reads from `orders_raw` and passes through the `customer_id` column without renaming it. The column is used in the final output schema.\n\n2. **`main.dbdemos_ecom.customer_profile`**\n   - **Reason**: Reads `orders_raw` and joins it with `customers_raw` on `customer_id`. The join condition would break, and the column is used as a grouping key in the final aggregation.\n\n3. **`main.dbdemos_ecom.refunds_enriched`**\n   - **Reason**: Reads `orders_raw` and joins it with the refunds\u2192returns chain on `order_id`. While the primary join is on `order_id`, the `customer_id` column from orders is included in the final output for downstream analyses.\n\n4. **`main.dbdemos_ecom.shipments_timeline`**\n   - **Reason**: Reads `orders_raw` specifically to pull `customer_id` into the shipment timeline via `orders_df.select(\"order_id\", \"customer_id\")` and includes it in the final output.\n\n### Gold Layer\n\n5. **`main.dbdemos_ecom.customer_ltv`**\n   - **Reason**: Reads from `customer_profile` (which would already be broken). The `customer_id` column flows through from the silver layer and is used as a key column in the output.\n\n6. **`main.dbdemos_ecom.customer_return_rate`**\n   - **Reason**: Reads from `customer_profile` and joins with `returns_cleaned` on `customer_id`. Both the join condition and the output schema depend on this column.\n\n7. **`main.dbdemos_ecom.attribution_funnel_daily`**\n   - **Reason**: Joins `orders_cleaned` with `marketing_touchpoints` using `customer_id` (via the `USING (customer_id)` clause in the SQL). The join would fail.\n\n8. **`main.dbdemos_ecom.revenue_forecast_features`**\n   - **Reason**: Reads from `customer_ltv` (which would already be broken) and uses `customer_id` as a grouping key in the final aggregation: `groupBy(\"customer_id\", \"product_id\", \"forecast_date\")`.\n\n## Summary\n\n**8 tables total** would need updating:\n- **4 silver tables**: orders_cleaned, customer_profile, refunds_enriched, shipments_timeline\n- **4 gold tables**: customer_ltv, customer_return_rate, attribution_funnel_daily, revenue_forecast_features\n\nThe impact cascades because `customer_id` is a fundamental join key throughout the pipeline, connecting orders to customers and enabling all customer-centric analytics in the gold layer.",
+          "elapsed_s": 14.7,
+          "score": null,
+          "notes": ""
+        }
+      ]
+    }
+  ]
+}

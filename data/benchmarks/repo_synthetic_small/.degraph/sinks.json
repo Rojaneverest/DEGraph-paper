@@ -1,0 +1,10 @@
+{
+  "$comment": "Sink registry per dev/methodology.md Decision 3.8 and paper/outline.md §4.4. Maps custom write-class names to the kwargs DEGraph should read to resolve target table and mode. The extractor loads this file at the start of the repo walk; any class invocation whose name matches a key here produces a proper Writes edge instead of the heuristic fallback.",
+  "DeltaMergeSink": {
+    "module": "utils.sinks",
+    "target_kwarg": "target_table",
+    "mode_kwarg": "mode",
+    "merge_keys_kwarg": "merge_keys",
+    "default_mode": "merge"
+  }
+}

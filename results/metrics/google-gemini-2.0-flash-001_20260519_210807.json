@@ -1,0 +1,61 @@
+{
+  "runs": [
+    {
+      "meta": {
+        "backend": "openrouter",
+        "model": "google/gemini-2.0-flash-001",
+        "context_mode": "compact_graph",
+        "context_tokens": 23274,
+        "timestamp": "20260519_210807",
+        "context_limit": null
+      },
+      "scores": {
+        "message": "No scores yet \u2014 grade results manually then re-run with --score"
+      },
+      "results": [
+        {
+          "id": "Q4",
+          "category": "reverse-lineage",
+          "difficulty": "hard",
+          "question": "Which bronze-layer columns contribute, directly or transitively, to `gold.revenue_forecast_features.lifetime_revenue`? List each source table and column and the path it takes through the silver and gold layers.",
+          "context_mode": "compact_graph",
+          "context_tokens": 23274,
+          "prompt_tokens": 23397,
+          "reference_answer": "A single bronze column: `main.dbdemos_ecom.orders_raw.total_amount`. The reverse trace is 5 hops: `gold.revenue_forecast_features.lifetime_revenue` \u2190 (Python `F.first('lifetime_revenue')` aggregate in revenue_forecast_features.py groupBy step) \u2190 `gold.customer_ltv.lifetime_revenue` (read via `spark.table(customer_ltv)` in revenue_forecast_features.py) \u2190 (Projects passthrough through `base` CTE in customer_ltv.py) \u2190 `silver.customer_profile.lifetime_revenue` (read via `FROM customer_profile` in customer_ltv.py base CTE) \u2190 `F.sum('total_amount').alias('lifetime_revenue')` in customer_profile.py (AggregatesEdge with agg_ops including 'sum') \u2190 `bronze.orders_raw.total_amount` (after joins with customers_raw and events_raw). Note: this 5-hop reverse trace is precisely the multi-hop pattern the small-benchmark Q4 failed on for the 2B model; here the chain is one hop deeper.",
+          "model_answer": "Here's the lineage of `gold.revenue_forecast_features.lifetime_revenue`:\n\n1.  `main.dbdemos_ecom.revenue_forecast_features.lifetime_revenue` is derived via aggregation (`first`) from `main.dbdemos_ecom.customer_ltv.lifetime_revenue`.\n2.  `main.dbdemos_ecom.customer_ltv.lifetime_revenue` is a passthrough from `main.dbdemos_ecom.customer_profile.lifetime_revenue`.\n3.  `main.dbdemos_ecom.customer_profile.lifetime_revenue` is derived via aggregation (`sum`) from `main.dbdemos_ecom.orders_raw.total_amount`.\n4.  `main.dbdemos_ecom.orders_raw.total_amount` is a passthrough from `ext:/Volumes/main/dbdemos_ecom/landing/orders.total_amount`.\n\nTherefore, the bronze-layer column that contributes to `gold.revenue_forecast_features.lifetime_revenue` is `ext:/Volumes/main/dbdemos_ecom/landing/orders.total_amount` via the path:\n\n*   `ext:/Volumes/main/dbdemos_ecom/landing/orders.total_amount` -> `main.dbdemos_ecom.orders_raw.total_amount` -> `main.dbdemos_ecom.customer_profile.lifetime_revenue` -> `main.dbdemos_ecom.customer_ltv.lifetime_revenue` -> `main.dbdemos_ecom.revenue_forecast_features.lifetime_revenue`\n",
+          "elapsed_s": 5.06,
+          "score": null,
+          "notes": ""
+        },
+        {
+          "id": "Q14",
+          "category": "join-chain",
+          "difficulty": "hard",
+          "question": "In `silver/shipments_timeline.py`, the file joins shipments_raw with orders_raw. What is the join key, and what columns from orders_raw propagate into the silver output?",
+          "context_mode": "compact_graph",
+          "context_tokens": 23274,
+          "prompt_tokens": 23390,
+          "reference_answer": "Join key: `order_id` (inner join). The orders side is narrowed via `.select('order_id', 'customer_id')` before the join, so only `customer_id` propagates into `silver.shipments_timeline` from `orders_raw` (in addition to the join key `order_id`). The other orders columns (quantity, total_amount, currency, etc.) do not appear in the silver output because of that projection. The aggregated shipment columns (shipment_count, first_ship_ts, last_delivered_ts, carriers_used) come from the shipments aggregate, not from orders_raw.",
+          "model_answer": "The join key is `order_id`. The columns `order_id` and `customer_id` from `orders_raw` propagate into the silver output `main.dbdemos_ecom.shipments_timeline`.",
+          "elapsed_s": 3.81,
+          "score": null,
+          "notes": ""
+        },
+        {
+          "id": "Q23",
+          "category": "reverse-lineage",
+          "difficulty": "medium",
+          "question": "Which bronze table(s) contribute to `silver.refunds_enriched.refund_ratio`, and which specific columns?",
+          "context_mode": "compact_graph",
+          "context_tokens": 23274,
+          "prompt_tokens": 23377,
+          "reference_answer": "Two bronze contributions: (1) `bronze.refunds_raw.refund_amount` (numerator of the ratio, passed through unchanged from refunds_raw). (2) `bronze.orders_raw.total_amount` (denominator, joined into the file via the chain refunds \u2192 returns \u2192 orders on (return_id, then order_id)). `bronze.returns_raw` sits on the join path between refunds_raw and orders_raw but does not contribute a column to refund_ratio itself; it provides the `return_id \u2192 order_id` mapping that makes the orders join possible.",
+          "model_answer": "The `refund_ratio` column in `silver.refunds_enriched` is derived from `main.dbdemos_ecom.refunds_raw.refund_amount` and `main.dbdemos_ecom.orders_raw.total_amount`. Thus, the bronze tables contributing to `silver.refunds_enriched.refund_ratio` are `main.dbdemos_ecom.refunds_raw` and `main.dbdemos_ecom.orders_raw`. The specific columns are `refund_amount` from `main.dbdemos_ecom.refunds_raw` and `total_amount` from `main.dbdemos_ecom.orders_raw`.",
+          "elapsed_s": 13.25,
+          "score": null,
+          "notes": ""
+        }
+      ]
+    }
+  ]
+}

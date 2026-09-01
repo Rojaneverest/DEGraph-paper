@@ -1,0 +1,61 @@
+DEGraph Q&A Experiment Report
+=================================================================
+Backend:   openrouter / anthropic/claude-opus-4.7
+Mode:      raw_source
+Tokens:    ~23,683
+Timestamp: 20260519_223131
+
+AGGREGATE SCORES
+----------------------------------------
+  Not graded yet. Edit the JSON file and set 'score' for each answer.
+
+INDIVIDUAL ANSWERS
+=================================================================
+
+[Q1] direct-cross-file-impact / medium
+Q: If the column `customer_id` in `main.dbdemos_ecom.orders_raw` is renamed to `cust_id`, which silver and gold tables in this repo need updating? List each affected table and the reason it is affected.
+Score: None
+
+REFERENCE:
+Per the graph, `orders_raw` is read by 4 silver files: `silver/orders_cleaned.py`, `silver/customer_profile.py`, `silver/refunds_enriched.py`, and `silver/shipments_timeline.py`. Affected silver tables: (1) `silver.orders_cleaned` — `customer_id` passes through the column-set propagation chain (trim → withColumns → drop → filter) unchanged. (2) `silver.customer_profile` — `customer_id` is the join key with `customers_raw` and a `groupBy` key in the aggregate. (3) `silver.refunds_enriched` — the file joins refunds → returns → orders, and `customer_id` propagates from `orders_raw` into the silver output. (4) `silver.shipments_timeline` — joins shipments with `orders_raw.select(order_id, customer_id)`; the renamed column breaks that select. Affected gold tables: (5) `gold.customer_ltv` — inherits from `customer_profile` via the SQL `base` CTE. (6) `gold.customer_return_rate` — joins `customer_profile` (via customer_id). (7) `gold.revenue_forecast_features` — inherits from `customer_ltv`. NOT affected: `silver.returns_cleaned` (reads `returns_raw` not `orders_raw`), `silver.inventory_daily`, `silver.marketing_touchpoints`, `gold.product_performance` (groups by product_id and order_date only), `gold.inventory_turnover_daily`, `gold.attribution_funnel_daily` (the orders_cleaned-side branch uses order_id and order_date, not customer_id directly).
+
+MODEL (anthropic/claude-opus-4.7):
+# Impact Analysis: Renaming `customer_id` → `cust_id` in `main.dbdemos_ecom.orders_raw`
+
+Below are the downstream tables that read (directly or transitively) from `orders_raw` and reference its `customer_id` column. I traced each through the silver and gold layers.
+
+## Silver tables affected
+
+### 1. `main.dbdemos_ecom.customer_profile` (`silver/customer_profile.py`)
+- Reads `orders_raw` directly via `spark.table(f"{database}.orders_raw")`.
+- Joins `customers_df` to `orders_df` on `customer_id` (`customers_df.join(orders_df, on="customer_id", how="inner")`).
+- Groups by `customer_id` in the final aggregate.
+- **Action:** Update the join key and `groupBy` to `cust_id` (or rename back after the read).
+
+### 2. `main.dbdemos_ecom.shipments_timeline` (`silver/shipments_timeline.py`)
+- Reads `orders_raw` directly and explicitly selects `customer_id`: `orders_df.select("order_id", "customer_id")`.
+- **Action:** Change the `select` to use `cust_id`.
+
+### 3. `main.dbdemos_ecom.refunds_enriched` (`silver/refunds_enriched.py`)
+- Reads `orders_raw` directly. It joins on `order_id` (not `customer_id`), but `customer_id` from `orders_raw` flows into the output schema as one of the carried columns.
+- **Action:** Downstream consumers of `refunds_enriched` expecting `customer_id` will see `cust_id` instead; the column name in the output will change.
+
+### 4. `main.dbdemos_ecom.orders_cleaned` (`silver/orders_cleaned.py`)
+- Reads `orders_raw` directly. The notebook does not reference `customer_id` by name explicitly, but it passes the column through to silver via the schema-preserving transformations (`trim_string_columns`, `withColumn`s, `drop`, `filter`).
+- **Action:** The output column will be renamed to `cust_id`, breaking any downstream consumer that expects `customer_id` — see gold impacts below.
+
+## Gold tables affected
+
+### 5. `main.dbdemos_ecom.customer_ltv` (`gold/customer_ltv.py`)
+- Reads `customer_profile`, which carries `customer_id` derived from `orders_raw` (via the join). The SQL block explicitly selects and propagates `customer_id`.
+- **Action:** Affected transitively through `customer_profile`.
+
+### 6. `main.dbdemos_ecom.customer_return_rate` (`gold/customer_return_rate.py`)
+- Reads `customer_profile` and joins on `customer_id`.
+- **Action:** Affected transitively through `customer_profile`.
+
+### 7. `main.dbdemos_ecom.attribution_funnel_daily` (`gold/attribution_funnel_daily.py`)
+- Reads `orders_cleaned` and joins it to
+
+Notes: 
+-----------------------------------------------------------------

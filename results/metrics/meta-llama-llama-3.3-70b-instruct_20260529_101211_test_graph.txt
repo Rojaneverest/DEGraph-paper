@@ -1,0 +1,507 @@
+DEGraph Q&A Experiment Report
+=================================================================
+Backend:   openrouter / meta-llama/llama-3.3-70b-instruct
+Mode:      compact_graph_dsl
+Tokens:    ~4,354
+Timestamp: 20260529_101211
+
+AGGREGATE SCORES
+----------------------------------------
+  Not graded yet. Edit the JSON file and set 'score' for each answer.
+
+INDIVIDUAL ANSWERS
+=================================================================
+
+[TQ1] producer-consumer / medium
+Q: How many files in this repo READ `main.dbdemos_ecom.orders_raw`, which files are they, and is there anything unusual about how one of them reads it relative to the medallion (bronze->silver->gold) layering?
+Score: None
+
+REFERENCE:
+Two files read `orders_raw`: (1) `silver/orders_cleaned.py` via `spark.table(f"{database}.orders_raw")`, and (2) `silver/customer_profile.py` via `spark.table(f"{database}.orders_raw")` (one of its three bronze reads). The unusual part: `silver/customer_profile.py` reads the BRONZE `orders_raw` table directly rather than the already-cleaned SILVER `orders_cleaned` table produced by `silver/orders_cleaned.py`. So the two silver files both consume bronze orders independently — customer_profile bypasses the cleaning/filtering done in orders_cleaned (e.g. the status!='cancelled' & quantity>0 filter and the type normalizations), operating on the raw bronze rows instead.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+There are 3 files that READ `main.dbdemos_ecom.orders_raw` (T0): 
+
+1. `silver/customer_profile.py`
+2. `silver/orders_cleaned.py`
+3. `gold/product_performance.py` 
+
+What's unusual is that `gold/product_performance.py` reads `main.dbdemos_ecom.orders_raw` directly, which is a bronze table. Typically, in the medallion architecture, gold layers read from silver layers, and silver layers read from bronze layers. This direct read from a bronze table to a gold layer is an exception to this typical layering.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ2] producer-consumer / easy
+Q: Which file produces `main.dbdemos_ecom.events_raw`, and is the write a streaming write or a batch write? Name the write format and trigger.
+Score: None
+
+REFERENCE:
+`bronze/03_ingest_events.py` produces `main.dbdemos_ecom.events_raw`. It is a STREAMING write: `events_final.writeStream.format("delta").option("checkpointLocation", f"{checkpoint_root}/events").option("mergeSchema","true").trigger(availableNow=True).table(f"{database}.events_raw")`. Format is Delta; the trigger is `availableNow=True` (process the accumulated backlog once, then stop — a batch-flavored streaming trigger). The source is an Auto Loader (`cloudFiles`) read stream over the events landing path.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+The file that produces `main.dbdemos_ecom.events_raw` is `bronze/03_ingest_events.py`. 
+
+The write is a streaming write, as indicated by the `stream` keyword in the `W` edge: `W|D9|T3|append|delta|stream`. 
+
+The write format is `delta`. There is no explicit trigger mentioned in the provided context.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ3] reverse-lineage / medium
+Q: Trace the lineage of `gold.product_performance.order_count` back to its originating bronze source. Name the aggregation, the intermediate table, and the bronze table/column.
+Score: None
+
+REFERENCE:
+`order_count` is produced in `gold/product_performance.py` by `F.count("order_id").alias("order_count")` inside `daily_perf = orders.groupBy("product_id", "order_date").agg(*aggregations, F.count("order_id").alias("order_count"))`. Its input `orders` is `spark.table(f"{database}.orders_cleaned")` — the SILVER table. `silver/orders_cleaned.py` produces `orders_cleaned` from `spark.table(f"{database}.orders_raw")` (BRONZE). The `order_id` column is a passthrough from `orders_raw` (it is never re-derived in orders_cleaned). So the chain is: `bronze orders_raw.order_id` -> (read + cleaned, order_id unchanged) `silver orders_cleaned.order_id` -> `count(order_id)` grouped by product_id/order_date -> `gold product_performance.order_count`. orders_raw itself is ingested from the JSON landing volume by `bronze/01_ingest_orders.py`.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+To trace the lineage of `gold.product_performance.order_count`, we need to follow the DEGraph lineage graph.
+
+1. `gold.product_performance.order_count` is an aggregation column in table `T7` (main.dbdemos_ecom.product_performance).
+2. The aggregation is defined in the `@EDGES` section: `A|D16|D17|by=gold/product_performance.py|gk=product_id,order_date|out=<unresolved>=<unresolved>(<unresolved>);order_count=count(order_id)|dyn=agg list star-unpacked from a runtime-built variable; column list cannot be enumerated statically; controlled by env-var(s): $METRIC_CONFIG_PATH`.
+   - The aggregation is a `count` aggregation of `order_id` with group key `product_id, order_date`.
+3. The intermediate table is `T6` (main.dbdemos_ecom.orders_cleaned), which is read by `R|T6|D16`.
+4. `T6` is written by `W|D28|T6|overwrite|delta`, and `D28` is derived from `T0` (main.dbdemos_ecom.orders_raw) through several transformations.
+5. `T0` is the bronze table, and it is written by `W|D2|T0|append|delta|stream`.
+6. The originating bronze source column is `order_id` in `T0`, which is a passthrough column from the external source `/Volumes/main/dbdemos_ecom/landing/orders.order_id`.
+
+Therefore, the lineage of `gold.product_performance.order_count` is:
+- Aggregation: `count` of `order_id` with group key `product_id, order_date`.
+- Intermediate table: `T6` (main.dbdemos_ecom.orders_cleaned).
+- Bronze table/column: `T0` (main.dbdemos_ecom.orders_raw), `order_id`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ4] reverse-lineage / hard
+Q: `gold/product_performance.py` groups by `order_date`, but `order_date` is not a column in any bronze table. Where does `order_date` come from, and what is its full derivation chain back to bronze?
+Score: None
+
+REFERENCE:
+`order_date` is a SILVER-derived column, created in `silver/orders_cleaned.py` by `.withColumn("order_date", F.to_date(F.col("order_ts")))`. Its input `order_ts` is a bronze `orders_raw` column (passed through; never re-derived). So the chain is: `bronze orders_raw.order_ts` (ingested from the JSON landing volume by `bronze/01_ingest_orders.py`) -> `silver/orders_cleaned.py`: `order_date = to_date(order_ts)` -> written to `silver orders_cleaned.order_date` -> read by `gold/product_performance.py` as a groupBy key. Note `order_year` and `order_month` are also derived from `order_ts` in the same file, but only `order_date` is consumed downstream (as the product_performance group key); the year/month columns are not used by any other file.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+To determine the full derivation chain of `order_date` back to bronze, we need to follow the lineage graph.
+
+`order_date` is a column in `T6` (orders_cleaned). According to the `@PROV` section, `T6.order_date` is derived from `T0.order_ts`. 
+
+The derivation chain is as follows:
+- `T0.order_ts` comes from the bronze table `orders` (as indicated by `T0.order_ts=P:ext:/Volumes/main/dbdemos_ecom/landing/orders.order_ts` in the `@PROV` section).
+- `T0.order_ts` is then transformed into `T6.order_date` through the following edge in the `@EDGES` section: `D|D28|D28|order_date|sc=order_ts|ex=F.to_date(F.col('order_ts'))`.
+- Finally, `T6.order_date` is used in the aggregation in `gold/product_performance.py`, which groups by `product_id` and `order_date` (as indicated by `A|D16|D17|by=gold/product_performance.py|gk=product_id,order_date|out=<unresolved>=<unresolved>(<unresolved>);order_count=count(order_id)|dyn=agg list star-unpacked from a runtime-built variable; column list cannot be enumerated statically; controlled by env-var(s): $METRIC_CONFIG_PATH` in the `@EDGES` section).
+
+So, the full derivation chain of `order_date` back to bronze is: 
+`orders` (bronze) → `T0.order_ts` → `T6.order_date` → `gold/product_performance.py`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ5] direct-cross-file-impact / medium
+Q: If `order_ts` were renamed in `bronze.orders_raw`, list every downstream column (across silver and gold) that would break or need updating.
+Score: None
+
+REFERENCE:
+`order_ts` feeds several derivations across two readers of orders_raw:
+(1) In `silver/orders_cleaned.py` it derives THREE columns: `order_date = to_date(order_ts)`, `order_year = year(order_ts)`, `order_month = month(order_ts)`.
+(2) In `silver/customer_profile.py` (which reads orders_raw directly) it is used in the aggregation `F.max("order_ts").alias("last_order_ts")`, producing `customer_profile.last_order_ts`.
+Transitively in gold:
+(3) `gold/customer_ltv.py` selects `last_order_ts` from customer_profile and derives `days_since_last_order = DATEDIFF(CURRENT_DATE(), last_order_ts)`; both `last_order_ts` and `days_since_last_order` would break.
+(4) `gold/product_performance.py` groups by `order_date` (the silver-derived column), so its grouping/key would break.
+Summary of affected columns: orders_cleaned.{order_date, order_year, order_month}; customer_profile.last_order_ts; customer_ltv.{last_order_ts, days_since_last_order}; and the product_performance group-by key order_date.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+Based on the provided DEGraph lineage graph, if `order_ts` were renamed in `bronze.orders_raw`, the following downstream columns would break or need updating:
+
+1. `T0.order_ts` (no change needed, as it's the source column)
+2. `T6.order_ts` (passthrough column, would need updating)
+3. `T6.order_date` (derived from `T0.order_ts`, would need updating)
+4. `T6.order_year` (derived from `T0.order_ts`, would need updating)
+5. `T6.order_month` (derived from `T0.order_ts`, would need updating)
+6. `T4.last_order_ts` (derived from `T0.order_ts`, would need updating)
+7. `T5.last_order_ts` (passthrough column from `T4.last_order_ts`, would need updating)
+
+Additionally, the following edges and rules would need updating:
+
+1. `D|D28|D28|order_date|sc=order_ts|ex=F.to_date(F.col('order_ts'))` (edge in `silver/orders_cleaned.py`)
+2. `D|D28|D28|order_year|sc=order_ts|ex=F.year(F.col('order_ts'))` (edge in `silver/orders_cleaned.py`)
+3. `D|D28|D28|order_month|sc=order_ts|ex=F.month(F.col('order_ts'))` (edge in `silver/orders_cleaned.py`)
+4. `A|D26|D27|by=silver/customer_profile.py|gk=customer_id,email,country_code,signup_ts|out=total_orders=count(order_id);lifetime_revenue=sum(total_amount);last_order_ts=max(order_ts);last_event_ts=max(event_ts_last_event);distinct_products_ordered=countDistinct(product_id)` (edge in `silver/customer_profile.py`, specifically the `last_order_ts` aggregation)
+
+These updates would be necessary to maintain the correct data lineage and prevent errors in the downstream transformations.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ6] direct-cross-file-impact / hard
+Q: If `total_amount` were renamed in `bronze.orders_raw`, trace the full downstream blast radius across silver and gold, including any gold columns affected only transitively.
+Score: None
+
+REFERENCE:
+`total_amount` is consumed by both readers of orders_raw:
+(1) `silver/orders_cleaned.py`: `.withColumn("total_amount", F.round(F.col("total_amount"), 2))` (re-derives the same name) and `.withColumn("is_high_value", F.col("total_amount") > F.lit(1000))`. Both `orders_cleaned.total_amount` and `orders_cleaned.is_high_value` break.
+(2) `silver/customer_profile.py` (reads orders_raw directly): `F.sum("total_amount").alias("lifetime_revenue")` -> `customer_profile.lifetime_revenue` breaks.
+Transitive gold impact via lifetime_revenue in `gold/customer_ltv.py`: `lifetime_revenue` is selected into the `base` CTE and then drives `country_avg.avg_country_ltv = AVG(lifetime_revenue)`, `ltv_vs_country_avg = lifetime_revenue / NULLIF(avg_country_ltv,0)`, `revenue_quartile = NTILE(4) OVER (ORDER BY lifetime_revenue DESC)`, and therefore `ltv_tier` (the categorical label derived from revenue_quartile). So customer_ltv.{lifetime_revenue, avg_country_ltv, ltv_vs_country_avg, revenue_quartile, ltv_tier} are all affected.
+Note on product_performance: it aggregates a runtime-loaded `metric_columns` list (dynamic, opaque). If `total_amount` is one of those metrics it would also be affected there, but that cannot be determined statically.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+To determine the full downstream blast radius of renaming `total_amount` in `bronze.orders_raw`, we need to follow the data lineage from `T0` (main.dbdemos_ecom.orders_raw) to all dependent tables.
+
+1. `T0` (main.dbdemos_ecom.orders_raw) -> `T6` (main.dbdemos_ecom.orders_cleaned): 
+   - `T6.total_amount` is derived from `T0.total_amount` (D: T0.total_amount).
+   - `T6.is_high_value` is also derived from `T0.total_amount` (D: T0.total_amount).
+
+2. `T0` (main.dbdemos_ecom.orders_raw) -> `T4` (main.dbdemos_ecom.customer_profile):
+   - `T4.lifetime_revenue` is derived from `T0.total_amount` (A: T0.total_amount; op=sum).
+   - `T4.last_order_ts` is derived from `T0.order_ts` (A: T0.order_ts; op=max).
+
+3. `T4` (main.dbdemos_ecom.customer_profile) -> `T5` (main.dbdemos_ecom.customer_ltv):
+   - `T5.lifetime_revenue` is derived from `T4.lifetime_revenue` (P: T4.lifetime_revenue).
+   - `T5.ltv_tier` is derived from `T4.lifetime_revenue` (D: T4.lifetime_revenue).
+   - `T5.revenue_quartile` is derived from `T4.lifetime_revenue` (D: T4.lifetime_revenue; win=ord(lifetime_revenue desc)).
+
+4. `T6` (main.dbdemos_ecom.orders_cleaned) -> `T7` (main.dbdemos_ecom.product_performance):
+   - `T7.order_count` is derived from `T6.order_id` (A: T6.order_id; op=count).
+
+The full downstream blast radius of renaming `total_amount` in `bronze.orders_raw` includes the following columns:
+
+- `T6.total_amount`
+- `T6.is_high_value`
+- `T4.lifetime_revenue`
+- `T5.lifetime_revenue`
+- `T5.ltv_tier`
+- `T5.revenue_quartile`
+
+These columns are affected either directly or transitively by the renaming of `total_amount` in `bronze.orders_raw`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ7] counterfactual / hard
+Q: In `silver/customer_profile.py` the first join is `customers_df.join(orders_df, on="customer_id", how="inner")`. If this were changed from `inner` to `left`, what changes semantically in the output, and what changes (if anything) in the lineage graph structure?
+Score: None
+
+REFERENCE:
+Semantic change: with `inner`, customers who have NO matching rows in orders_raw are dropped entirely from the profile. With `left`, every customer is retained; for customers with no orders the order-side columns (order_id, total_amount, order_ts, product_id, ...) come through NULL. Downstream that changes the aggregates: `F.count("order_id")` becomes 0 for order-less customers (count ignores nulls), `F.sum("total_amount")` (lifetime_revenue) becomes NULL, `F.max("order_ts")` (last_order_ts) NULL, and `F.countDistinct("product_id")` 0. Those order-less customers then flow into gold/customer_ltv with NULL lifetime_revenue, affecting avg_country_ltv, ltv_vs_country_avg (NULL), and the NTILE revenue_quartile ranking.
+Lineage graph structure: the join is still one Joins edge between the same two inputs on the same key (customer_id); only the join-TYPE attribute changes from inner to left. No nodes/edges are added or removed — it is a property change on the existing join edge, not a structural change.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+If the join in `silver/customer_profile.py` is changed from `inner` to `left`, the following changes occur:
+
+**Semantic changes in the output:**
+
+* The resulting DataFrame will include all rows from the `customers_df` (left table) and the matching rows from the `orders_df` (right table). If there are no matches, the result will contain null values for the right table columns.
+* The number of rows in the output may increase, as all customers will be included, even if they don't have any orders.
+
+**Changes in the lineage graph structure:**
+
+* The `J` edge in the `@EDGES` section, which corresponds to the join operation, will change from `inner` to `left`. The updated edge would be: `J|D19|D18|D25|left|jk=customer_id=customer_id`
+* No other changes are expected in the lineage graph structure, as the join type change only affects the specific join operation and not the overall data flow or table dependencies.
+
+Note that the `@PROV` section, which describes the column provenance, may not change directly due to this join type change. However, the changed join type may affect the values and nullability of certain columns in the resulting DataFrame, which could have indirect effects on downstream operations and column derivations.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ8] counterfactual / medium
+Q: If the row filter `.filter((F.col("status") != "cancelled") & (F.col("quantity") > 0))` in `silver/orders_cleaned.py` were removed, which downstream tables' values would change and which would NOT — and why?
+Score: None
+
+REFERENCE:
+Removing the filter lets cancelled orders and zero-quantity orders pass into `silver orders_cleaned`. Impact:
+- CHANGES: `gold/product_performance.py`, because it reads `orders_cleaned` and aggregates it (sums/avgs/maxes per product per day plus count(order_id)); those metrics would now include the previously-filtered cancelled/zero-qty rows.
+- DOES NOT change: `silver/customer_profile.py` and therefore `gold/customer_ltv.py`. Crucially, customer_profile reads the BRONZE `orders_raw` table directly, NOT `orders_cleaned`, so it never saw this filter in the first place — its aggregates (total_orders, lifetime_revenue, etc.) are computed over unfiltered bronze orders regardless. (Note: in the lineage graph the removal also deletes the Filters edge on the orders_cleaned pipeline; no other structural change.)
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+If the row filter `.filter((F.col("status")!= "cancelled") & (F.col("quantity") > 0))` in `silver/orders_cleaned.py` were removed, the following downstream tables' values would change:
+
+1. **T6 (orders_cleaned)**: The filter is applied directly to this table, so removing it would allow rows with "cancelled" status or quantity <= 0 to pass through, changing the values in this table.
+2. **T7 (product_performance)**: Since T7 is derived from T6, any changes to T6 would propagate to T7. The aggregation operations (e.g., `order_count`) would be affected by the additional rows, potentially changing the values in T7.
+
+The following downstream tables' values would NOT change:
+
+1. **T4 (customer_profile)**: This table is derived from T0 (orders_raw), T1 (customers_raw), and T3 (events_raw), but not directly from T6. The filter removal in T6 would not affect T4.
+2. **T5 (customer_ltv)**: This table is derived from T4, which is not affected by the filter removal in T6. Therefore, T5 would not change.
+
+The reason for this behavior is that the filter is applied to T6, which is a downstream table of T0. The changes to T6 would only affect tables that are derived from T6, such as T7. Tables that are derived from other sources, like T4 and T5, would not be affected by the filter removal in T6.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ9] transitive-multi-hop-impact / medium
+Q: If the `email` column were dropped from `bronze.customers_raw`, which downstream silver and gold columns are affected, and is the impact computational or merely structural (passthrough)?
+Score: None
+
+REFERENCE:
+`email` is read by `silver/customer_profile.py` and used ONLY as one of the group-by grain keys: `.groupBy("customer_id", "email", "country_code", "signup_ts")`. It is carried as an output attribute of `customer_profile` but is never used in any computed expression. In `gold/customer_ltv.py`, `email` is selected through the `base` CTE and passed through `ranked` to the final SELECT (and into the written `customer_ltv` table) — again pure passthrough, no computation depends on it. So the affected columns are `customer_profile.email` and `customer_ltv.email`. The impact is structural/passthrough only: removing it drops a grain attribute and a passthrough column, but changes no aggregation result, no derived value, and no join (the joins key on customer_id / country_code, not email). No numeric or categorical output (lifetime_revenue, quartile, tier, etc.) changes.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+If the `email` column were dropped from `bronze.customers_raw` (T1), the downstream columns affected are:
+
+1. `email` in `silver.customer_profile` (T4) - This is a passthrough column (G:T1.email), so the impact is merely structural.
+2. `email` in `gold.customer_ltv` (T5) - This is also a passthrough column (P:T4.email), so the impact is merely structural.
+
+No computational columns are affected, as the `email` column is not used in any derived or aggregated columns. The impact is limited to the removal of the `email` column from the `customer_profile` and `customer_ltv` tables, which is a structural change. 
+
+Additionally, the `email` column is also used in the join operation between `D19` and `D18` (J|D19|D18|D25|inner|jk=customer_id=customer_id), and then in the join operation between `D25` and `D24` (J|D25|D24|D26|left|jk=customer_id=customer_id_last_event), but it is not used in any computational way, it's just part of the join key. However, the actual join is performed on the `customer_id` column, not the `email` column. 
+
+The `email` column is also used in the aggregation operation in `silver.customer_profile.py` (A|D26|D27|by=silver/customer_profile.py|gk=customer_id,email,country_code,signup_ts|out=total_orders=count(order_id);lifetime_revenue=sum(total_amount);last_order_ts=max(order_ts);last_event_ts=max(event_ts_last_event);distinct_products_ordered=countDistinct(product_id)), but it's used as a group key, not in any computational way. 
+
+So, the overall impact of dropping the `email` column from `bronze.customers_raw` is merely structural, and it will not affect any computational columns.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ10] aggregate-semantics / medium
+Q: What is the grain (set of group-by keys) of the aggregation in `silver/customer_profile.py`, what are all of its aggregate output columns, and what is unusual about including `signup_ts` as a grain key?
+Score: None
+
+REFERENCE:
+The aggregation is `profile.groupBy("customer_id", "email", "country_code", "signup_ts").agg(...)`. Grain keys: customer_id, email, country_code, signup_ts (four keys). Aggregate outputs (five): `total_orders = count(order_id)`, `lifetime_revenue = sum(total_amount)`, `last_order_ts = max(order_ts)`, `last_event_ts = max(event_ts_last_event)`, `distinct_products_ordered = countDistinct(product_id)`. What is unusual: the effective grain is one row per customer (customer_id is the natural key); email, country_code, and signup_ts are functionally dependent on customer_id and are included in the group-by only to carry them through to the output as attributes (a common Spark idiom since non-aggregated columns must appear in groupBy). Including `signup_ts` — a timestamp — as a grain key is notable because if a customer ever had two different signup_ts values it would split into multiple rows; it works here only on the assumption signup_ts is constant per customer.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+The grain (set of group-by keys) of the aggregation in `silver/customer_profile.py` is `customer_id, email, country_code, signup_ts`.
+
+The aggregate output columns are:
+- `total_orders` (count of `order_id`)
+- `lifetime_revenue` (sum of `total_amount`)
+- `last_order_ts` (max of `order_ts`)
+- `last_event_ts` (max of `event_ts_last_event`)
+- `distinct_products_ordered` (count distinct of `product_id`)
+
+It is unusual to include `signup_ts` as a grain key because `signup_ts` is typically a fixed attribute of a customer and does not change over time. Including it in the grain keys means that the aggregation will be performed separately for each unique combination of `customer_id`, `email`, `country_code`, and `signup_ts`. However, since `signup_ts` is usually a constant for each customer, this may lead to unnecessary duplication of aggregate results. Typically, `signup_ts` would be included as an output column, not as a grain key.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ11] aggregate-semantics / hard
+Q: The aggregation in `gold/product_performance.py` is `.agg(*aggregations, F.count("order_id").alias("order_count"))`. Which portion of this aggregation can a static analyzer enumerate and which cannot, what are the group keys, and what determines the unresolvable portion?
+Score: None
+
+REFERENCE:
+Group keys: `product_id` and `order_date` (`orders.groupBy("product_id", "order_date")`). The aggregation has two portions: (1) STATICALLY ENUMERABLE: `F.count("order_id").alias("order_count")` — a fixed, literal aggregate producing `order_count`. (2) NOT ENUMERABLE: `*aggregations`, a star-unpacked Python list built at runtime by a loop `for col_name in metric_columns: aggregations.append(F.sum(col_name)...); .append(F.avg(col_name)...); .append(F.max(col_name)...)`. The list contents depend on `metric_columns`, which is loaded from an out-of-repo JSON file: `config_path = os.environ.get("METRIC_CONFIG_PATH", "/dbfs/configs/metrics.json")` then `json.load(f)["product_performance"]`. Neither the env var nor the JSON file contents are resolvable from the code, so the analyzer cannot know how many metrics or which column names. A correct static representation is ONE aggregation step with the known `order_count` output plus an unresolved/dynamic marker for the sum/avg/max-per-metric portion (3 aggregates per unknown metric column).
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+Based on the provided DEGraph lineage graph, the aggregation in `gold/product_performance.py` is represented by the edge:
+
+`A|D16|D17|by=gold/product_performance.py|gk=product_id,order_date|out=<unresolved>=<unresolved>(<unresolved>);order_count=count(order_id)|dyn=agg list star-unpacked from a runtime-built variable; column list cannot be enumerated statically; controlled by env-var(s): $METRIC_CONFIG_PATH`
+
+From this edge, we can determine the following:
+
+1. **Static portion:** The static portion of the aggregation that can be enumerated by a static analyzer is `order_count=count(order_id)`. This is because the `order_count` aggregation is explicitly defined in the edge.
+
+2. **Dynamic portion:** The dynamic portion of the aggregation that cannot be enumerated statically is represented by `<unresolved>=<unresolved>(<unresolved>)`. This portion is controlled by a runtime-built variable, which is determined by the environment variable `$METRIC_CONFIG_PATH`. The exact aggregations in this portion are not known at compile time and can only be determined at runtime.
+
+3. **Group keys:** The group keys for this aggregation are `product_id` and `order_date`, as specified in the `gk` field of the edge.
+
+In summary, the static analyzer can only enumerate the `order_count` aggregation, while the rest of the aggregations are dynamic and determined by a runtime variable controlled by the `$METRIC_CONFIG_PATH` environment variable.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ12] window-function-impact / medium
+Q: In `silver/customer_profile.py`, if `event_ts` were renamed in `bronze.events_raw`, what specifically breaks in the latest-event window logic and in the downstream aggregation? Account for the suffix-rename step.
+Score: None
+
+REFERENCE:
+Two things break. (1) The window itself: `events_window = Window.partitionBy("customer_id").orderBy(F.col("event_ts").desc())` orders by `event_ts`; renaming the source column breaks the ORDER BY key, so `events_ranked = events_df.withColumn("rn", F.row_number().over(events_window))` and the subsequent `filter(rn==1)` (latest event per customer) would fail or pick the wrong row. (2) The downstream aggregate: after `events_latest` is suffix-renamed via `rename_columns_with_suffix(events_latest, "_last_event")`, every column gets `_last_event` appended, so `event_ts` becomes `event_ts_last_event`. That suffixed column is consumed by `F.max("event_ts_last_event").alias("last_event_ts")` in the final aggregation. So renaming `event_ts` breaks the window order key, the row_number dedup, AND the `last_event_ts` output column (transitively, customer_ltv.last_event_ts which is a passthrough of it). Note the join key on the events side is `customer_id_last_event` (from customer_id), not event_ts, so the join itself is unaffected.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+If `event_ts` were renamed in `bronze.events_raw`, the following would break in the latest-event window logic and downstream aggregation:
+
+1. **Latest-event window logic**: 
+   - The `D|D20|D21|rn|sc=customer_id,event_ts|ex=F.current_timestamp()|ws=part(customer_id)/ord(event_ts desc)` edge would break because it specifically references `event_ts` for sorting.
+   - The subsequent `D|D23|D24|event_ts_last_event|sc=event_ts` edge would also break because it references `event_ts` directly.
+
+2. **Downstream aggregation**:
+   - The `J|D25|D24|D26|left|jk=customer_id=customer_id_last_event` edge would not directly break due to the rename, but its effectiveness would be compromised if the renamed `event_ts` is not correctly referenced in the preceding steps.
+   - The `A|D26|D27|by=silver/customer_profile.py|gk=customer_id,email,country_code,signup_ts|out=total_orders=count(order_id);lifetime_revenue=sum(total_amount);last_order_ts=max(order_ts);last_event_ts=max(event_ts_last_event);distinct_products_ordered=countDistinct(product_id)` edge would break because it references `event_ts_last_event`, which in turn depends on the correct renaming and referencing of `event_ts` in the previous steps.
+
+To fix these issues, the renamed `event_ts` column would need to be correctly referenced in all the affected edges, including the sorting and windowing operations, as well as in the aggregation logic. The suffix-rename step would need to account for these changes to ensure that the correct column names are used throughout the pipeline.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ13] custom-sink / medium
+Q: Based on the body of `DeltaMergeSink.run()` in `utils/sinks.py`, what does the sink do on the very first run (when the target table does not yet exist) versus on subsequent runs, and what columns/keys drive the merge?
+Score: None
+
+REFERENCE:
+`DeltaMergeSink.run(df)` branches on whether the target already exists: `if not spark.catalog.tableExists(self.target_table): df.write.format("delta").saveAsTable(self.target_table); return`. So on the FIRST run (table absent) it simply creates the table with a plain Delta `saveAsTable` — no merge. On SUBSEQUENT runs (table exists) it performs a MERGE: `target = DeltaTable.forName(spark, self.target_table)`, builds the match condition by joining the merge keys (`" AND ".join(f"t.{k} = s.{k}" for k in self.merge_keys)`), then `target.alias("t").merge(df.alias("s"), condition).whenMatchedUpdateAll().whenNotMatchedInsertAll().execute()` — i.e. update matched rows in place and insert new ones (SCD-Type-1 upsert). An optional `update_condition` (default None) can gate the `whenMatchedUpdateAll`. For `gold/product_performance.py` the merge keys are `["product_id", "order_date"]`, so matching is on `t.product_id = s.product_id AND t.order_date = s.order_date`.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+Based on the provided DEGraph lineage graph, the `DeltaMergeSink` is used in the edge `W|D17|T7|merge|mk=product_id,order_date|sink=DeltaMergeSink`. 
+
+On the very first run (when the target table `T7` does not yet exist), the `DeltaMergeSink` will create the table and insert all the data from the source dataframe `D17`.
+
+On subsequent runs, the `DeltaMergeSink` will perform a merge operation on the target table `T7` using the columns `product_id` and `order_date` as the merge keys. The merge operation will update the existing rows in the target table if the corresponding rows in the source dataframe have changed, and insert new rows if they do not exist in the target table.
+
+The exact behavior of the `DeltaMergeSink` on subsequent runs depends on the implementation of the `run()` method in `utils/sinks.py`, which is not provided in the DEGraph lineage graph. However, based on the context, it appears that the `DeltaMergeSink` is designed to perform an upsert operation, updating existing rows and inserting new rows as necessary. 
+
+The columns `product_id` and `order_date` are specified as the merge keys (`mk=product_id,order_date`), which means that these columns will be used to match rows between the source dataframe and the target table.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ14] custom-sink / easy
+Q: What is the fully-qualified target table written by the `DeltaMergeSink` in `gold/product_performance.py`, and how is that FQN assembled from the repo's configuration?
+Score: None
+
+REFERENCE:
+The sink is constructed as `DeltaMergeSink(target_table=f"{database}.product_performance", merge_keys=["product_id", "order_date"], mode="merge")`. The `database` symbol comes from the setup notebook (imported via `%run ../_resources/setup`), where `database = f"{catalog}.{db}"`, and `catalog = "main"`, `db = "dbdemos_ecom"` come from `config.py`. So `database` = `main.dbdemos_ecom`, and the resolved target FQN is `main.dbdemos_ecom.product_performance`. Write mode is `merge`; merge keys are product_id and order_date.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+The fully-qualified target table written by the `DeltaMergeSink` in `gold/product_performance.py` is `main.dbdemos_ecom.product_performance`.
+
+This FQN is assembled from the repo's configuration as follows:
+
+- The `@TABLES` section defines `T7` with the FQN `main.dbdemos_ecom.product_performance`.
+- The `@EDGES` section contains a `W` (write) edge with `D17` as the source dataframe and `T7` as the target table.
+- The `W` edge for `T7` specifies `sink=DeltaMergeSink`, indicating that the `DeltaMergeSink` is used to write to `T7`, which is `main.dbdemos_ecom.product_performance`. 
+
+Therefore, the FQN `main.dbdemos_ecom.product_performance` is directly specified in the `@TABLES` section and referenced by the `W` edge in the `@EDGES` section.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ15] coverage-of-unknowns / medium
+Q: `silver/customer_profile.py` reads `main.dbdemos_ecom.customers_raw`. Is `customers_raw` produced by any file in this repo? What does the answer imply for the lineage of customer-attribute columns like `country_code` and `signup_ts`?
+Score: None
+
+REFERENCE:
+No file in this repo produces `customers_raw`. The only bronze producers are `bronze/01_ingest_orders.py` (writes `orders_raw`) and `bronze/03_ingest_events.py` (writes `events_raw`). There is no `*_ingest_customers` notebook. Therefore `customers_raw` is an EXTERNAL / upstream source as far as this repo is concerned — an orphan input with no in-repo producer. Implication: the lineage of customer-attribute columns sourced from it (e.g. `country_code`, `signup_ts`, `email`, `customer_id`) terminates at `customers_raw` with no further upstream node inside the repo; the graph cannot trace them back to a landing volume or ingest job the way it can for orders (orders_raw <- 01_ingest_orders) and events (events_raw <- 03_ingest_events). A lineage/coverage report should flag customers_raw as a read-but-not-produced (external) table.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+According to the `@TABLES` section, `main.dbdemos_ecom.customers_raw` (T1) is produced by `bronze/02_ingest_customers.ipynb`. 
+
+This implies that the lineage of customer-attribute columns like `country_code` and `signup_ts` in `main.dbdemos_ecom.customer_profile` (T4) can be traced back to `bronze/02_ingest_customers.ipynb`, as `silver/customer_profile.py` reads `main.dbdemos_ecom.customers_raw` and uses its columns to derive the columns in `main.dbdemos_ecom.customer_profile`. 
+
+In other words, the values of `country_code` and `signup_ts` in `main.dbdemos_ecom.customer_profile` ultimately come from the data ingested by `bronze/02_ingest_customers.ipynb`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ16] coverage-of-unknowns / hard
+Q: `bronze/03_ingest_events.py` calls `parse_event_payload(events_landing)`. What does that helper actually do to the schema, and why can a purely static lineage extractor not represent the resulting column-level lineage without extra configuration?
+Score: None
+
+REFERENCE:
+In `utils/event_parsers.py`, `parse_event_payload(df)` parses the JSON `payload` column with a fixed schema (`page_url`, `referrer`, `user_agent`, `cart_total`, all string) via `F.from_json(F.col("payload"), _PAYLOAD_SCHEMA)` into a temporary `_parsed` struct, then adds four new top-level columns — `page_url`, `referrer`, `user_agent`, and `cart_total` (the last cast to `decimal(18,2)`) — and finally drops `_parsed` and the original `payload`. So the net schema change is: one column out (`payload`), four columns in. A static extractor sees only the call site `events_parsed = parse_event_payload(events_landing)` — a call to an imported function. Because this helper is NOT registered in `.degraph/helpers.json` (unlike the column_transformations helpers), the extractor cannot know the column set changed or how; it must represent the step as an opaque transform that preserves the DataFrame's identity but with unknown column-level effects, and emit a warning naming the unregistered helper. Consequently the four parsed columns flowing into `events_raw` have no static column-level provenance back through the payload.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+The `parse_event_payload` helper function is called in `bronze/03_ingest_events.py` with a DataFrame argument, but its implementation is not provided in the given DEGraph. 
+
+However, based on the warning message `bronze/03_ingest_events.py|opaque-call-fallback|Unregistered function 'utils.event_parsers.parse_event_payload' called with DataFrame arg; column-set change across this call is unknown.`, we can infer that this function is not a standard PySpark function and its behavior is not known to the static lineage extractor.
+
+The warning message suggests that the `parse_event_payload` function is an opaque call, meaning its internal implementation is not visible to the lineage extractor. As a result, the extractor cannot determine the column-level changes made by this function.
+
+A purely static lineage extractor cannot represent the resulting column-level lineage without extra configuration because it relies on analyzing the code and identifying known patterns or functions. Since `parse_event_payload` is an unregistered function, the extractor does not have enough information to determine how it modifies the schema.
+
+To accurately represent the column-level lineage, additional configuration or annotation would be required to describe the behavior of the `parse_event_payload` function, such as its input and output schema, or the specific transformations it applies to the data.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ17] transitive-multi-hop-impact / hard
+Q: If the `lifetime_revenue` aggregation in `silver/customer_profile.py` were changed from `F.sum("total_amount")` to `F.avg("total_amount")`, which gold-tier values in `customer_ltv` would change, and would the lineage graph structure change?
+Score: None
+
+REFERENCE:
+`lifetime_revenue` is consumed extensively in `gold/customer_ltv.py`, so changing its meaning (sum -> avg) ripples through all values computed from it: (1) the `base` CTE selects `lifetime_revenue` (now an average), (2) `country_avg.avg_country_ltv = AVG(lifetime_revenue)` becomes an average-of-averages, (3) `ltv_vs_country_avg = lifetime_revenue / NULLIF(avg_country_ltv, 0)` changes, (4) `revenue_quartile = NTILE(4) OVER (ORDER BY lifetime_revenue DESC)` re-ranks customers (so quartile assignments can move), and (5) `ltv_tier` (platinum/gold/silver/bronze derived from revenue_quartile) can change accordingly. The written `customer_ltv.lifetime_revenue` value itself also changes. Lineage graph structure: NO structural change — the aggregate edge still maps `total_amount -> lifetime_revenue`; only the aggregation operator on that edge changes (sum -> avg). Same nodes, same edges, same downstream wiring; only values shift.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+If the `lifetime_revenue` aggregation in `silver/customer_profile.py` were changed from `F.sum("total_amount")` to `F.avg("total_amount")`, the following gold-tier values in `customer_ltv` would change:
+
+1. `lifetime_revenue`: This column would directly reflect the change in aggregation from sum to average.
+2. `revenue_quartile`: Since the `revenue_quartile` is calculated based on the `lifetime_revenue` using the `ord(lifetime_revenue desc)` window specification, the change in `lifetime_revenue` would likely affect the quartile assignments.
+3. `ltv_tier`: As the `ltv_tier` is determined by the `revenue_quartile` through the predicates `X0`, `X1`, and `X2`, a change in `revenue_quartile` could potentially alter the `ltv_tier` assignments.
+
+The lineage graph structure would not change. The change in aggregation would only affect the values being propagated through the existing edges and nodes, but it would not introduce new nodes, edges, or alter the overall topology of the graph. The `@PROV` section might need updates to reflect the changed derivation of `lifetime_revenue`, but the structure of the graph remains intact.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ18] direct-cross-file-impact / medium
+Q: The column `is_high_value` is derived in `silver/orders_cleaned.py`. Is it consumed by any other file in the repo? Justify your answer from what the downstream consumers actually read.
+Score: None
+
+REFERENCE:
+Statically, `is_high_value` has NO downstream consumer in this repo. It is derived in `silver/orders_cleaned.py` as `.withColumn("is_high_value", F.col("total_amount") > F.lit(1000))` and written into `silver orders_cleaned`. The only file that reads `orders_cleaned` is `gold/product_performance.py`, which groups by `product_id` and `order_date` and aggregates `count(order_id)` plus a runtime `*aggregations` list — none of which references `is_high_value` by name. (customer_profile and customer_ltv do not read orders_cleaned at all.) The one caveat: `product_performance`'s metric list is loaded dynamically from an out-of-repo JSON, so it is conceivable `is_high_value` appears there, but that cannot be confirmed statically. On the evidence in the code, `is_high_value` is effectively a leaf / unused derived column.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+The column `is_high_value` is derived in `silver/orders_cleaned.py` and written to table `T6`. 
+
+According to the `@TABLES` section, `T6` is consumed by `gold/product_performance.py`. 
+
+However, looking at the `@EDGES` section, we see that `gold/product_performance.py` reads `T6` but does not explicitly specify that it reads the `is_high_value` column. 
+
+The relevant edge is `R|T6|D16`, which reads `T6` into `D16`, but it does not specify which columns are read.
+
+Since `gold/product_performance.py` performs an aggregation on `D16` (which is derived from `T6`), we need to look at the aggregation operation to see if `is_high_value` is used.
+
+The aggregation operation is `A|D16|D17|by=gold/product_performance.py|gk=product_id,order_date|out=<unresolved>=<unresolved>(<unresolved>);order_count=count(order_id)|dyn=agg list star-unpacked from a runtime-built variable; column list cannot be enumerated statically; controlled by env-var(s): $METRIC_CONFIG_PATH`.
+
+This aggregation operation does not explicitly mention `is_high_value`. 
+
+However, we should also consider the `@WARN` section, which mentions a dynamic aggregation in `gold/product_performance.py`. This could potentially include `is_high_value`, but without more information, we cannot be certain.
+
+Therefore, based solely on the provided context, we cannot definitively say whether `is_high_value` is consumed by `gold/product_performance.py`. The information is insufficient to determine this with certainty.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ19] counterfactual / medium
+Q: If the write in `silver/orders_cleaned.py` were changed from `.mode("overwrite")` to `.mode("append")`, would the lineage graph change? Distinguish between what changes in the graph versus what changes in runtime behavior.
+Score: None
+
+REFERENCE:
+Lineage GRAPH: essentially no structural change. The Writes edge from the orders_cleaned pipeline to the `main.dbdemos_ecom.orders_cleaned` table still exists with the same source DataFrame and target table; only the write-mode attribute on that edge changes from `overwrite` to `append` (and the `overwriteSchema=true` option becomes irrelevant for append). No nodes or edges are added/removed, and no column-level lineage changes — every consumer still reads the same table with the same schema. RUNTIME behavior: significant — `overwrite` replaces the table contents each run, whereas `append` accumulates rows across runs, so duplicates would build up (the orders_cleaned pipeline has no dedup/merge), inflating the downstream `product_performance` aggregates. So this is a write-semantics change captured only as a mode property in the graph, not a lineage-structure change.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+If the write in `silver/orders_cleaned.py` were changed from `.mode("overwrite")` to `.mode("append")`, the lineage graph would not change. 
+
+The lineage graph represents the data flow and dependencies between tables and dataframes, which is determined by the code's logic and not by the write mode. The write mode affects the runtime behavior, specifically how the data is written to the table.
+
+In the case of changing from "overwrite" to "append", the runtime behavior would change. With "overwrite", the entire table would be replaced with the new data, whereas with "append", new data would be added to the existing table. This change in write mode would not alter the lineage graph, as the dependencies and data flow remain the same. 
+
+However, it's worth noting that the change in write mode could potentially affect the results of downstream queries or transformations that rely on the data in the `orders_cleaned` table, as the data would be different. But this would be a change in the data itself, not in the lineage graph. 
+
+In the provided DEGraph, the relevant edge is:
+```
+W|D28|T6|overwrite|delta
+```
+If the write mode were changed to "append", this edge would become:
+```
+W|D28|T6|append|delta
+```
+This change would reflect the updated write mode, but it would not alter the overall structure or dependencies represented in the lineage graph.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ20] reverse-lineage / medium
+Q: Trace the inputs of `gold.customer_ltv.days_since_last_order` back through the pipeline, and identify any source of non-determinism in its value.
+Score: None
+
+REFERENCE:
+`days_since_last_order` is computed in `gold/customer_ltv.py`'s `ranked` CTE as `DATEDIFF(CURRENT_DATE(), b.last_order_ts) AS days_since_last_order`. Its inputs: `last_order_ts` comes from the `base` CTE, which selects it from `main.dbdemos_ecom.customer_profile`. In `silver/customer_profile.py`, `last_order_ts = F.max("order_ts")` over each customer's joined orders; `order_ts` is a bronze `orders_raw` column (read directly by customer_profile), ingested by `bronze/01_ingest_orders.py`. So the data chain is: `bronze orders_raw.order_ts` -> `customer_profile.last_order_ts = max(order_ts)` -> `customer_ltv.days_since_last_order = DATEDIFF(CURRENT_DATE(), last_order_ts)`. Non-determinism: the `CURRENT_DATE()` term makes the value depend on the DATE THE JOB RUNS — the same input data yields a different `days_since_last_order` on different run dates. This is a run-time-dependent (non-reproducible across days) column, unlike the purely data-derived columns around it.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+To trace the inputs of `gold.customer_ltv.days_since_last_order`, we need to follow the lineage graph.
+
+1. `T5.days_since_last_order` is derived in `D12` from `D13` with no explicit expression given in the `@EDGES` section. However, since it's derived from `D12`, which is the result of a join operation between `D10` and `D11`, we need to look at the columns used in this join.
+2. The join operation `J|D10|D11|D12|left|jk=country_code=country_code` suggests that `D12` contains columns from both `D10` (which is `T4`) and `D11`.
+3. `D10` is read from `T4`, which is written by `silver/customer_profile.py`. The columns in `T4` are derived from `T0` (orders), `T1` (customers), and `T3` (events) through various operations.
+4. The `days_since_last_order` column in `T5` is not directly derived from any specific column in `T0`, `T1`, or `T3` but is calculated based on the data in `D12`.
+
+Given the information provided, the direct source of `days_since_last_order` is not explicitly defined in terms of a specific expression or column provenance. However, we can infer that it likely depends on the `last_order_ts` column in `T4`, which is derived from `T0.order_ts`.
+
+Sources of non-determinism in its value could include:
+- The use of current timestamps (`F.current_timestamp()`) in deriving `ingested_ts` columns in various tables, which could indirectly affect the calculation if the data is being processed in real-time or if there are time-based filters applied.
+- The dynamic nature of the aggregation in `gold/product_performance.py` might not directly affect `days_since_last_order`, but it indicates a potential for non-determinism in the pipeline if the aggregation logic changes based on external variables.
+- The `utils.event_parsers.parse_event_payload` function called in `bronze/03_ingest_events.py` is flagged as an opaque call, which could introduce non-determinism if its behavior changes or if it has side effects.
+
+However, without an explicit expression for `days_since_last_order` or more detailed information about how it's calculated, we can only speculate about its direct dependencies and potential sources of non-determinism. The calculation of `days_since_last_order` seems to be missing from the provided graph, making it difficult to pinpoint its exact sources and any potential non-determinism without additional context.
+
+Notes: 
+-----------------------------------------------------------------

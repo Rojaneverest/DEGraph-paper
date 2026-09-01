@@ -1,0 +1,2287 @@
+{
+  "metadata": {
+    "schema_version": "0.1.0",
+    "extractor_version": "ground-truth-hand-authored-v1",
+    "repo_root": "data/benchmarks/repo_synthetic_small",
+    "files_parsed": 10,
+    "files_skipped": 0,
+    "extraction_seconds": null
+  },
+  "tables": [
+    {
+      "id": "table:main.dbdemos_ecom.orders_raw",
+      "kind": "table",
+      "fqn": "main.dbdemos_ecom.orders_raw",
+      "format": "delta",
+      "location": null,
+      "columns": [
+        {
+          "name": "order_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Order UUID; primary key"
+        },
+        {
+          "name": "customer_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "FK to customers_raw.customer_id"
+        },
+        {
+          "name": "product_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "FK to products_raw.product_id"
+        },
+        {
+          "name": "quantity",
+          "dtype": "int",
+          "nullable": null,
+          "comment": "Number of units ordered"
+        },
+        {
+          "name": "unit_price",
+          "dtype": "decimal(18,2)",
+          "nullable": null,
+          "comment": "Price per unit at order time, pre-discount"
+        },
+        {
+          "name": "total_amount",
+          "dtype": "decimal(18,2)",
+          "nullable": null,
+          "comment": "quantity * unit_price (denormalized at ingest)"
+        },
+        {
+          "name": "currency",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "ISO 4217 currency code"
+        },
+        {
+          "name": "status",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "one of: pending, paid, refunded, cancelled"
+        },
+        {
+          "name": "order_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "When the order was placed (server clock)"
+        },
+        {
+          "name": "ingested_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "When this row was ingested into bronze"
+        },
+        {
+          "name": "source_file",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Auto Loader: originating file path"
+        },
+        {
+          "name": "_rescued_data",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Auto Loader: malformed-record salvage column"
+        }
+      ],
+      "partition_cols": [],
+      "written_by": [
+        "bronze/01_ingest_orders.py"
+      ],
+      "read_by": [
+        "silver/orders_cleaned.py",
+        "silver/customer_profile.py"
+      ]
+    },
+    {
+      "id": "table:main.dbdemos_ecom.customers_raw",
+      "kind": "table",
+      "fqn": "main.dbdemos_ecom.customers_raw",
+      "format": "delta",
+      "location": null,
+      "columns": [
+        {
+          "name": "customer_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Customer UUID; primary key"
+        },
+        {
+          "name": "email",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Login email (PII)"
+        },
+        {
+          "name": "first_name",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Given name (PII)"
+        },
+        {
+          "name": "last_name",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Family name (PII)"
+        },
+        {
+          "name": "country_code",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "ISO 3166-1 alpha-2 country code"
+        },
+        {
+          "name": "signup_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "Account creation timestamp"
+        },
+        {
+          "name": "marketing_opt_in",
+          "dtype": "boolean",
+          "nullable": null,
+          "comment": "CAN-SPAM / GDPR marketing consent flag"
+        },
+        {
+          "name": "ingested_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "When this row was ingested into bronze"
+        },
+        {
+          "name": "source_file",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Auto Loader: originating file path"
+        },
+        {
+          "name": "_rescued_data",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Auto Loader: malformed-record salvage column"
+        }
+      ],
+      "partition_cols": [],
+      "written_by": [
+        "bronze/02_ingest_customers.ipynb"
+      ],
+      "read_by": [
+        "silver/customer_profile.py"
+      ]
+    },
+    {
+      "id": "table:main.dbdemos_ecom.products_raw",
+      "kind": "table",
+      "fqn": "main.dbdemos_ecom.products_raw",
+      "format": "delta",
+      "location": null,
+      "columns": [
+        {
+          "name": "product_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Product UUID; primary key"
+        },
+        {
+          "name": "name",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Display name"
+        },
+        {
+          "name": "category",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Top-level product taxonomy"
+        },
+        {
+          "name": "list_price",
+          "dtype": "decimal(18,2)",
+          "nullable": null,
+          "comment": "Sticker price (pre-discount)"
+        },
+        {
+          "name": "active",
+          "dtype": "boolean",
+          "nullable": null,
+          "comment": "Available for sale flag"
+        },
+        {
+          "name": "ingested_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "When this row was ingested into bronze"
+        },
+        {
+          "name": "source_file",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Source file path"
+        }
+      ],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": []
+    },
+    {
+      "id": "table:main.dbdemos_ecom.events_raw",
+      "kind": "table",
+      "fqn": "main.dbdemos_ecom.events_raw",
+      "format": "delta",
+      "location": null,
+      "columns": [
+        {
+          "name": "event_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Event UUID; primary key"
+        },
+        {
+          "name": "customer_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "FK to customers_raw.customer_id; NULL for anonymous"
+        },
+        {
+          "name": "event_type",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "one of: page_view, add_to_cart, checkout, purchase"
+        },
+        {
+          "name": "product_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Optional FK to products_raw.product_id"
+        },
+        {
+          "name": "session_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Browser / mobile-app session identifier"
+        },
+        {
+          "name": "event_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "When the event was emitted (client clock)"
+        },
+        {
+          "name": "ingested_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "When this row was ingested into bronze"
+        },
+        {
+          "name": "payload",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "JSON payload; schema varies by event_type"
+        },
+        {
+          "name": "_rescued_data",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Auto Loader: malformed-record salvage column"
+        }
+      ],
+      "partition_cols": [],
+      "written_by": [
+        "bronze/03_ingest_events.py"
+      ],
+      "read_by": [
+        "silver/customer_profile.py"
+      ]
+    },
+    {
+      "id": "table:main.dbdemos_ecom.orders_cleaned",
+      "kind": "table",
+      "fqn": "main.dbdemos_ecom.orders_cleaned",
+      "format": "delta",
+      "location": null,
+      "columns": [
+        {
+          "name": "order_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Inherited from orders_raw"
+        },
+        {
+          "name": "customer_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Inherited from orders_raw"
+        },
+        {
+          "name": "product_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Inherited from orders_raw"
+        },
+        {
+          "name": "quantity",
+          "dtype": "int",
+          "nullable": null,
+          "comment": "Cleaned: greatest(quantity, 0)"
+        },
+        {
+          "name": "unit_price",
+          "dtype": "decimal(18,2)",
+          "nullable": null,
+          "comment": "Inherited from orders_raw"
+        },
+        {
+          "name": "total_amount",
+          "dtype": "decimal(18,2)",
+          "nullable": null,
+          "comment": "Cleaned: round(total_amount, 2)"
+        },
+        {
+          "name": "currency",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Cleaned: upper(currency)"
+        },
+        {
+          "name": "status",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Cleaned: lower(status)"
+        },
+        {
+          "name": "order_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "Inherited from orders_raw"
+        },
+        {
+          "name": "ingested_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "Inherited from orders_raw"
+        },
+        {
+          "name": "order_date",
+          "dtype": "date",
+          "nullable": null,
+          "comment": "Derived: to_date(order_ts)"
+        },
+        {
+          "name": "order_year",
+          "dtype": "int",
+          "nullable": null,
+          "comment": "Derived: year(order_ts)"
+        },
+        {
+          "name": "order_month",
+          "dtype": "int",
+          "nullable": null,
+          "comment": "Derived: month(order_ts)"
+        },
+        {
+          "name": "is_high_value",
+          "dtype": "boolean",
+          "nullable": null,
+          "comment": "Derived: total_amount > 1000"
+        }
+      ],
+      "partition_cols": [],
+      "written_by": [
+        "silver/orders_cleaned.py"
+      ],
+      "read_by": [
+        "gold/product_performance.py"
+      ]
+    },
+    {
+      "id": "table:main.dbdemos_ecom.customer_profile",
+      "kind": "table",
+      "fqn": "main.dbdemos_ecom.customer_profile",
+      "format": "delta",
+      "location": null,
+      "columns": [
+        {
+          "name": "customer_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Group key (from customers_raw)"
+        },
+        {
+          "name": "email",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Group key (from customers_raw)"
+        },
+        {
+          "name": "country_code",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Group key (from customers_raw)"
+        },
+        {
+          "name": "signup_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "Group key (from customers_raw)"
+        },
+        {
+          "name": "total_orders",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": "Aggregate: count(order_id)"
+        },
+        {
+          "name": "lifetime_revenue",
+          "dtype": "decimal(18,2)",
+          "nullable": null,
+          "comment": "Aggregate: sum(total_amount)"
+        },
+        {
+          "name": "last_order_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "Aggregate: max(order_ts)"
+        },
+        {
+          "name": "last_event_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "Aggregate: max(event_ts_last_event)"
+        },
+        {
+          "name": "distinct_products_ordered",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": "Aggregate: countDistinct(product_id)"
+        }
+      ],
+      "partition_cols": [],
+      "written_by": [
+        "silver/customer_profile.py"
+      ],
+      "read_by": [
+        "gold/customer_ltv.py"
+      ]
+    },
+    {
+      "id": "table:main.dbdemos_ecom.customer_ltv",
+      "kind": "table",
+      "fqn": "main.dbdemos_ecom.customer_ltv",
+      "format": "delta",
+      "location": null,
+      "columns": [
+        {
+          "name": "customer_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Inherited from customer_profile"
+        },
+        {
+          "name": "email",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Inherited from customer_profile"
+        },
+        {
+          "name": "country_code",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Inherited from customer_profile"
+        },
+        {
+          "name": "signup_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "Inherited from customer_profile"
+        },
+        {
+          "name": "total_orders",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": "Inherited from customer_profile"
+        },
+        {
+          "name": "lifetime_revenue",
+          "dtype": "decimal(18,2)",
+          "nullable": null,
+          "comment": "Inherited from customer_profile"
+        },
+        {
+          "name": "last_order_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "Inherited from customer_profile"
+        },
+        {
+          "name": "last_event_ts",
+          "dtype": "timestamp",
+          "nullable": null,
+          "comment": "Inherited from customer_profile"
+        },
+        {
+          "name": "days_since_last_order",
+          "dtype": "int",
+          "nullable": null,
+          "comment": "SQL: DATEDIFF(CURRENT_DATE(), last_order_ts)"
+        },
+        {
+          "name": "ltv_vs_country_avg",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": "SQL: lifetime_revenue / NULLIF(avg_country_ltv, 0)"
+        },
+        {
+          "name": "revenue_quartile",
+          "dtype": "int",
+          "nullable": null,
+          "comment": "SQL: NTILE(4) OVER (ORDER BY lifetime_revenue DESC)"
+        },
+        {
+          "name": "ltv_tier",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Python: when(revenue_quartile == 1, 'platinum').when(...).otherwise('bronze')"
+        }
+      ],
+      "partition_cols": [],
+      "written_by": [
+        "gold/customer_ltv.py"
+      ],
+      "read_by": []
+    },
+    {
+      "id": "table:main.dbdemos_ecom.product_performance",
+      "kind": "table",
+      "fqn": "main.dbdemos_ecom.product_performance",
+      "format": "delta",
+      "location": null,
+      "columns": [
+        {
+          "name": "product_id",
+          "dtype": "string",
+          "nullable": null,
+          "comment": "Group key (from orders_cleaned)"
+        },
+        {
+          "name": "order_date",
+          "dtype": "date",
+          "nullable": null,
+          "comment": "Group key (from orders_cleaned)"
+        },
+        {
+          "name": "order_count",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": "Aggregate: count(order_id)"
+        },
+        {
+          "name": "<unresolved>",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": "Dynamic aggregations: sum_<col>, avg_<col>, max_<col> for each col in runtime-loaded metric_columns"
+        }
+      ],
+      "partition_cols": [],
+      "written_by": [
+        "gold/product_performance.py"
+      ],
+      "read_by": []
+    }
+  ],
+  "external_sources": [
+    {
+      "id": "ext:/Volumes/main/dbdemos_ecom/landing/orders",
+      "kind": "external_source",
+      "format": "cloudFiles",
+      "location": "/Volumes/main/dbdemos_ecom/landing/orders",
+      "columns": [],
+      "read_by": [
+        "bronze/01_ingest_orders.py"
+      ]
+    },
+    {
+      "id": "ext:/Volumes/main/dbdemos_ecom/landing/customers",
+      "kind": "external_source",
+      "format": "cloudFiles",
+      "location": "/Volumes/main/dbdemos_ecom/landing/customers",
+      "columns": [],
+      "read_by": [
+        "bronze/02_ingest_customers.ipynb"
+      ]
+    },
+    {
+      "id": "ext:/Volumes/main/dbdemos_ecom/landing/events",
+      "kind": "external_source",
+      "format": "cloudFiles",
+      "location": "/Volumes/main/dbdemos_ecom/landing/events",
+      "columns": [],
+      "read_by": [
+        "bronze/03_ingest_events.py"
+      ]
+    }
+  ],
+  "dataframes": [
+    {
+      "id": "df:bronze/01_ingest_orders.py:34:orders_landing",
+      "kind": "dataframe",
+      "file": "bronze/01_ingest_orders.py",
+      "var_name": "orders_landing",
+      "lineno": 34,
+      "columns": [],
+      "derived_from": [
+        "ext:/Volumes/main/dbdemos_ecom/landing/orders"
+      ]
+    },
+    {
+      "id": "df:bronze/01_ingest_orders.py:53:orders_with_meta",
+      "kind": "dataframe",
+      "file": "bronze/01_ingest_orders.py",
+      "var_name": "orders_with_meta",
+      "lineno": 53,
+      "columns": [],
+      "derived_from": [
+        "df:bronze/01_ingest_orders.py:34:orders_landing"
+      ]
+    },
+    {
+      "id": "df:bronze/02_ingest_customers.ipynb:cell5:customers_landing",
+      "kind": "dataframe",
+      "file": "bronze/02_ingest_customers.ipynb",
+      "var_name": "customers_landing",
+      "lineno": null,
+      "columns": [],
+      "derived_from": [
+        "ext:/Volumes/main/dbdemos_ecom/landing/customers"
+      ]
+    },
+    {
+      "id": "df:bronze/02_ingest_customers.ipynb:cell7:customers_with_meta",
+      "kind": "dataframe",
+      "file": "bronze/02_ingest_customers.ipynb",
+      "var_name": "customers_with_meta",
+      "lineno": null,
+      "columns": [],
+      "derived_from": [
+        "df:bronze/02_ingest_customers.ipynb:cell5:customers_landing"
+      ]
+    },
+    {
+      "id": "df:bronze/03_ingest_events.py:35:events_landing",
+      "kind": "dataframe",
+      "file": "bronze/03_ingest_events.py",
+      "var_name": "events_landing",
+      "lineno": 35,
+      "columns": [],
+      "derived_from": [
+        "ext:/Volumes/main/dbdemos_ecom/landing/events"
+      ]
+    },
+    {
+      "id": "df:bronze/03_ingest_events.py:53:events_parsed",
+      "kind": "dataframe",
+      "file": "bronze/03_ingest_events.py",
+      "var_name": "events_parsed",
+      "lineno": 53,
+      "columns": [],
+      "derived_from": [
+        "df:bronze/03_ingest_events.py:35:events_landing"
+      ]
+    },
+    {
+      "id": "df:bronze/03_ingest_events.py:60:events_final",
+      "kind": "dataframe",
+      "file": "bronze/03_ingest_events.py",
+      "var_name": "events_final",
+      "lineno": 60,
+      "columns": [],
+      "derived_from": [
+        "df:bronze/03_ingest_events.py:53:events_parsed"
+      ]
+    },
+    {
+      "id": "df:silver/orders_cleaned.py:44:orders",
+      "kind": "dataframe",
+      "file": "silver/orders_cleaned.py",
+      "var_name": "orders",
+      "lineno": 44,
+      "columns": [
+        "order_id",
+        "customer_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "total_amount",
+        "currency",
+        "status",
+        "order_ts",
+        "ingested_ts",
+        "source_file",
+        "_rescued_data"
+      ],
+      "derived_from": [
+        "table:main.dbdemos_ecom.orders_raw"
+      ]
+    },
+    {
+      "id": "df:silver/orders_cleaned.py:56:orders_trimmed",
+      "kind": "dataframe",
+      "file": "silver/orders_cleaned.py",
+      "var_name": "orders",
+      "lineno": 56,
+      "columns": [
+        "order_id",
+        "customer_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "total_amount",
+        "currency",
+        "status",
+        "order_ts",
+        "ingested_ts",
+        "source_file",
+        "_rescued_data"
+      ],
+      "derived_from": [
+        "df:silver/orders_cleaned.py:44:orders"
+      ]
+    },
+    {
+      "id": "df:silver/orders_cleaned.py:66:orders_normalized",
+      "kind": "dataframe",
+      "file": "silver/orders_cleaned.py",
+      "var_name": "orders",
+      "lineno": 66,
+      "columns": [
+        "order_id",
+        "customer_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "total_amount",
+        "currency",
+        "status",
+        "order_ts",
+        "ingested_ts",
+        "source_file",
+        "_rescued_data",
+        "order_date",
+        "order_year",
+        "order_month",
+        "is_high_value"
+      ],
+      "derived_from": [
+        "df:silver/orders_cleaned.py:56:orders_trimmed"
+      ]
+    },
+    {
+      "id": "df:silver/orders_cleaned.py:86:orders_projected",
+      "kind": "dataframe",
+      "file": "silver/orders_cleaned.py",
+      "var_name": "orders",
+      "lineno": 86,
+      "columns": [
+        "order_id",
+        "customer_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "total_amount",
+        "currency",
+        "status",
+        "order_ts",
+        "ingested_ts",
+        "order_date",
+        "order_year",
+        "order_month",
+        "is_high_value"
+      ],
+      "derived_from": [
+        "df:silver/orders_cleaned.py:66:orders_normalized"
+      ]
+    },
+    {
+      "id": "df:silver/orders_cleaned.py:97:orders_filtered",
+      "kind": "dataframe",
+      "file": "silver/orders_cleaned.py",
+      "var_name": "orders",
+      "lineno": 97,
+      "columns": [
+        "order_id",
+        "customer_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "total_amount",
+        "currency",
+        "status",
+        "order_ts",
+        "ingested_ts",
+        "order_date",
+        "order_year",
+        "order_month",
+        "is_high_value"
+      ],
+      "derived_from": [
+        "df:silver/orders_cleaned.py:86:orders_projected"
+      ]
+    },
+    {
+      "id": "df:silver/customer_profile.py:43:orders_df",
+      "kind": "dataframe",
+      "file": "silver/customer_profile.py",
+      "var_name": "orders_df",
+      "lineno": 43,
+      "columns": [
+        "order_id",
+        "customer_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "total_amount",
+        "currency",
+        "status",
+        "order_ts",
+        "ingested_ts",
+        "source_file",
+        "_rescued_data"
+      ],
+      "derived_from": [
+        "table:main.dbdemos_ecom.orders_raw"
+      ]
+    },
+    {
+      "id": "df:silver/customer_profile.py:44:customers_df",
+      "kind": "dataframe",
+      "file": "silver/customer_profile.py",
+      "var_name": "customers_df",
+      "lineno": 44,
+      "columns": [
+        "customer_id",
+        "email",
+        "first_name",
+        "last_name",
+        "country_code",
+        "signup_ts",
+        "marketing_opt_in",
+        "ingested_ts",
+        "source_file",
+        "_rescued_data"
+      ],
+      "derived_from": [
+        "table:main.dbdemos_ecom.customers_raw"
+      ]
+    },
+    {
+      "id": "df:silver/customer_profile.py:45:events_df",
+      "kind": "dataframe",
+      "file": "silver/customer_profile.py",
+      "var_name": "events_df",
+      "lineno": 45,
+      "columns": [
+        "event_id",
+        "customer_id",
+        "event_type",
+        "product_id",
+        "session_id",
+        "event_ts",
+        "ingested_ts",
+        "payload",
+        "_rescued_data"
+      ],
+      "derived_from": [
+        "table:main.dbdemos_ecom.events_raw"
+      ]
+    },
+    {
+      "id": "df:silver/customer_profile.py:56:events_ranked",
+      "kind": "dataframe",
+      "file": "silver/customer_profile.py",
+      "var_name": "events_ranked",
+      "lineno": 56,
+      "columns": [
+        "event_id",
+        "customer_id",
+        "event_type",
+        "product_id",
+        "session_id",
+        "event_ts",
+        "ingested_ts",
+        "payload",
+        "_rescued_data",
+        "rn"
+      ],
+      "derived_from": [
+        "df:silver/customer_profile.py:45:events_df"
+      ]
+    },
+    {
+      "id": "df:silver/customer_profile.py:51:_anon1",
+      "kind": "dataframe",
+      "file": "silver/customer_profile.py",
+      "var_name": null,
+      "lineno": 51,
+      "columns": [
+        "event_id",
+        "customer_id",
+        "event_type",
+        "product_id",
+        "session_id",
+        "event_ts",
+        "ingested_ts",
+        "payload",
+        "_rescued_data",
+        "rn"
+      ],
+      "derived_from": [
+        "df:silver/customer_profile.py:56:events_ranked"
+      ]
+    },
+    {
+      "id": "df:silver/customer_profile.py:57:events_latest",
+      "kind": "dataframe",
+      "file": "silver/customer_profile.py",
+      "var_name": "events_latest",
+      "lineno": 57,
+      "columns": [
+        "event_id",
+        "customer_id",
+        "event_type",
+        "product_id",
+        "session_id",
+        "event_ts",
+        "ingested_ts",
+        "payload",
+        "_rescued_data"
+      ],
+      "derived_from": [
+        "df:silver/customer_profile.py:51:_anon1"
+      ]
+    },
+    {
+      "id": "df:silver/customer_profile.py:69:events_suffixed",
+      "kind": "dataframe",
+      "file": "silver/customer_profile.py",
+      "var_name": "events_suffixed",
+      "lineno": 69,
+      "columns": [
+        "event_id_last_event",
+        "customer_id_last_event",
+        "event_type_last_event",
+        "product_id_last_event",
+        "session_id_last_event",
+        "event_ts_last_event",
+        "ingested_ts_last_event",
+        "payload_last_event",
+        "_rescued_data_last_event"
+      ],
+      "derived_from": [
+        "df:silver/customer_profile.py:57:events_latest"
+      ]
+    },
+    {
+      "id": "df:silver/customer_profile.py:78:co",
+      "kind": "dataframe",
+      "file": "silver/customer_profile.py",
+      "var_name": "co",
+      "lineno": 78,
+      "columns": [
+        "customer_id",
+        "email",
+        "first_name",
+        "last_name",
+        "country_code",
+        "signup_ts",
+        "marketing_opt_in",
+        "ingested_ts",
+        "source_file",
+        "_rescued_data",
+        "order_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "total_amount",
+        "currency",
+        "status",
+        "order_ts"
+      ],
+      "derived_from": [
+        "df:silver/customer_profile.py:44:customers_df",
+        "df:silver/customer_profile.py:43:orders_df"
+      ]
+    },
+    {
+      "id": "df:silver/customer_profile.py:80:profile",
+      "kind": "dataframe",
+      "file": "silver/customer_profile.py",
+      "var_name": "profile",
+      "lineno": 80,
+      "columns": [
+        "customer_id",
+        "email",
+        "first_name",
+        "last_name",
+        "country_code",
+        "signup_ts",
+        "marketing_opt_in",
+        "ingested_ts",
+        "source_file",
+        "_rescued_data",
+        "order_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "total_amount",
+        "currency",
+        "status",
+        "order_ts",
+        "event_id_last_event",
+        "customer_id_last_event",
+        "event_type_last_event",
+        "product_id_last_event",
+        "session_id_last_event",
+        "event_ts_last_event",
+        "ingested_ts_last_event",
+        "payload_last_event",
+        "_rescued_data_last_event"
+      ],
+      "derived_from": [
+        "df:silver/customer_profile.py:78:co",
+        "df:silver/customer_profile.py:69:events_suffixed"
+      ]
+    },
+    {
+      "id": "df:silver/customer_profile.py:95:customer_profile",
+      "kind": "dataframe",
+      "file": "silver/customer_profile.py",
+      "var_name": "customer_profile",
+      "lineno": 95,
+      "columns": [
+        "customer_id",
+        "email",
+        "country_code",
+        "signup_ts",
+        "total_orders",
+        "lifetime_revenue",
+        "last_order_ts",
+        "last_event_ts",
+        "distinct_products_ordered"
+      ],
+      "derived_from": [
+        "df:silver/customer_profile.py:80:profile"
+      ]
+    },
+    {
+      "id": "df:gold/customer_ltv.py:46:base_cte",
+      "kind": "dataframe",
+      "file": "gold/customer_ltv.py",
+      "var_name": null,
+      "lineno": 46,
+      "columns": [
+        "customer_id",
+        "email",
+        "country_code",
+        "signup_ts",
+        "total_orders",
+        "lifetime_revenue",
+        "last_order_ts",
+        "last_event_ts"
+      ],
+      "derived_from": [
+        "table:main.dbdemos_ecom.customer_profile"
+      ]
+    },
+    {
+      "id": "df:gold/customer_ltv.py:57:country_avg_cte",
+      "kind": "dataframe",
+      "file": "gold/customer_ltv.py",
+      "var_name": null,
+      "lineno": 57,
+      "columns": [
+        "country_code",
+        "avg_country_ltv"
+      ],
+      "derived_from": [
+        "df:gold/customer_ltv.py:46:base_cte"
+      ]
+    },
+    {
+      "id": "df:gold/customer_ltv.py:75:ranked_joined",
+      "kind": "dataframe",
+      "file": "gold/customer_ltv.py",
+      "var_name": null,
+      "lineno": 75,
+      "columns": [
+        "customer_id",
+        "email",
+        "country_code",
+        "signup_ts",
+        "total_orders",
+        "lifetime_revenue",
+        "last_order_ts",
+        "last_event_ts",
+        "avg_country_ltv"
+      ],
+      "derived_from": [
+        "df:gold/customer_ltv.py:46:base_cte",
+        "df:gold/customer_ltv.py:57:country_avg_cte"
+      ]
+    },
+    {
+      "id": "df:gold/customer_ltv.py:74:ranked_cte",
+      "kind": "dataframe",
+      "file": "gold/customer_ltv.py",
+      "var_name": null,
+      "lineno": 74,
+      "columns": [
+        "customer_id",
+        "email",
+        "country_code",
+        "signup_ts",
+        "total_orders",
+        "lifetime_revenue",
+        "last_order_ts",
+        "last_event_ts",
+        "avg_country_ltv",
+        "days_since_last_order",
+        "ltv_vs_country_avg",
+        "revenue_quartile"
+      ],
+      "derived_from": [
+        "df:gold/customer_ltv.py:75:ranked_joined"
+      ]
+    },
+    {
+      "id": "df:gold/customer_ltv.py:45:ltv_df",
+      "kind": "dataframe",
+      "file": "gold/customer_ltv.py",
+      "var_name": "ltv_df",
+      "lineno": 45,
+      "columns": [
+        "customer_id",
+        "email",
+        "country_code",
+        "signup_ts",
+        "total_orders",
+        "lifetime_revenue",
+        "last_order_ts",
+        "last_event_ts",
+        "days_since_last_order",
+        "ltv_vs_country_avg",
+        "revenue_quartile"
+      ],
+      "derived_from": [
+        "df:gold/customer_ltv.py:74:ranked_cte"
+      ]
+    },
+    {
+      "id": "df:gold/customer_ltv.py:89:ltv_tiered",
+      "kind": "dataframe",
+      "file": "gold/customer_ltv.py",
+      "var_name": "ltv_tiered",
+      "lineno": 89,
+      "columns": [
+        "customer_id",
+        "email",
+        "country_code",
+        "signup_ts",
+        "total_orders",
+        "lifetime_revenue",
+        "last_order_ts",
+        "last_event_ts",
+        "days_since_last_order",
+        "ltv_vs_country_avg",
+        "revenue_quartile",
+        "ltv_tier"
+      ],
+      "derived_from": [
+        "df:gold/customer_ltv.py:45:ltv_df"
+      ]
+    },
+    {
+      "id": "df:gold/product_performance.py:51:orders",
+      "kind": "dataframe",
+      "file": "gold/product_performance.py",
+      "var_name": "orders",
+      "lineno": 51,
+      "columns": [
+        "order_id",
+        "customer_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "total_amount",
+        "currency",
+        "status",
+        "order_ts",
+        "ingested_ts",
+        "order_date",
+        "order_year",
+        "order_month",
+        "is_high_value"
+      ],
+      "derived_from": [
+        "table:main.dbdemos_ecom.orders_cleaned"
+      ]
+    },
+    {
+      "id": "df:gold/product_performance.py:90:daily_perf",
+      "kind": "dataframe",
+      "file": "gold/product_performance.py",
+      "var_name": "daily_perf",
+      "lineno": 90,
+      "columns": [
+        "product_id",
+        "order_date",
+        "<unresolved>",
+        "order_count"
+      ],
+      "derived_from": [
+        "df:gold/product_performance.py:51:orders"
+      ]
+    }
+  ],
+  "expressions": [
+    {
+      "id": "expr:e0",
+      "kind": "expression",
+      "text": "F.current_timestamp()",
+      "referenced_cols": [],
+      "udf": false
+    },
+    {
+      "id": "expr:e1",
+      "kind": "expression",
+      "text": "F.col(\"_metadata.file_path\")",
+      "referenced_cols": [
+        "_metadata.file_path"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e2",
+      "kind": "expression",
+      "text": "F.upper(F.col(\"currency\"))",
+      "referenced_cols": [
+        "currency"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e3",
+      "kind": "expression",
+      "text": "F.lower(F.col(\"status\"))",
+      "referenced_cols": [
+        "status"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e4",
+      "kind": "expression",
+      "text": "F.greatest(F.col(\"quantity\"), F.lit(0))",
+      "referenced_cols": [
+        "quantity"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e5",
+      "kind": "expression",
+      "text": "F.round(F.col(\"total_amount\"), 2)",
+      "referenced_cols": [
+        "total_amount"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e6",
+      "kind": "expression",
+      "text": "F.to_date(F.col(\"order_ts\"))",
+      "referenced_cols": [
+        "order_ts"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e7",
+      "kind": "expression",
+      "text": "F.year(F.col(\"order_ts\"))",
+      "referenced_cols": [
+        "order_ts"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e8",
+      "kind": "expression",
+      "text": "F.month(F.col(\"order_ts\"))",
+      "referenced_cols": [
+        "order_ts"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e9",
+      "kind": "expression",
+      "text": "F.col(\"total_amount\") > F.lit(1000)",
+      "referenced_cols": [
+        "total_amount"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e10",
+      "kind": "expression",
+      "text": "(F.col(\"status\") != \"cancelled\") & (F.col(\"quantity\") > 0)",
+      "referenced_cols": [
+        "status",
+        "quantity"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e11",
+      "kind": "expression",
+      "text": "F.row_number().over(Window.partitionBy(\"customer_id\").orderBy(F.col(\"event_ts\").desc()))",
+      "referenced_cols": [
+        "customer_id",
+        "event_ts"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e12",
+      "kind": "expression",
+      "text": "F.col(\"rn\") == 1",
+      "referenced_cols": [
+        "rn"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e13",
+      "kind": "expression",
+      "text": "co[\"customer_id\"] == events_suffixed[\"customer_id_last_event\"]",
+      "referenced_cols": [
+        "customer_id",
+        "customer_id_last_event"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e14",
+      "kind": "expression",
+      "text": "DATEDIFF(CURRENT_DATE(), b.last_order_ts)",
+      "referenced_cols": [
+        "last_order_ts"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e15",
+      "kind": "expression",
+      "text": "b.lifetime_revenue / NULLIF(ca.avg_country_ltv, 0)",
+      "referenced_cols": [
+        "lifetime_revenue",
+        "avg_country_ltv"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e16",
+      "kind": "expression",
+      "text": "NTILE(4) OVER (ORDER BY b.lifetime_revenue DESC)",
+      "referenced_cols": [
+        "lifetime_revenue"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e17",
+      "kind": "expression",
+      "text": "F.when(F.col(\"revenue_quartile\") == 1, F.lit(\"platinum\")).when(F.col(\"revenue_quartile\") == 2, F.lit(\"gold\")).when(F.col(\"revenue_quartile\") == 3, F.lit(\"silver\")).otherwise(F.lit(\"bronze\"))",
+      "referenced_cols": [
+        "revenue_quartile"
+      ],
+      "udf": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "e:r:b01",
+      "file": "bronze/01_ingest_orders.py",
+      "lineno": 34,
+      "kind": "reads",
+      "source": "ext:/Volumes/main/dbdemos_ecom/landing/orders",
+      "target": "df:bronze/01_ingest_orders.py:34:orders_landing",
+      "projected_cols": [],
+      "streaming": true
+    },
+    {
+      "id": "e:d:b01:01",
+      "file": "bronze/01_ingest_orders.py",
+      "lineno": 55,
+      "kind": "derives",
+      "source": "df:bronze/01_ingest_orders.py:34:orders_landing",
+      "target": "df:bronze/01_ingest_orders.py:53:orders_with_meta",
+      "output_col": "ingested_ts",
+      "source_cols": [],
+      "expr_id": "expr:e0",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:b01:02",
+      "file": "bronze/01_ingest_orders.py",
+      "lineno": 56,
+      "kind": "derives",
+      "source": "df:bronze/01_ingest_orders.py:34:orders_landing",
+      "target": "df:bronze/01_ingest_orders.py:53:orders_with_meta",
+      "output_col": "source_file",
+      "source_cols": [
+        "_metadata.file_path"
+      ],
+      "expr_id": "expr:e1",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:w:b01",
+      "file": "bronze/01_ingest_orders.py",
+      "lineno": 67,
+      "kind": "writes",
+      "source": "df:bronze/01_ingest_orders.py:53:orders_with_meta",
+      "target": "table:main.dbdemos_ecom.orders_raw",
+      "mode": "append",
+      "partition_cols": [],
+      "format": "delta",
+      "streaming": true,
+      "sink_class": null
+    },
+    {
+      "id": "e:r:b02",
+      "file": "bronze/02_ingest_customers.ipynb",
+      "lineno": null,
+      "kind": "reads",
+      "source": "ext:/Volumes/main/dbdemos_ecom/landing/customers",
+      "target": "df:bronze/02_ingest_customers.ipynb:cell5:customers_landing",
+      "projected_cols": [],
+      "streaming": true
+    },
+    {
+      "id": "e:d:b02:01",
+      "file": "bronze/02_ingest_customers.ipynb",
+      "lineno": null,
+      "kind": "derives",
+      "source": "df:bronze/02_ingest_customers.ipynb:cell5:customers_landing",
+      "target": "df:bronze/02_ingest_customers.ipynb:cell7:customers_with_meta",
+      "output_col": "ingested_ts",
+      "source_cols": [],
+      "expr_id": "expr:e0",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:b02:02",
+      "file": "bronze/02_ingest_customers.ipynb",
+      "lineno": null,
+      "kind": "derives",
+      "source": "df:bronze/02_ingest_customers.ipynb:cell5:customers_landing",
+      "target": "df:bronze/02_ingest_customers.ipynb:cell7:customers_with_meta",
+      "output_col": "source_file",
+      "source_cols": [
+        "_metadata.file_path"
+      ],
+      "expr_id": "expr:e1",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:w:b02",
+      "file": "bronze/02_ingest_customers.ipynb",
+      "lineno": null,
+      "kind": "writes",
+      "source": "df:bronze/02_ingest_customers.ipynb:cell7:customers_with_meta",
+      "target": "table:main.dbdemos_ecom.customers_raw",
+      "mode": "append",
+      "partition_cols": [],
+      "format": "delta",
+      "streaming": true,
+      "sink_class": null
+    },
+    {
+      "id": "e:r:b03",
+      "file": "bronze/03_ingest_events.py",
+      "lineno": 35,
+      "kind": "reads",
+      "source": "ext:/Volumes/main/dbdemos_ecom/landing/events",
+      "target": "df:bronze/03_ingest_events.py:35:events_landing",
+      "projected_cols": [],
+      "streaming": true
+    },
+    {
+      "id": "e:o:b03",
+      "file": "bronze/03_ingest_events.py",
+      "lineno": 53,
+      "kind": "opaque_transform",
+      "source": "df:bronze/03_ingest_events.py:35:events_landing",
+      "target": "df:bronze/03_ingest_events.py:53:events_parsed",
+      "operator": "utils.event_parsers.parse_event_payload",
+      "opaque_kind": "unknown",
+      "is_passthrough": false
+    },
+    {
+      "id": "e:d:b03:01",
+      "file": "bronze/03_ingest_events.py",
+      "lineno": 62,
+      "kind": "derives",
+      "source": "df:bronze/03_ingest_events.py:53:events_parsed",
+      "target": "df:bronze/03_ingest_events.py:60:events_final",
+      "output_col": "ingested_ts",
+      "source_cols": [],
+      "expr_id": "expr:e0",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:b03:02",
+      "file": "bronze/03_ingest_events.py",
+      "lineno": 63,
+      "kind": "derives",
+      "source": "df:bronze/03_ingest_events.py:53:events_parsed",
+      "target": "df:bronze/03_ingest_events.py:60:events_final",
+      "output_col": "source_file",
+      "source_cols": [
+        "_metadata.file_path"
+      ],
+      "expr_id": "expr:e1",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:w:b03",
+      "file": "bronze/03_ingest_events.py",
+      "lineno": 67,
+      "kind": "writes",
+      "source": "df:bronze/03_ingest_events.py:60:events_final",
+      "target": "table:main.dbdemos_ecom.events_raw",
+      "mode": "append",
+      "partition_cols": [],
+      "format": "delta",
+      "streaming": true,
+      "sink_class": null
+    },
+    {
+      "id": "e:r:s01",
+      "file": "silver/orders_cleaned.py",
+      "lineno": 44,
+      "kind": "reads",
+      "source": "table:main.dbdemos_ecom.orders_raw",
+      "target": "df:silver/orders_cleaned.py:44:orders",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:o:s01",
+      "file": "silver/orders_cleaned.py",
+      "lineno": 56,
+      "kind": "opaque_transform",
+      "source": "df:silver/orders_cleaned.py:44:orders",
+      "target": "df:silver/orders_cleaned.py:56:orders_trimmed",
+      "operator": "utils.column_transformations.trim_string_columns",
+      "opaque_kind": "passthrough",
+      "is_passthrough": true
+    },
+    {
+      "id": "e:d:s01:01",
+      "file": "silver/orders_cleaned.py",
+      "lineno": 68,
+      "kind": "derives",
+      "source": "df:silver/orders_cleaned.py:56:orders_trimmed",
+      "target": "df:silver/orders_cleaned.py:66:orders_normalized",
+      "output_col": "currency",
+      "source_cols": [
+        "currency"
+      ],
+      "expr_id": "expr:e2",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s01:02",
+      "file": "silver/orders_cleaned.py",
+      "lineno": 69,
+      "kind": "derives",
+      "source": "df:silver/orders_cleaned.py:56:orders_trimmed",
+      "target": "df:silver/orders_cleaned.py:66:orders_normalized",
+      "output_col": "status",
+      "source_cols": [
+        "status"
+      ],
+      "expr_id": "expr:e3",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s01:03",
+      "file": "silver/orders_cleaned.py",
+      "lineno": 70,
+      "kind": "derives",
+      "source": "df:silver/orders_cleaned.py:56:orders_trimmed",
+      "target": "df:silver/orders_cleaned.py:66:orders_normalized",
+      "output_col": "quantity",
+      "source_cols": [
+        "quantity"
+      ],
+      "expr_id": "expr:e4",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s01:04",
+      "file": "silver/orders_cleaned.py",
+      "lineno": 71,
+      "kind": "derives",
+      "source": "df:silver/orders_cleaned.py:56:orders_trimmed",
+      "target": "df:silver/orders_cleaned.py:66:orders_normalized",
+      "output_col": "total_amount",
+      "source_cols": [
+        "total_amount"
+      ],
+      "expr_id": "expr:e5",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s01:05",
+      "file": "silver/orders_cleaned.py",
+      "lineno": 72,
+      "kind": "derives",
+      "source": "df:silver/orders_cleaned.py:56:orders_trimmed",
+      "target": "df:silver/orders_cleaned.py:66:orders_normalized",
+      "output_col": "order_date",
+      "source_cols": [
+        "order_ts"
+      ],
+      "expr_id": "expr:e6",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s01:06",
+      "file": "silver/orders_cleaned.py",
+      "lineno": 73,
+      "kind": "derives",
+      "source": "df:silver/orders_cleaned.py:56:orders_trimmed",
+      "target": "df:silver/orders_cleaned.py:66:orders_normalized",
+      "output_col": "order_year",
+      "source_cols": [
+        "order_ts"
+      ],
+      "expr_id": "expr:e7",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s01:07",
+      "file": "silver/orders_cleaned.py",
+      "lineno": 74,
+      "kind": "derives",
+      "source": "df:silver/orders_cleaned.py:56:orders_trimmed",
+      "target": "df:silver/orders_cleaned.py:66:orders_normalized",
+      "output_col": "order_month",
+      "source_cols": [
+        "order_ts"
+      ],
+      "expr_id": "expr:e8",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s01:08",
+      "file": "silver/orders_cleaned.py",
+      "lineno": 75,
+      "kind": "derives",
+      "source": "df:silver/orders_cleaned.py:56:orders_trimmed",
+      "target": "df:silver/orders_cleaned.py:66:orders_normalized",
+      "output_col": "is_high_value",
+      "source_cols": [
+        "total_amount"
+      ],
+      "expr_id": "expr:e9",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:p:s01",
+      "file": "silver/orders_cleaned.py",
+      "lineno": 86,
+      "kind": "projects",
+      "source": "df:silver/orders_cleaned.py:66:orders_normalized",
+      "target": "df:silver/orders_cleaned.py:86:orders_projected",
+      "removed_cols": [
+        "_rescued_data",
+        "source_file"
+      ],
+      "kept_cols": []
+    },
+    {
+      "id": "e:f:s01",
+      "file": "silver/orders_cleaned.py",
+      "lineno": 97,
+      "kind": "filters",
+      "source": "df:silver/orders_cleaned.py:86:orders_projected",
+      "target": "df:silver/orders_cleaned.py:97:orders_filtered",
+      "predicate_id": "expr:e10",
+      "referenced_cols": [
+        "status",
+        "quantity"
+      ]
+    },
+    {
+      "id": "e:w:s01",
+      "file": "silver/orders_cleaned.py",
+      "lineno": 104,
+      "kind": "writes",
+      "source": "df:silver/orders_cleaned.py:97:orders_filtered",
+      "target": "table:main.dbdemos_ecom.orders_cleaned",
+      "mode": "overwrite",
+      "partition_cols": [],
+      "format": "delta",
+      "streaming": false,
+      "sink_class": null
+    },
+    {
+      "id": "e:r:s02:orders",
+      "file": "silver/customer_profile.py",
+      "lineno": 43,
+      "kind": "reads",
+      "source": "table:main.dbdemos_ecom.orders_raw",
+      "target": "df:silver/customer_profile.py:43:orders_df",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:s02:customers",
+      "file": "silver/customer_profile.py",
+      "lineno": 44,
+      "kind": "reads",
+      "source": "table:main.dbdemos_ecom.customers_raw",
+      "target": "df:silver/customer_profile.py:44:customers_df",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:s02:events",
+      "file": "silver/customer_profile.py",
+      "lineno": 45,
+      "kind": "reads",
+      "source": "table:main.dbdemos_ecom.events_raw",
+      "target": "df:silver/customer_profile.py:45:events_df",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:d:s02:rn",
+      "file": "silver/customer_profile.py",
+      "lineno": 56,
+      "kind": "derives",
+      "source": "df:silver/customer_profile.py:45:events_df",
+      "target": "df:silver/customer_profile.py:56:events_ranked",
+      "output_col": "rn",
+      "source_cols": [],
+      "expr_id": "expr:e11",
+      "window_spec": {
+        "partition_cols": [
+          "customer_id"
+        ],
+        "order_cols": [
+          "event_ts desc"
+        ],
+        "frame": null
+      },
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:f:s02",
+      "file": "silver/customer_profile.py",
+      "lineno": 57,
+      "kind": "filters",
+      "source": "df:silver/customer_profile.py:56:events_ranked",
+      "target": "df:silver/customer_profile.py:51:_anon1",
+      "predicate_id": "expr:e12",
+      "referenced_cols": [
+        "rn"
+      ]
+    },
+    {
+      "id": "e:p:s02",
+      "file": "silver/customer_profile.py",
+      "lineno": 57,
+      "kind": "projects",
+      "source": "df:silver/customer_profile.py:51:_anon1",
+      "target": "df:silver/customer_profile.py:57:events_latest",
+      "removed_cols": [
+        "rn"
+      ],
+      "kept_cols": []
+    },
+    {
+      "id": "e:d:s02:sfx:01",
+      "file": "silver/customer_profile.py",
+      "lineno": 69,
+      "kind": "derives",
+      "source": "df:silver/customer_profile.py:57:events_latest",
+      "target": "df:silver/customer_profile.py:69:events_suffixed",
+      "output_col": "event_id_last_event",
+      "source_cols": [
+        "event_id"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s02:sfx:02",
+      "file": "silver/customer_profile.py",
+      "lineno": 69,
+      "kind": "derives",
+      "source": "df:silver/customer_profile.py:57:events_latest",
+      "target": "df:silver/customer_profile.py:69:events_suffixed",
+      "output_col": "customer_id_last_event",
+      "source_cols": [
+        "customer_id"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s02:sfx:03",
+      "file": "silver/customer_profile.py",
+      "lineno": 69,
+      "kind": "derives",
+      "source": "df:silver/customer_profile.py:57:events_latest",
+      "target": "df:silver/customer_profile.py:69:events_suffixed",
+      "output_col": "event_type_last_event",
+      "source_cols": [
+        "event_type"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s02:sfx:04",
+      "file": "silver/customer_profile.py",
+      "lineno": 69,
+      "kind": "derives",
+      "source": "df:silver/customer_profile.py:57:events_latest",
+      "target": "df:silver/customer_profile.py:69:events_suffixed",
+      "output_col": "product_id_last_event",
+      "source_cols": [
+        "product_id"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s02:sfx:05",
+      "file": "silver/customer_profile.py",
+      "lineno": 69,
+      "kind": "derives",
+      "source": "df:silver/customer_profile.py:57:events_latest",
+      "target": "df:silver/customer_profile.py:69:events_suffixed",
+      "output_col": "session_id_last_event",
+      "source_cols": [
+        "session_id"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s02:sfx:06",
+      "file": "silver/customer_profile.py",
+      "lineno": 69,
+      "kind": "derives",
+      "source": "df:silver/customer_profile.py:57:events_latest",
+      "target": "df:silver/customer_profile.py:69:events_suffixed",
+      "output_col": "event_ts_last_event",
+      "source_cols": [
+        "event_ts"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s02:sfx:07",
+      "file": "silver/customer_profile.py",
+      "lineno": 69,
+      "kind": "derives",
+      "source": "df:silver/customer_profile.py:57:events_latest",
+      "target": "df:silver/customer_profile.py:69:events_suffixed",
+      "output_col": "ingested_ts_last_event",
+      "source_cols": [
+        "ingested_ts"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s02:sfx:08",
+      "file": "silver/customer_profile.py",
+      "lineno": 69,
+      "kind": "derives",
+      "source": "df:silver/customer_profile.py:57:events_latest",
+      "target": "df:silver/customer_profile.py:69:events_suffixed",
+      "output_col": "payload_last_event",
+      "source_cols": [
+        "payload"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:s02:sfx:09",
+      "file": "silver/customer_profile.py",
+      "lineno": 69,
+      "kind": "derives",
+      "source": "df:silver/customer_profile.py:57:events_latest",
+      "target": "df:silver/customer_profile.py:69:events_suffixed",
+      "output_col": "_rescued_data_last_event",
+      "source_cols": [
+        "_rescued_data"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:j:s02:co",
+      "file": "silver/customer_profile.py",
+      "lineno": 78,
+      "kind": "joins",
+      "left_source": "df:silver/customer_profile.py:44:customers_df",
+      "right_source": "df:silver/customer_profile.py:43:orders_df",
+      "target": "df:silver/customer_profile.py:78:co",
+      "join_type": "inner",
+      "join_keys": [
+        [
+          "customer_id",
+          "customer_id"
+        ]
+      ],
+      "on_expr_id": null
+    },
+    {
+      "id": "e:j:s02:profile",
+      "file": "silver/customer_profile.py",
+      "lineno": 80,
+      "kind": "joins",
+      "left_source": "df:silver/customer_profile.py:78:co",
+      "right_source": "df:silver/customer_profile.py:69:events_suffixed",
+      "target": "df:silver/customer_profile.py:80:profile",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "customer_id",
+          "customer_id_last_event"
+        ]
+      ],
+      "on_expr_id": "expr:e13"
+    },
+    {
+      "id": "e:a:s02",
+      "file": "silver/customer_profile.py",
+      "lineno": 95,
+      "kind": "aggregates",
+      "source": "df:silver/customer_profile.py:80:profile",
+      "target": "df:silver/customer_profile.py:95:customer_profile",
+      "group_keys": [
+        "customer_id",
+        "email",
+        "country_code",
+        "signup_ts"
+      ],
+      "agg_ops": [
+        "count",
+        "sum",
+        "max",
+        "max",
+        "countDistinct"
+      ],
+      "output_cols": [
+        "total_orders",
+        "lifetime_revenue",
+        "last_order_ts",
+        "last_event_ts",
+        "distinct_products_ordered"
+      ],
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:w:s02",
+      "file": "silver/customer_profile.py",
+      "lineno": 112,
+      "kind": "writes",
+      "source": "df:silver/customer_profile.py:95:customer_profile",
+      "target": "table:main.dbdemos_ecom.customer_profile",
+      "mode": "overwrite",
+      "partition_cols": [],
+      "format": "delta",
+      "streaming": false,
+      "sink_class": null
+    },
+    {
+      "id": "e:r:g01:base",
+      "file": "gold/customer_ltv.py",
+      "lineno": 55,
+      "kind": "reads",
+      "source": "table:main.dbdemos_ecom.customer_profile",
+      "target": "df:gold/customer_ltv.py:46:base_cte",
+      "projected_cols": [
+        "customer_id",
+        "email",
+        "country_code",
+        "signup_ts",
+        "total_orders",
+        "lifetime_revenue",
+        "last_order_ts",
+        "last_event_ts"
+      ],
+      "streaming": false
+    },
+    {
+      "id": "e:a:g01:country_avg",
+      "file": "gold/customer_ltv.py",
+      "lineno": 57,
+      "kind": "aggregates",
+      "source": "df:gold/customer_ltv.py:46:base_cte",
+      "target": "df:gold/customer_ltv.py:57:country_avg_cte",
+      "group_keys": [
+        "country_code"
+      ],
+      "agg_ops": [
+        "avg"
+      ],
+      "output_cols": [
+        "avg_country_ltv"
+      ],
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:j:g01:ranked",
+      "file": "gold/customer_ltv.py",
+      "lineno": 76,
+      "kind": "joins",
+      "left_source": "df:gold/customer_ltv.py:46:base_cte",
+      "right_source": "df:gold/customer_ltv.py:57:country_avg_cte",
+      "target": "df:gold/customer_ltv.py:75:ranked_joined",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "country_code",
+          "country_code"
+        ]
+      ],
+      "on_expr_id": null
+    },
+    {
+      "id": "e:d:g01:days_since_last_order",
+      "file": "gold/customer_ltv.py",
+      "lineno": 72,
+      "kind": "derives",
+      "source": "df:gold/customer_ltv.py:75:ranked_joined",
+      "target": "df:gold/customer_ltv.py:74:ranked_cte",
+      "output_col": "days_since_last_order",
+      "source_cols": [
+        "last_order_ts"
+      ],
+      "expr_id": "expr:e14",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:g01:ltv_vs_country_avg",
+      "file": "gold/customer_ltv.py",
+      "lineno": 73,
+      "kind": "derives",
+      "source": "df:gold/customer_ltv.py:75:ranked_joined",
+      "target": "df:gold/customer_ltv.py:74:ranked_cte",
+      "output_col": "ltv_vs_country_avg",
+      "source_cols": [
+        "lifetime_revenue",
+        "avg_country_ltv"
+      ],
+      "expr_id": "expr:e15",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:g01:revenue_quartile",
+      "file": "gold/customer_ltv.py",
+      "lineno": 74,
+      "kind": "derives",
+      "source": "df:gold/customer_ltv.py:75:ranked_joined",
+      "target": "df:gold/customer_ltv.py:74:ranked_cte",
+      "output_col": "revenue_quartile",
+      "source_cols": [
+        "lifetime_revenue"
+      ],
+      "expr_id": "expr:e16",
+      "window_spec": {
+        "partition_cols": [],
+        "order_cols": [
+          "lifetime_revenue desc"
+        ],
+        "frame": null
+      },
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:p:g01",
+      "file": "gold/customer_ltv.py",
+      "lineno": 78,
+      "kind": "projects",
+      "source": "df:gold/customer_ltv.py:74:ranked_cte",
+      "target": "df:gold/customer_ltv.py:45:ltv_df",
+      "removed_cols": [
+        "avg_country_ltv"
+      ],
+      "kept_cols": []
+    },
+    {
+      "id": "e:d:g01:ltv_tier",
+      "file": "gold/customer_ltv.py",
+      "lineno": 89,
+      "kind": "derives",
+      "source": "df:gold/customer_ltv.py:45:ltv_df",
+      "target": "df:gold/customer_ltv.py:89:ltv_tiered",
+      "output_col": "ltv_tier",
+      "source_cols": [
+        "revenue_quartile"
+      ],
+      "expr_id": "expr:e17",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:w:g01",
+      "file": "gold/customer_ltv.py",
+      "lineno": 102,
+      "kind": "writes",
+      "source": "df:gold/customer_ltv.py:89:ltv_tiered",
+      "target": "table:main.dbdemos_ecom.customer_ltv",
+      "mode": "overwrite",
+      "partition_cols": [],
+      "format": "delta",
+      "streaming": false,
+      "sink_class": null
+    },
+    {
+      "id": "e:r:g02",
+      "file": "gold/product_performance.py",
+      "lineno": 51,
+      "kind": "reads",
+      "source": "table:main.dbdemos_ecom.orders_cleaned",
+      "target": "df:gold/product_performance.py:51:orders",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:a:g02",
+      "file": "gold/product_performance.py",
+      "lineno": 90,
+      "kind": "aggregates",
+      "source": "df:gold/product_performance.py:51:orders",
+      "target": "df:gold/product_performance.py:90:daily_perf",
+      "group_keys": [
+        "product_id",
+        "order_date"
+      ],
+      "agg_ops": [
+        "count",
+        "<unresolved>"
+      ],
+      "output_cols": [
+        "order_count",
+        "<unresolved>"
+      ],
+      "dynamic": true,
+      "dynamic_note": "Star-unpacked *aggregations list built from runtime config at $METRIC_CONFIG_PATH (default /dbfs/configs/metrics.json); column count and names are runtime-determined. The static F.count('order_id').alias('order_count') portion is enumerated; the loop-built sum/avg/max ops over metric_columns are not."
+    },
+    {
+      "id": "e:w:g02",
+      "file": "gold/product_performance.py",
+      "lineno": 110,
+      "kind": "writes",
+      "source": "df:gold/product_performance.py:90:daily_perf",
+      "target": "table:main.dbdemos_ecom.product_performance",
+      "mode": "merge",
+      "partition_cols": [],
+      "format": "delta",
+      "streaming": false,
+      "sink_class": "DeltaMergeSink"
+    }
+  ],
+  "warnings": [
+    {
+      "file": "ddl/bronze_tables.sql",
+      "lineno": null,
+      "category": "orphan-table",
+      "message": "Table main.dbdemos_ecom.products_raw is declared in DDL but neither written nor read by any file in this repo. May indicate a dropped dataset, a planned-but-unimplemented ingestion pipeline, or an upstream-only-consumed reference table. Per outline.md \u00c2\u00a73.4 orphan detection: written-but-never-read tables flag dead pipelines, read-but-never-written tables flag misclassified external sources; this case is both."
+    },
+    {
+      "file": "bronze/03_ingest_events.py",
+      "lineno": 53,
+      "category": "opaque-call-fallback",
+      "message": "Unregistered helper utils.event_parsers.parse_event_payload at line 53; emitted OpaqueTransform edge with is_passthrough=false. Column-set change across this call is unknown to DEGraph. To resolve, add an entry to .degraph/helpers.json declaring this helper's transformation kind (e.g. passthrough, suffix_rename, or a custom kind)."
+    },
+    {
+      "file": "gold/product_performance.py",
+      "lineno": 90,
+      "category": "dynamic-aggregation",
+      "message": "Aggregates edge at line 90 has dynamic=true: the *aggregations list star-unpacked into .agg() is built from runtime config at $METRIC_CONFIG_PATH (default /dbfs/configs/metrics.json), which SafeEvaluator cannot resolve to literals. The static F.count('order_id').alias('order_count') portion was enumerated; the loop-built sum/avg/max ops over metric_columns are unresolved. Downstream column-level lineage for main.dbdemos_ecom.product_performance is incomplete by the same amount \u00e2\u20ac\u201d only product_id, order_date, and order_count are known statically."
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+DEGraph Q&A Experiment Report
+=================================================================
+Backend:   openrouter / meta-llama/llama-3.3-70b-instruct
+Mode:      compact_graph_dsl
+Tokens:    ~7,359
+Timestamp: 20260529_212415
+
+AGGREGATE SCORES
+----------------------------------------
+  Not graded yet. Edit the JSON file and set 'score' for each answer.
+
+INDIVIDUAL ANSWERS
+=================================================================
+
+[TQ1] struct-array-shape / medium
+Q: Describe the schema and population logic of the `other_procedures` column. List the inner struct fields in order, where each comes from, and explain how `procedure_<i>_type` is computed.
+Score: None
+
+REFERENCE:
+`other_procedures` is an `array<struct>` built from up to MAX_PROC=4 ranked procedure records. For each rank i (1..4) a struct is wrapped in `when(col(f'procedure_{i}_code').isNotNull(), struct(...))`, collected via `array(*proc_structs)` into `other_procedures_raw`, then `other_procedures = filter(other_procedures_raw, x -> x is not null)` drops the absent ranks. The inner struct has 8 fields in this order: (1) `reference_id` = `lit(None).cast('string')` (always NULL placeholder); (2) `codeset` = `procedure_{i}_code`; (3) `codeset_display` = `procedure_{i}_description`; (4) `modifier_code` = `procedure_{i}_modifier`; (5) `procedure_date` = `procedure_{i}_date`; (6) `sequence_number` = `procedure_{i}_priority`; (7) `procedure_type` = `procedure_{i}_type`; (8) `codeset_system` = `lit('HCPCS')` (always the literal 'HCPCS'). The `procedure_{i}_type` value itself was computed during the wide pivot via a nested CASE: `CASE WHEN is_principal_proc = 'Y' THEN 'Principal' ELSE 'Secondary' END` (wrapped in the `MAX(CASE WHEN proc_rank = i THEN ... END)` pivot). Note: unlike `other_diagnoses`, `other_procedures` is NOT wrapped in `array_sort` — it is filtered but left in rank order.
+
+MODEL (meta-llama/llama-3.3-70b-instruct):
+[ERROR: OpenRouter HTTP 401: {"error":{"message":"User not found.","code":401}}]
+
+Notes: 
+-----------------------------------------------------------------

@@ -1,0 +1,524 @@
+DEGraph Q&A Experiment Report
+=================================================================
+Backend:   openrouter / openai/gpt-4o-mini
+Mode:      compact_graph_dsl
+Tokens:    ~9,508
+Timestamp: 20260529_100537
+
+AGGREGATE SCORES
+----------------------------------------
+  Not graded yet. Edit the JSON file and set 'score' for each answer.
+
+INDIVIDUAL ANSWERS
+=================================================================
+
+[TQ1] producer-consumer / medium
+Q: Which file produces `main.dbdemos_ecom.customers_raw`, what is notable about that file's TYPE compared to the other bronze ingests, and which file consumes customers_raw?
+Score: None
+
+REFERENCE:
+`customers_raw` is produced by `bronze/02_ingest_customers.py`'s notebook — specifically `bronze/02_ingest_customers.ipynb`. What is notable: unlike every other bronze ingest in the repo (01, 03, 04, 05, 06, 07, 08, 09, 10), which are `.py` files, the customers ingest is a Jupyter NOTEBOOK (`.ipynb`). It streams CSV exports of the CRM customer table via Auto Loader and `writeStream...table(f"{database}.customers_raw")`. The sole consumer of customers_raw in the repo is `silver/customer_profile.py` (`customers_df = spark.table(f"{database}.customers_raw")`), which joins it with orders and events to build the per-customer profile. (A lineage tool must parse the .ipynb to find this producer; if it only scans .py files it would mistake customers_raw for an external/unproduced table.)
+
+MODEL (openai/gpt-4o-mini):
+The file that produces `main.dbdemos_ecom.customers_raw` is `bronze/02_ingest_customers.ipynb`. Notably, this file is a Jupyter Notebook (`.ipynb`), which is different from the other bronze ingests that are typically Python scripts (`.py`). The file that consumes `customers_raw` is `silver/customer_profile.py`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ2] producer-consumer / hard
+Q: Are there any bronze tables in this repo that are produced by an ingest file but never read by any silver or gold file? Identify them and name their producers.
+Score: None
+
+REFERENCE:
+Yes — two bronze outputs are produced but never consumed anywhere in the repo: (1) `products_raw`, produced by `bronze/04_ingest_products.py` (`write...saveAsTable(f"{database}.products_raw")`); and (2) `promotions_raw`, produced by `bronze/09_ingest_promotions.py` (`write...saveAsTable(f"{database}.promotions_raw")`). No silver or gold file does `spark.table` / `FROM ... products_raw` or `promotions_raw` (the product-level gold tables aggregate `orders_cleaned`, not `products_raw`; nothing references promotions at all). So both are ORPHAN outputs — terminal nodes with a producer but zero downstream consumers. (All other bronze tables are consumed: orders_raw, customers_raw, events_raw, returns_raw, refunds_raw, inventory_snapshots_raw, marketing_attribution_raw, shipments_raw each feed at least one silver/gold file.)
+
+MODEL (openai/gpt-4o-mini):
+Yes, there is one bronze table in this repo that is produced by an ingest file but never read by any silver or gold file:
+
+- **Table**: `main.dbdemos_ecom.products_raw` (T2)
+  - **Producer**: `bronze/04_ingest_products.py`
+
+This table is defined in the `@TABLES` section and has no entries in the `rb=` field, indicating it is not read by any silver or gold files.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ3] reverse-lineage / hard
+Q: Trace `gold.inventory_turnover_daily.turnover_rate` back to its bronze sources. Name the formula, both contributing silver tables, and the bronze table behind each input.
+Score: None
+
+REFERENCE:
+In `gold/inventory_turnover_daily.py`, `turnover_rate = COALESCE(ds.sold_qty, 0) / NULLIF(inv.on_hand_units, 0)` (NULLIF guards divide-by-zero on zero on-hand stock). Its two inputs trace to different bronze tables: (1) `sold_qty` comes from the `daily_sales` CTE = `SUM(quantity)` over `silver.orders_cleaned` grouped by (product_id, order_date AS snapshot_date); `orders_cleaned` is produced by `silver/orders_cleaned.py` from `bronze.orders_raw`, where `quantity` originates (passed through / cleaned via greatest(quantity,0)). So sold_qty <- orders_cleaned.quantity <- orders_raw.quantity. (2) `on_hand_units` comes from the `inventory_base` CTE = `silver.inventory_daily`, produced by `silver/inventory_daily.py` from `bronze.inventory_snapshots_raw` (on_hand_units is a passthrough bronze column, after the latest-snapshot-per-day dedup). So on_hand_units <- inventory_daily <- inventory_snapshots_raw.on_hand_units. Net: turnover_rate is derived from bronze orders_raw.quantity (numerator) and bronze inventory_snapshots_raw.on_hand_units (denominator).
+
+MODEL (openai/gpt-4o-mini):
+To trace `gold.inventory_turnover_daily.turnover_rate` back to its bronze sources, we need to follow the lineage from the `gold.inventory_turnover_daily` table through its dependencies.
+
+1. **Formula for `turnover_rate`:**
+   The `turnover_rate` is derived from the aggregation of the `avg_turnover` from the `gold/revenue_forecast_features.py` file, which is calculated as the average of `turnover_rate`.
+
+2. **Contributing Silver Tables:**
+   - `silver/inventory_daily.py` (provides `on_hand_units`, `reserved_units`, and `available_units`)
+   - `gold/revenue_forecast_features.py` (provides `avg_turnover`)
+
+3. **Bronze Tables Behind Each Input:**
+   - For `on_hand_units`, `reserved_units`, and `available_units`, the bronze source is `bronze/07_ingest_inventory.py` (which ingests data into `main.dbdemos_ecom.inventory_snapshots_raw`).
+   - For `avg_turnover`, the bronze source is not explicitly listed in the provided context, as it is derived from the `gold/revenue_forecast_features.py` which aggregates data from other sources.
+
+In summary:
+- **Formula:** `turnover_rate = avg(turnover_rate)`
+- **Contributing Silver Tables:** `silver/inventory_daily.py`, `gold/revenue_forecast_features.py`
+- **Bronze Table for `on_hand_units`, `reserved_units`, `available_units`:** `bronze/07_ingest_inventory.py`
+- **Bronze Table for `avg_turnover`:** Not explicitly defined in the provided context.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ4] reverse-lineage / medium
+Q: How is `silver.refunds_enriched.days_to_refund` derived, and which bronze tables do its two inputs come from?
+Score: None
+
+REFERENCE:
+In `silver/refunds_enriched.py`, `days_to_refund = F.datediff(F.col('processed_ts'), F.col('return_ts'))` — the number of days between the return timestamp and the refund-processed timestamp. Its two inputs come from DIFFERENT bronze tables joined earlier in the file: `processed_ts` comes from `bronze.refunds_raw` (the refund record), and `return_ts` comes from `bronze.returns_raw` (the originating RMA). The file reads refunds_raw, returns_raw, and orders_raw, joins refunds_raw to returns_raw on `return_id` (inner), then to orders_raw on `order_id` (left); `days_to_refund` is computed after those joins using processed_ts (from refunds_raw) and return_ts (from returns_raw). So it is a cross-table date-difference: refunds_raw.processed_ts minus returns_raw.return_ts.
+
+MODEL (openai/gpt-4o-mini):
+The column `silver.refunds_enriched.days_to_refund` is derived from the expression `F.col('_metadata.file_path')` and the `return_ts` column from the `bronze/05_ingest_returns.py` file. 
+
+The two inputs for `days_to_refund` are:
+1. `processed_ts` from the `bronze.refunds_raw` table.
+2. `return_ts` from the `bronze.returns_raw` table.
+
+Thus, the inputs come from the following bronze tables:
+- `bronze.refunds_raw`
+- `bronze.returns_raw`
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ5] join-chain / hard
+Q: Describe the join chain in `gold/revenue_forecast_features.py`. Which tables are joined, what are the join types and conditions, and what is unusual about the first join?
+Score: None
+
+REFERENCE:
+The file reads three GOLD tables: `customer_ltv` (ltv), `product_performance` (prod_perf), and `inventory_turnover_daily` (turnover). It performs two joins. JOIN 1 (unusual): `ltv_x_perf = ltv.join(prod_perf, F.lit(True), how='inner')` — the join condition is the literal `F.lit(True)`, i.e. a CROSS JOIN: every customer row is paired with every product-day row (Cartesian product). The inline comment confirms 'cross-join: every customer pairs with every product-day grain.' JOIN 2: `joined = ltv_x_perf.join(turnover, on=['product_id'], how='left').withColumnRenamed('snapshot_date', 'forecast_date')` — a LEFT join on `product_id`, after which turnover's snapshot_date is renamed to forecast_date. So the chain is (customer_ltv CROSS JOIN product_performance) LEFT JOIN inventory_turnover_daily ON product_id. The unusual element is the deliberate cross join via F.lit(True), which makes this the only Cartesian join in the repo and drives the (customer_id, product_id, forecast_date) feature grain.
+
+MODEL (openai/gpt-4o-mini):
+In the `gold/revenue_forecast_features.py`, the join chain consists of the following steps:
+
+1. **Join between D52 and D53**:
+   - **Join Type**: Inner Join
+   - **Join Condition**: `customer_id=customer_id`
+
+2. **Join between the result of the first join (D55) and D54**:
+   - **Join Type**: Left Join
+   - **Join Condition**: `product_id=product_id`
+
+### Unusual Aspect of the First Join:
+The first join (between D52 and D53) is unusual because it is an inner join, which means that only records with matching `customer_id` values in both datasets will be retained. This could potentially lead to loss of records if there are customers present in one dataset but not in the other. In contrast, the subsequent join is a left join, which retains all records from the left dataset (D55) regardless of whether there is a match in the right dataset (D54).
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ6] join-chain / medium
+Q: In `gold/inventory_turnover_daily.py`, how is the `daily_sales` CTE joined to the inventory snapshot, on what keys, and what alias makes the day-key join work?
+Score: None
+
+REFERENCE:
+The join is `FROM inventory_base inv LEFT JOIN daily_sales ds USING (product_id, snapshot_date)` — a LEFT join keeping every inventory row even when there were no sales that day (sold_qty/sales_count then COALESCE to 0). It joins on TWO keys: `product_id` and `snapshot_date`. The alias that makes the day-key work: the `daily_sales` CTE selects `order_date AS snapshot_date` (`SELECT product_id, order_date AS snapshot_date, SUM(quantity) AS sold_qty, COUNT(order_id) AS sales_count FROM orders_cleaned GROUP BY product_id, order_date`). So the orders' `order_date` is renamed to `snapshot_date` inside daily_sales, letting `USING (product_id, snapshot_date)` line it up with the inventory snapshot's native `snapshot_date` column. Without that alias the two sides would have different day-column names and the USING clause would fail.
+
+MODEL (openai/gpt-4o-mini):
+The context provided does not contain specific information about the `daily_sales` CTE or its join conditions in `gold/inventory_turnover_daily.py`. To answer your question, I would need details about the structure of the `daily_sales` CTE, the keys used for the join, and the alias that facilitates the day-key join. Without this information, I cannot provide a precise answer.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ7] aggregate-semantics / hard
+Q: In `gold/attribution_funnel_daily.py`, what are the four funnel-stage CTEs, which source table feeds each stage, and how is `conversion_rate` computed?
+Score: None
+
+REFERENCE:
+Four funnel-stage CTEs, each aggregating to (utm_campaign, funnel_date): (1) `visits` FROM `marketing_touchpoints`, `COUNT(DISTINCT session_count) AS visit_count`, grouped by utm_campaign, DATE(last_seen_ts). (2) `cart_events` FROM `events_raw ev JOIN marketing_touchpoints mt USING (customer_id) WHERE ev.event_type = 'add_to_cart'`, `COUNT(DISTINCT ev.session_id) AS cart_count`, grouped by mt.utm_campaign, DATE(ev.event_ts). (3) `checkout_events` — same as cart but `WHERE ev.event_type = 'checkout'`, `COUNT(DISTINCT ev.session_id) AS checkout_count`. (4) `purchases` FROM `orders_cleaned oc JOIN marketing_touchpoints mt USING (customer_id)`, `COUNT(DISTINCT oc.order_id) AS purchase_count`, grouped by mt.utm_campaign, oc.order_date. So three source tables feed the funnel: marketing_touchpoints (visits + the campaign labels via the USING(customer_id) joins), events_raw (cart + checkout, filtered by event_type), and orders_cleaned (purchases). The final SELECT joins `visits` LEFT JOIN the other three USING (utm_campaign, funnel_date) and computes `conversion_rate = COALESCE(p.purchase_count, 0) / NULLIF(v.visit_count, 0)` — purchases divided by visits, NULLIF-guarded against zero visits. (Note the visit_count uses COUNT(DISTINCT session_count), distinct-counting marketing_touchpoints' own session_count column.)
+
+MODEL (openai/gpt-4o-mini):
+The four funnel-stage CTEs in `gold/attribution_funnel_daily.py` are:
+
+1. **Visit Count**: This stage is sourced from the `main.dbdemos_ecom.marketing_touchpoints` table (T11). It counts the number of visits per campaign and funnel date.
+
+2. **Cart Count**: This stage is sourced from the `main.dbdemos_ecom.events_raw` table (T3). It counts the number of cart events per campaign and funnel date.
+
+3. **Checkout Count**: This stage is also sourced from the `main.dbdemos_ecom.events_raw` table (T3). It counts the number of checkout events per campaign and funnel date.
+
+4. **Purchase Count**: This stage is sourced from the `main.dbdemos_ecom.orders_cleaned` table (T12). It counts the number of orders per product ID and funnel date.
+
+The `conversion_rate` is computed as the ratio of `purchase_count` to `cart_count`. This is typically calculated in the final aggregation step of the CTEs, where the counts from the previous stages are used to derive the conversion rate. 
+
+The exact computation logic for `conversion_rate` is not explicitly detailed in the provided context, but it generally follows the formula:
+
+\[ \text{conversion\_rate} = \frac{\text{purchase\_count}}{\text{cart\_count}} \] 
+
+This calculation would occur after the CTEs have been defined and aggregated.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ8] aggregate-semantics / medium
+Q: In `gold/revenue_forecast_features.py`, what is the group grain of the final aggregation, and which aggregate outputs are statically known versus runtime-determined?
+Score: None
+
+REFERENCE:
+The final aggregation is `joined.groupBy('customer_id', 'product_id', 'forecast_date').agg(*aggregations, F.first('lifetime_revenue').alias('lifetime_revenue'), F.first('total_orders').alias('total_orders'), F.avg('turnover_rate').alias('avg_turnover'))`. Group grain: (customer_id, product_id, forecast_date). STATICALLY KNOWN outputs (three): `lifetime_revenue = first(lifetime_revenue)`, `total_orders = first(total_orders)`, and `avg_turnover = avg(turnover_rate)`. RUNTIME-DETERMINED: `*aggregations` is a star-unpacked Python list built by a loop `for col_name in feature_columns: append(avg(col_name)), append(max(col_name)), append(stddev(col_name))` — producing avg_/max_/stddev_ per feature. `feature_columns` is loaded from an out-of-repo JSON (`os.environ.get('FORECAST_CONFIG_PATH', '/dbfs/configs/forecast.json')` then `json.load(f)['revenue_forecast']`), so neither the count nor the names of those aggregates are resolvable statically. A correct representation is one Aggregates step at the 3-key grain with the three known outputs plus an unresolved/dynamic marker for the avg/max/stddev-per-feature portion.
+
+MODEL (openai/gpt-4o-mini):
+In `gold/revenue_forecast_features.py`, the group grain of the final aggregation is defined by the keys `customer_id` and `product_id`, along with `forecast_date`. 
+
+The aggregate outputs that are statically known are:
+- `lifetime_revenue` (first value)
+- `total_orders` (first value)
+
+The aggregate output that is runtime-determined is:
+- `avg_turnover` (average of `turnover_rate`), which is based on a runtime-built variable and cannot be enumerated statically.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ9] window-function-impact / medium
+Q: Describe the window in `silver/marketing_touchpoints.py`. What does it compute, and if `visit_ts` were renamed in `bronze.marketing_attribution_raw`, what would break?
+Score: None
+
+REFERENCE:
+The window is `first_touch_window = Window.partitionBy('session_id').orderBy(F.col('visit_ts').asc())`, applied as `row_number().over(first_touch_window)` to make `rn`, then `first_touch = joined_ranked.filter(F.col('rn') == 1).drop('rn')`. It selects the FIRST-TOUCH visit per session (earliest visit_ts), after attribution_df is inner-joined to events_df on session_id. If `visit_ts` were renamed in marketing_attribution_raw: (1) the window's ORDER BY key breaks, so row_number / the rn==1 first-touch selection fails or picks the wrong row; (2) downstream, the aggregation `F.max('visit_ts').alias('last_seen_ts')` would also break, so `marketing_touchpoints.last_seen_ts` is affected — and transitively `attribution_funnel_daily.visits` uses `DATE(last_seen_ts)` as its funnel_date, so that gold stage would break too. Note: the window only keeps the first-touch ROW, but the event_count aggregate still reflects all joined event rows up to the filter; visit_ts is the window's sole ordering key, so it is the critical at-risk column.
+
+MODEL (openai/gpt-4o-mini):
+The window in `silver/marketing_touchpoints.py` is defined as follows:
+
+```plaintext
+ws=part(session_id)/ord(visit_ts asc)
+```
+
+This indicates that the window is partitioned by `session_id` and ordered by `visit_ts` in ascending order. 
+
+### What it Computes:
+The window is used in the aggregation that computes the following outputs:
+- `event_count`: The count of `event_id` for each `customer_id` and `utm_campaign`.
+- `last_seen_ts`: The maximum `visit_ts` for each `customer_id` and `utm_campaign`.
+- `session_count`: The count of distinct `session_id` for each `customer_id` and `utm_campaign`.
+
+### Impact of Renaming `visit_ts`:
+If `visit_ts` were renamed in `bronze.marketing_attribution_raw`, the following would break:
+- The ordering of the window function would fail because it relies on the column `visit_ts` to determine the order of rows within each partition of `session_id`. 
+- Consequently, the computations for `last_seen_ts` would not work as intended, leading to incorrect or missing results for that metric.
+
+In summary, renaming `visit_ts` would disrupt the window function's ability to correctly compute the `last_seen_ts` and potentially affect the overall aggregation logic in `silver/marketing_touchpoints.py`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ10] window-function-impact / medium
+Q: The dedup window in `silver/inventory_daily.py` orders by `snapshot_ts` descending. Explain what the descending order achieves, and what the TWO filters in this file do.
+Score: None
+
+REFERENCE:
+The dedup window is `Window.partitionBy('warehouse_id', 'product_id', 'snapshot_date').orderBy(F.col('snapshot_ts').desc())`, with `row_number()` -> `rn`. The DESCENDING order on snapshot_ts means the most recent (highest snapshot_ts) snapshot within each (warehouse, product, day) gets rank 1 — so the pipeline keeps the LATEST snapshot when the WMS emits multiple snapshots in a single day (e.g. morning baseline + midday recount). The TWO filters: (1) `filter(F.col('rn') == 1)` — the dedup filter, keeping only that latest snapshot per (warehouse_id, product_id, snapshot_date); (2) `filter(F.col('on_hand_units') > 0)` — the empty-stock filter, dropping rows with zero on-hand units (no analytical signal for turnover). Note snapshot_date itself is derived earlier as `to_date(snapshot_ts)` and is the partition key for the dedup window; `utilization_pct = reserved_units / when(on_hand_units==0, None).otherwise(on_hand_units)` is computed before the on_hand>0 filter.
+
+MODEL (openai/gpt-4o-mini):
+The descending order in the deduplication window in `silver/inventory_daily.py` ensures that when multiple records exist for the same `warehouse_id`, `product_id`, and `snapshot_date`, the most recent record (the one with the latest `snapshot_ts`) is retained. This is important for maintaining the most up-to-date inventory information, as older records would be discarded in favor of the latest data.
+
+The TWO filters in this file are:
+
+1. **Filter on `on_hand_units`**: This filter checks if `on_hand_units` is greater than 0. It ensures that only records with available inventory are considered, effectively excluding any entries where there are no units on hand.
+
+2. **Filter on `snapshot_ts`**: This filter is applied to ensure that the records being processed are relevant to the current snapshot time. It helps in maintaining the integrity of the data by ensuring that only the most recent and relevant snapshots are included in the final output.
+
+Together, these filters help in ensuring that the resulting dataset contains only the most recent and relevant inventory records that have available units.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ11] counterfactual / hard
+Q: In `gold/revenue_forecast_features.py` the first join uses `F.lit(True)` (a cross join). If it were changed to an inner join on `customer_id`, what would change in the output and in the lineage graph?
+Score: None
+
+REFERENCE:
+Output/semantics: the current `ltv.join(prod_perf, F.lit(True), 'inner')` is a CROSS join — every customer (from customer_ltv) is paired with every product-day row (from product_performance), producing a Cartesian explosion (rows = |customers| x |product-days|). Changing it to an inner join on `customer_id` would only keep pairs that share a customer_id — BUT `product_performance` is keyed by (product_id, order_date) and does not carry customer_id, so an inner join on customer_id would either fail (no such column on the prod_perf side) or, if customer_id existed, collapse the table to matching customers only, drastically shrinking the result and changing the feature grain. The intended behavior (pairing each customer with each product) requires the cross join; an inner-on-customer_id join would break the (customer_id, product_id, forecast_date) grain the downstream model expects. Lineage graph: the Joins edge between customer_ltv and product_performance changes its join TYPE/condition from cross (F.lit(True)) to inner-on-customer_id; no nodes added/removed, but the join-key attribute and the cardinality semantics change.
+
+MODEL (openai/gpt-4o-mini):
+Changing the first join in `gold/revenue_forecast_features.py` from a cross join using `F.lit(True)` to an inner join on `customer_id` would significantly alter the output and the lineage graph.
+
+### Changes in Output:
+1. **Filtering of Rows**: An inner join would only include rows where there is a matching `customer_id` in both datasets being joined. This means that any records in either dataset that do not have a corresponding `customer_id` in the other dataset would be excluded from the output.
+2. **Reduction in Result Set**: The result set would likely be smaller compared to a cross join, which produces a Cartesian product of the two datasets. The inner join would only return rows that meet the join condition, potentially leading to a more meaningful and relevant dataset.
+
+### Changes in the Lineage Graph:
+1. **Join Type Update**: The join type in the lineage graph would change from a cross join to an inner join. This would be reflected in the `@EDGES` section where the join operation is defined.
+2. **Impact on Downstream Tables**: Any downstream tables or dataframes that rely on the output of this join would also be affected. If the output is smaller, it could lead to fewer records being written to subsequent tables, which may impact any aggregations or calculations that depend on this data.
+3. **Potential Changes in Data Provenance**: The provenance of the data in the affected tables would change, as the source of the data would now be limited to only those records that matched on `customer_id`.
+
+Overall, the change from a cross join to an inner join would lead to a more filtered and potentially more relevant dataset, but it would also reduce the volume of data being processed and could affect any downstream analytics or reporting that relies on the complete dataset.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ12] counterfactual / medium
+Q: If the filter `.filter(F.col("return_qty") > 0)` in `silver/returns_cleaned.py` were removed, which downstream table's values would change, and which files that touch returns data would NOT be affected — and why?
+Score: None
+
+REFERENCE:
+Removing the filter lets zero/negative-qty returns (from the CDC race condition) flow into `silver.returns_cleaned`. AFFECTED: `gold/customer_return_rate.py`, which reads returns_cleaned in its `returns_agg` CTE (`COUNT(return_id) AS total_returns, SUM(return_qty) AS total_return_qty` grouped by customer_id). Those counts/sums — and the derived `return_rate = COALESCE(total_returns,0)/NULLIF(total_orders,0)` — would now include the phantom zero-unit returns, inflating total_returns and the return_rate. NOT AFFECTED: `silver/refunds_enriched.py`. Although it deals with returns, it reads the BRONZE `returns_raw` table directly (joined on return_id), NOT `returns_cleaned`, so it never saw this filter — its rows are unaffected by changes to the returns_cleaned filtering. (In the graph, removing the filter deletes the Filters edge on the returns_cleaned pipeline; no other structural change.)
+
+MODEL (openai/gpt-4o-mini):
+If the filter `.filter(F.col("return_qty") > 0)` in `silver/returns_cleaned.py` were removed, the downstream table that would be affected is `main.dbdemos_ecom.returns_cleaned` (T16). This is because the filter directly impacts the data being written to this table, potentially allowing rows with `return_qty` of 0 or less to be included.
+
+The files that touch returns data but would NOT be affected by this change are:
+
+1. **`silver/refunds_enriched.py` (T22)**: This table is derived from `main.dbdemos_ecom.refunds_raw` (T5) and `main.dbdemos_ecom.returns_raw` (T4). The filter in `silver/returns_cleaned.py` does not directly impact the data being processed in `silver/refunds_enriched.py`, as it operates on the enriched refunds data rather than the cleaned returns data.
+
+2. **`gold/customer_return_rate.py` (T17)**: This table aggregates data from `main.dbdemos_ecom.returns_cleaned` (T16) but would not be affected by the removal of the filter in `silver/returns_cleaned.py` since it relies on the output of T16, which would change, but the logic in T17 does not depend on the filtering condition itself.
+
+In summary, the removal of the filter would change the values in `main.dbdemos_ecom.returns_cleaned`, but `silver/refunds_enriched.py` and `gold/customer_return_rate.py` would not be directly affected by this change because they do not rely on the filtered output of `returns_cleaned`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ13] direct-cross-file-impact / medium
+Q: `silver/returns_cleaned.py` derives `is_high_qty`. Is this column consumed by any downstream file? Justify from what the consumer of returns_cleaned actually selects.
+Score: None
+
+REFERENCE:
+Statically, `is_high_qty` (= `F.col('return_qty') > F.lit(5)`) has NO downstream consumer. The only file that reads `silver.returns_cleaned` is `gold/customer_return_rate.py`, whose `returns_agg` CTE selects/uses just `customer_id`, `return_id` (for COUNT), and `return_qty` (for SUM) — it never references `is_high_qty`. No other file reads returns_cleaned (refunds_enriched reads bronze returns_raw, not returns_cleaned). So `is_high_qty` is an effectively dead/leaf derived column: it is computed and written to silver but not used by any consumer in the repo. (This mirrors the `is_high_value` dead-column pattern in orders_cleaned.)
+
+MODEL (openai/gpt-4o-mini):
+Yes, the column `is_high_qty` derived in `silver/returns_cleaned.py` is consumed by downstream files. 
+
+To justify this, we can trace the lineage of `is_high_qty`:
+
+1. The `returns_cleaned` table (T16) has the column `is_high_qty` defined as:
+   - `T16.is_high_qty=D:T4.return_qty` (derived from the `return_qty` column of the `returns_raw` table).
+
+2. The `returns_cleaned` table (T16) is then consumed by the `customer_return_rate` table (T17):
+   - The `customer_return_rate` table (T17) selects several columns from `returns_cleaned`, including `total_returns`, `total_return_qty`, and `return_rate`, which are derived from the `returns_cleaned` table.
+
+Thus, since `is_high_qty` is part of the `returns_cleaned` table, and the `customer_return_rate` table (T17) is a consumer of `returns_cleaned`, it confirms that `is_high_qty` is indeed consumed downstream.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ14] direct-cross-file-impact / hard
+Q: If `utm_campaign` were renamed in `bronze.marketing_attribution_raw`, trace every downstream column/grouping across silver and gold that would break.
+Score: None
+
+REFERENCE:
+`utm_campaign` originates in marketing_attribution_raw and is used as follows: (1) `silver/marketing_touchpoints.py` groups by `(customer_id, utm_campaign)` — so utm_campaign is a grain key of marketing_touchpoints; renaming it breaks that groupBy and the silver output column. (2) `gold/attribution_funnel_daily.py` uses utm_campaign pervasively: the `visits` CTE groups by `utm_campaign` (from marketing_touchpoints); the `cart_events`, `checkout_events`, and `purchases` CTEs each group by `mt.utm_campaign` (pulled via JOIN marketing_touchpoints USING(customer_id)); and the final SELECT joins all stages `USING (utm_campaign, funnel_date)` and outputs `utm_campaign`. So every funnel stage and the final join key depend on it. Summary of breakage: marketing_touchpoints.utm_campaign (grain key) -> all four attribution_funnel_daily CTEs' group key + the stage-join key (utm_campaign, funnel_date) + the output utm_campaign column. The renamed column must be updated in marketing_touchpoints' groupBy and in all references in attribution_funnel_daily.
+
+MODEL (openai/gpt-4o-mini):
+To trace the impact of renaming `utm_campaign` in `bronze.marketing_attribution_raw`, we need to identify all downstream dependencies that reference this column in the lineage graph.
+
+1. **Direct Dependencies**:
+   - `T11.marketing_touchpoints`:
+     - `utm_campaign` is used as a group key (G) in the aggregation that produces `T11`.
+   - `T12.orders_cleaned`:
+     - `utm_campaign` is referenced as a group key (G) in the join with `T11` to produce `D33`.
+   - `T13.attribution_funnel_daily`:
+     - `utm_campaign` is used as a join key (jk) in the joins with `D30`, `D31`, and `D32`.
+   - `T14.customer_profile`:
+     - `utm_campaign` is referenced in the join with `D36` to produce `D44`.
+   - `T15.customer_ltv`:
+     - `utm_campaign` is referenced in the join with `D38` to produce `D44`.
+   - `T20.product_performance`:
+     - `utm_campaign` is referenced in the join with `D92` to produce `D93`.
+
+2. **Columns/Groupings that would break**:
+   - In `T11`, the column `utm_campaign` would be missing, affecting the entire table.
+   - In `T12`, the grouping by `utm_campaign` would break, leading to issues in the cleaned orders data.
+   - In `T13`, the joins that rely on `utm_campaign` would fail, impacting the attribution funnel data.
+   - In `T14`, the join with `utm_campaign` would break, affecting the customer profile data.
+   - In `T15`, the join with `utm_campaign` would break, affecting the customer lifetime value data.
+   - In `T20`, the join with `utm_campaign` would break, affecting product performance data.
+
+In summary, renaming `utm_campaign` in `bronze.marketing_attribution_raw` would break the following downstream columns/groupings:
+- `T11.marketing_touchpoints`
+- `T12.orders_cleaned`
+- `T13.attribution_funnel_daily`
+- `T14.customer_profile`
+- `T15.customer_ltv`
+- `T20.product_performance`
+
+This would lead to failures in any computations or aggregations that rely on these tables and their respective columns.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ15] transitive-multi-hop-impact / hard
+Q: Trace how `silver.marketing_touchpoints.session_count` feeds into `gold.attribution_funnel_daily`, and point out anything semantically odd about how it is used there.
+Score: None
+
+REFERENCE:
+In `silver/marketing_touchpoints.py`, `session_count = F.countDistinct('session_id')` per (customer_id, utm_campaign) — the number of distinct sessions a customer had under a campaign. In `gold/attribution_funnel_daily.py`, the `visits` CTE does `COUNT(DISTINCT session_count) AS visit_count FROM marketing_touchpoints GROUP BY utm_campaign, DATE(last_seen_ts)`. So marketing_touchpoints.session_count flows into attribution_funnel_daily.visit_count, which in turn feeds `conversion_rate = purchase_count / NULLIF(visit_count, 0)`. The semantically ODD part: `visits` applies `COUNT(DISTINCT session_count)` — it distinct-counts the session_count value itself (an already-aggregated per-customer count), not the underlying sessions. So visit_count is 'the number of distinct session-count values per campaign-day', which is not a true visit volume — two customers who each had 3 sessions contribute a single distinct value (3). This is a likely modeling quirk/bug worth flagging: the funnel's top-of-funnel 'visit_count' is derived from a distinct count of an aggregate column rather than from raw session or visit counts.
+
+MODEL (openai/gpt-4o-mini):
+To trace how `silver.marketing_touchpoints.session_count` feeds into `gold.attribution_funnel_daily`, we can follow the lineage graph:
+
+1. **Source Table**: `silver.marketing_touchpoints` is derived from the DataFrame `D11`, which includes the column `session_count`.
+
+2. **DataFrame `D11`**: This DataFrame is written to the table `T11` (which is `main.dbdemos_ecom.marketing_touchpoints`) using the edge:
+   ```
+   W|D11|T11|overwrite|delta
+   ```
+
+3. **DataFrame `D11` to `gold.attribution_funnel_daily`**: The `session_count` from `T11` is used in the DataFrame `D30`, which is derived from `T3` (the `main.dbdemos_ecom.events_raw` table) and `T11` through a join operation:
+   ```
+   J|D30|D31|D34|left|jk=utm_campaign=utm_campaign,funnel_date=funnel_date
+   ```
+
+4. **Aggregation**: The `session_count` is included in the projection of `D30` to `D35`, which is then written to `T13` (the `gold.attribution_funnel_daily` table):
+   ```
+   P|D30|D35|kp=v.utm_campaign,v.funnel_date,v.visit_count,cart_count,checkout_count,purchase_count,conversion_rate
+   W|D35|T13|overwrite|delta
+   ```
+
+### Semantically Odd Aspect:
+The `session_count` is aggregated in `D11` as part of the marketing touchpoints, which counts distinct sessions per campaign. However, in `gold.attribution_funnel_daily`, it is used in a projection without any explicit aggregation function applied to it. This could lead to ambiguity regarding how `session_count` is represented in the daily attribution funnel, as it may not be clear whether it represents a total, average, or some other metric over the time period being analyzed. 
+
+In summary, while `session_count` is derived correctly, its usage in `gold.attribution_funnel_daily` lacks clarity on how it is aggregated or summarized, which could lead to misinterpretation of the data.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ16] transitive-multi-hop-impact / medium
+Q: If `quantity` were dropped from `bronze.orders_raw`, which silver and gold columns would become unresolvable? Include any transitive gold-tier effects.
+Score: None
+
+REFERENCE:
+`quantity` is consumed via orders_raw -> orders_cleaned and then the turnover chain: (1) `silver/orders_cleaned.py` re-derives `quantity` (e.g. `greatest(quantity, 0)`), so orders_cleaned.quantity breaks. (2) `gold/inventory_turnover_daily.py`'s `daily_sales` CTE computes `SUM(quantity) AS sold_qty` from orders_cleaned; so `sold_qty` breaks, and the columns derived from it: `turnover_rate = sold_qty / NULLIF(on_hand_units,0)` and `days_of_stock = on_hand_units / NULLIF(sold_qty,0)`. (3) Transitively, `gold/revenue_forecast_features.py` computes `avg_turnover = avg(turnover_rate)` from inventory_turnover_daily, so avg_turnover is affected. So the blast radius is: orders_cleaned.quantity -> inventory_turnover_daily.{sold_qty, turnover_rate, days_of_stock} -> revenue_forecast_features.avg_turnover. (product_performance also aggregates orders_cleaned with a dynamic metric list, so quantity could be summed there too, but that is not statically determinable.)
+
+MODEL (openai/gpt-4o-mini):
+To determine which columns would become unresolvable if `quantity` were dropped from `bronze.orders_raw`, we need to trace the lineage of the `quantity` column through the data processing steps.
+
+1. **Identify the direct dependencies of `quantity`:**
+   - In `T0` (main.dbdemos_ecom.orders_raw), `quantity` is a direct column.
+   - In `T12` (main.dbdemos_ecom.orders_cleaned), `quantity` is derived from `T0.quantity`.
+   - In `T22` (main.dbdemos_ecom.refunds_enriched), `quantity` is derived from `T5.quantity`, which is sourced from `T5` (refunds_raw) but is also dependent on `T0` through the joins and transformations.
+
+2. **Identify the downstream effects:**
+   - `T12` (orders_cleaned) has `quantity` as a direct column. If `quantity` is dropped from `T0`, `T12` will not be able to resolve `quantity`.
+   - `T22` (refunds_enriched) has `quantity` as a derived column from `T5`. However, `T5` is not directly dependent on `T0.quantity`, so it remains resolvable unless other dependencies are affected.
+
+3. **Transitive effects on gold-tier tables:**
+   - `T12` is consumed by several gold-tier tables:
+     - `T13` (attribution_funnel_daily) consumes `T12` and relies on `quantity` for calculations.
+     - `T14` (customer_profile) consumes `T12` and relies on `quantity` for aggregations.
+     - `T15` (customer_ltv) consumes `T14`, which is affected by `T12`.
+     - `T17` (customer_return_rate) consumes `T14`, which is affected by `T12`.
+     - `T20` (product_performance) consumes `T12`, which is affected by `quantity`.
+
+4. **Conclusion:**
+   - If `quantity` is dropped from `bronze.orders_raw`, the following columns would become unresolvable:
+     - **Silver Tier:**
+       - `T12.quantity` in `main.dbdemos_ecom.orders_cleaned`
+     - **Gold Tier:**
+       - All columns in `T13`, `T14`, `T15`, `T17`, and `T20` that depend on `T12.quantity` would become unresolvable.
+
+Thus, the final answer is:
+- **Silver Column:** `T12.quantity`
+- **Gold Columns:** All columns in `T13`, `T14`, `T15`, `T17`, and `T20` that depend on `T12.quantity`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ17] custom-sink / medium
+Q: Two gold files write via `DeltaMergeSink`. Name them, give each one's merge keys and target table, and state what the sink does on the very first run before the target exists.
+Score: None
+
+REFERENCE:
+Two gold files use DeltaMergeSink: (1) `gold/product_performance.py` -> target `main.dbdemos_ecom.product_performance`, `merge_keys=['product_id', 'order_date']`, mode='merge'. (2) `gold/inventory_turnover_daily.py` -> target `main.dbdemos_ecom.inventory_turnover_daily`, `merge_keys=['product_id', 'warehouse_id', 'snapshot_date']`, mode='merge'. (Both resolve `target_table=f"{database}.<name>"` with database='main.dbdemos_ecom'.) First-run behavior (from `DeltaMergeSink.run` in utils/sinks.py): `if not spark.catalog.tableExists(self.target_table): df.write.format('delta').saveAsTable(self.target_table); return` — i.e. on the first run, when the target does not yet exist, the sink simply creates it with a plain Delta saveAsTable (no merge). On subsequent runs it builds the condition `AND`-joining `t.k = s.k` over the merge keys and does `whenMatchedUpdateAll().whenNotMatchedInsertAll()` (SCD-Type-1 upsert). So the merge keys differ (2 keys for product_performance, 3 for inventory_turnover_daily) but both create-then-upsert.
+
+MODEL (openai/gpt-4o-mini):
+The two gold files that write via `DeltaMergeSink` are:
+
+1. **File:** `gold/product_performance.py`
+   - **Merge Keys:** `product_id`, `order_date`
+   - **Target Table:** `main.dbdemos_ecom.product_performance`
+
+2. **File:** `gold/revenue_forecast_features.py`
+   - **Merge Keys:** `customer_id`, `product_id`, `forecast_date`
+   - **Target Table:** `main.dbdemos_ecom.revenue_forecast_features`
+
+On the very first run before the target table exists, the `DeltaMergeSink` will create the target table and insert the data into it.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ18] coverage-of-unknowns / hard
+Q: The bronze ingest files do not all write the same way. Which ones use a streaming write (`writeStream...table`) versus a batch write (`write...saveAsTable`)? Group them.
+Score: None
+
+REFERENCE:
+The bronze ingests split into streaming vs batch writers. STREAMING (`writeStream...table(f"{database}.<x>_raw")`, typically with trigger availableNow): `01_ingest_orders.py` (orders_raw), `02_ingest_customers.ipynb` (customers_raw), `03_ingest_events.py` (events_raw), `05_ingest_returns.py` (returns_raw), `08_ingest_marketing.py` (marketing_attribution_raw), and `10_ingest_shipments.py` (shipments_raw) — six streaming ingests. BATCH (`write...saveAsTable(f"{database}.<x>_raw")`): `04_ingest_products.py` (products_raw), `06_ingest_refunds.py` (refunds_raw), `07_ingest_inventory.py` (inventory_snapshots_raw), and `09_ingest_promotions.py` (promotions_raw) — four batch ingests. So 6 of the 10 bronze tables are produced by streaming writes and 4 by batch saveAsTable; the batch ones tend to be the lower-velocity/reference-style sources (products, promotions, inventory snapshots, refunds).
+
+MODEL (openai/gpt-4o-mini):
+The bronze ingest files can be grouped based on their write methods as follows:
+
+**Streaming Writes (`writeStream...table`):**
+- `bronze/01_ingest_orders.py` (writes to `T0`)
+- `bronze/02_ingest_customers.ipynb` (writes to `T1`)
+- `bronze/03_ingest_events.py` (writes to `T3`)
+- `bronze/05_ingest_returns.py` (writes to `T4`)
+- `bronze/06_ingest_refunds.py` (writes to `T5`)
+- `bronze/07_ingest_inventory.py` (writes to `T6`)
+- `bronze/08_ingest_marketing.py` (writes to `T7`)
+- `bronze/09_ingest_promotions.py` (writes to `T8`)
+- `bronze/10_ingest_shipments.py` (writes to `T9`)
+
+**Batch Writes (`write...saveAsTable`):**
+- `bronze/04_ingest_products.py` (writes to `T2`, uses `overwrite` mode)
+
+In summary, all bronze ingest files except for `bronze/04_ingest_products.py` use streaming writes, while `bronze/04_ingest_products.py` uses a batch write.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ19] reverse-lineage / hard
+Q: `gold.revenue_forecast_features.avg_turnover` is one of the deepest columns in the repo. Trace its full lineage back to bronze, naming each hop.
+Score: None
+
+REFERENCE:
+`avg_turnover = F.avg('turnover_rate')` in `gold/revenue_forecast_features.py`, where `turnover_rate` comes from the `inventory_turnover_daily` gold table it reads. In `gold/inventory_turnover_daily.py`, `turnover_rate = COALESCE(sold_qty,0)/NULLIF(on_hand_units,0)`. The two inputs split: (numerator) `sold_qty = SUM(quantity)` over `silver.orders_cleaned`, which is built by `silver/orders_cleaned.py` from `bronze.orders_raw` (quantity); (denominator) `on_hand_units` from `silver.inventory_daily`, built by `silver/inventory_daily.py` from `bronze.inventory_snapshots_raw` (on_hand_units passthrough after the latest-per-day dedup). So the hop chain for avg_turnover is: bronze.orders_raw.quantity AND bronze.inventory_snapshots_raw.on_hand_units -> silver.orders_cleaned.quantity / silver.inventory_daily.on_hand_units -> gold.inventory_turnover_daily.turnover_rate -> gold.revenue_forecast_features.avg_turnover. That is 4+ hops (bronze -> silver -> gold turnover -> gold features), and it is gold-reading-gold, which makes revenue_forecast_features the deepest multi-hop node in the benchmark.
+
+MODEL (openai/gpt-4o-mini):
+To trace the lineage of `gold.revenue_forecast_features.avg_turnover`, we follow the dependencies back through the lineage graph:
+
+1. **`gold.revenue_forecast_features`** is written by `gold/revenue_forecast_features.py`.
+2. Inside `gold/revenue_forecast_features.py`, `avg_turnover` is derived from an aggregation operation that includes `turnover_rate`.
+3. **`turnover_rate`** is calculated in the table **`gold.inventory_turnover_daily`**, which is written by `gold/inventory_turnover_daily.py`.
+4. **`gold.inventory_turnover_daily`** is derived from the aggregation of data from **`silver.inventory_daily`**.
+5. **`silver.inventory_daily`** is written by `silver/inventory_daily.py`, which processes data from **`main.dbdemos_ecom.inventory_snapshots_raw`**.
+6. **`main.dbdemos_ecom.inventory_snapshots_raw`** is ingested from the raw data in the bronze layer, specifically from the ingestion script `bronze/07_ingest_inventory.py`.
+
+Thus, the full lineage back to bronze is as follows:
+
+1. `gold.revenue_forecast_features`
+2. `gold.inventory_turnover_daily`
+3. `silver.inventory_daily`
+4. `main.dbdemos_ecom.inventory_snapshots_raw`
+5. `bronze/07_ingest_inventory.py` (ingestion script)
+
+This completes the lineage trace for `gold.revenue_forecast_features.avg_turnover`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ20] producer-consumer / medium
+Q: `gold/revenue_forecast_features.py` is unusual among gold files in what it reads. What are its direct upstream tables, and why is it different from the other gold files?
+Score: None
+
+REFERENCE:
+`revenue_forecast_features.py` reads THREE GOLD tables directly: `customer_ltv`, `product_performance`, and `inventory_turnover_daily` (via `spark.table(f"{database}.<name>")`). It is unusual because it is the only GOLD-reads-GOLD file in the repo — every other gold file reads SILVER (or silver+bronze) sources: e.g. customer_ltv and customer_return_rate read customer_profile (silver), product_performance reads orders_cleaned (silver), inventory_turnover_daily reads inventory_daily + orders_cleaned (silver), attribution_funnel_daily reads marketing_touchpoints/events_raw/orders_cleaned. revenue_forecast_features instead composes three already-computed gold tables into a feature table, which is why its columns trace back through an extra hop (gold -> gold) to bronze and why it is the deepest multi-hop file. Its direct upstreams are therefore customer_ltv, product_performance, and inventory_turnover_daily (all gold).
+
+MODEL (openai/gpt-4o-mini):
+The direct upstream tables for `gold/revenue_forecast_features.py` are:
+
+1. `main.dbdemos_ecom.customer_ltv` (T15)
+2. `main.dbdemos_ecom.product_performance` (T20)
+
+What makes `gold/revenue_forecast_features.py` different from other gold files is that it does not read from any silver tables. Instead, it directly reads from two gold tables, which is unusual because most other gold files typically read from silver tables as their immediate upstream sources. This indicates that `gold/revenue_forecast_features.py` is likely built on already aggregated or processed data rather than raw or intermediate data.
+
+Notes: 
+-----------------------------------------------------------------

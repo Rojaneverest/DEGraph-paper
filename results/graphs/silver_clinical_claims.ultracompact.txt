@@ -1,0 +1,98 @@
+# TABLES
+TABLE meridian.bronze.claim_header  cols=[]  written_by=-  read_by=silver_clinical_claims.py
+TABLE meridian.bronze.claim_diagnosis  cols=[]  written_by=-  read_by=silver_clinical_claims.py
+TABLE meridian.bronze.claim_procedure  cols=[]  written_by=-  read_by=silver_clinical_claims.py
+TABLE meridian.bronze.claim_cob_payment  cols=[]  written_by=-  read_by=silver_clinical_claims.py
+TABLE meridian.bronze.claim_payable  cols=[]  written_by=-  read_by=silver_clinical_claims.py
+TABLE meridian.bronze.claim_interest  cols=[]  written_by=-  read_by=silver_clinical_claims.py
+TABLE meridian.bronze.claim_occurrence  cols=[]  written_by=-  read_by=silver_clinical_claims.py
+TABLE meridian.bronze.claim_provider  cols=[]  written_by=-  read_by=silver_clinical_claims.py
+TABLE meridian.bronze.member_eligibility  cols=[]  written_by=-  read_by=silver_clinical_claims.py
+TABLE meridian.bronze.provider_registry  cols=[]  written_by=-  read_by=silver_clinical_claims.py
+TABLE meridian.silver.clinical_claims  cols=[claim_id_diag other_diagnoses claim_id_proc other_procedures claim_id_occ occurrence_codes claim_id_int_agg total_interest_amount interest_line_count processing_status claim_outcome member_uid identifiers plan_id payer_id coverage_plans service_locations pp.claim_id pp.rendering_npi pp.rendering_specialty pp.specialty_code_reg pp.specialty_desc_reg pp.is_pcp_eligible_reg pp.taxonomy_group_reg aps.any_pcp_flag aps.distinct_rendering_npis provider_specialty_code provider_specialty_description is_pcp_claim claim_category claim_categories extension_source_values other_amounts]  written_by=silver_clinical_claims.py  read_by=-
+
+# LINEAGE EDGES
+READS              silver_clinical_claims.py: table:meridian.bronze.claim_header -> silver_clinical_claims.py:claim_hdr_df
+READS              silver_clinical_claims.py: table:meridian.bronze.claim_diagnosis -> silver_clinical_claims.py:claim_diag_df
+READS              silver_clinical_claims.py: table:meridian.bronze.claim_procedure -> silver_clinical_claims.py:claim_proc_df
+READS              silver_clinical_claims.py: table:meridian.bronze.claim_cob_payment -> silver_clinical_claims.py:claim_cob_df
+READS              silver_clinical_claims.py: table:meridian.bronze.claim_payable -> silver_clinical_claims.py:claim_payable_df
+READS              silver_clinical_claims.py: table:meridian.bronze.claim_interest -> silver_clinical_claims.py:claim_interest_df
+READS              silver_clinical_claims.py: table:meridian.bronze.claim_occurrence -> silver_clinical_claims.py:claim_occ_df
+READS              silver_clinical_claims.py: table:meridian.bronze.claim_provider -> silver_clinical_claims.py:claim_prov_df
+READS              silver_clinical_claims.py: table:meridian.bronze.member_eligibility -> silver_clinical_claims.py:member_df
+READS              silver_clinical_claims.py: table:meridian.bronze.provider_registry -> silver_clinical_claims.py:provider_df
+READS              silver_clinical_claims.py: table:meridian.bronze.claim_cob_payment -> silver_clinical_claims.py:cob_line_agg_cte
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:cob_line_agg_cte -> silver_clinical_claims.py:cob_line_agg_cte col=cob_allowed_amount
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:cob_line_agg_cte -> silver_clinical_claims.py:cob_line_agg_cte col=cob_billed_amount
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:cob_line_agg_cte -> silver_clinical_claims.py:cob_line_agg_cte col=cob_patient_liability
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:cob_line_agg_cte -> silver_clinical_claims.py:cob_line_agg_cte col=cob_copay_amount
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:cob_line_agg_cte -> silver_clinical_claims.py:cob_line_agg_cte col=cob_deductible_amount
+READS              silver_clinical_claims.py: table:meridian.bronze.claim_payable -> silver_clinical_claims.py:payable_agg_cte
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:payable_agg_cte -> silver_clinical_claims.py:payable_agg_cte col=total_paid_amount
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:payable_agg_cte -> silver_clinical_claims.py:payable_agg_cte col=total_contractual_adj
+READS              silver_clinical_claims.py: table:meridian.bronze.claim_header -> silver_clinical_claims.py:aggregated_cob_df
+JOINS              silver_clinical_claims.py: table:meridian.bronze.claim_header -> silver_clinical_claims.py:join_2 right=silver_clinical_claims.py:cob_line_agg_cte type=left keys=[['claim_id', 'claim_id'], ['claim_line_id', 'claim_line_id']]
+JOINS              silver_clinical_claims.py: silver_clinical_claims.py:join_2 -> silver_clinical_claims.py:join_2 right=silver_clinical_claims.py:payable_agg_cte type=left keys=[['claim_id', 'claim_id'], ['claim_line_id', 'claim_line_id']]
+JOINS              silver_clinical_claims.py: silver_clinical_claims.py:claim_hdr_df -> silver_clinical_claims.py:_anon1 right=silver_clinical_claims.py:claim_diag_df type=left keys=[['claim_id_hdr', 'claim_id']]
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:_anon1 -> silver_clinical_claims.py:ranked_diag_df col=diag_rank window(order=['diag_priority asc_nulls_last', 'icd10_code asc_nulls_last'])
+AGGREGATES         silver_clinical_claims.py: silver_clinical_claims.py:ranked_diag_df -> silver_clinical_claims.py:_anon2 groupby=['claim_id_hdr'] ops=['<unresolved>'] out=['<unresolved>']
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:_anon2 -> silver_clinical_claims.py:pivoted_diag_df col=claim_id_diag
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:pivoted_diag_df -> silver_clinical_claims.py:_anon3 col=other_diagnoses_raw
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:pivoted_diag_df -> silver_clinical_claims.py:_anon3 col=other_diagnoses
+PROJECTS           silver_clinical_claims.py: silver_clinical_claims.py:_anon3 -> silver_clinical_claims.py:pivoted_diag_df drop=['other_diagnoses_raw']
+JOINS              silver_clinical_claims.py: silver_clinical_claims.py:claim_hdr_df -> silver_clinical_claims.py:_anon4 right=silver_clinical_claims.py:claim_proc_df type=left keys=[['claim_id_hdr', 'claim_id']]
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:_anon4 -> silver_clinical_claims.py:ranked_proc_df col=proc_rank window(order=['proc_priority asc_nulls_last', 'hcpcs_code asc_nulls_last'])
+AGGREGATES         silver_clinical_claims.py: silver_clinical_claims.py:ranked_proc_df -> silver_clinical_claims.py:_anon5 groupby=['claim_id_hdr'] ops=['<unresolved>'] out=['<unresolved>']
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:_anon5 -> silver_clinical_claims.py:pivoted_proc_df col=claim_id_proc
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:pivoted_proc_df -> silver_clinical_claims.py:_anon6 col=other_procedures_raw
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:pivoted_proc_df -> silver_clinical_claims.py:_anon6 col=other_procedures
+PROJECTS           silver_clinical_claims.py: silver_clinical_claims.py:_anon6 -> silver_clinical_claims.py:pivoted_proc_df drop=['other_procedures_raw']
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:claim_occ_df -> silver_clinical_claims.py:_anon7 col=occ_struct
+AGGREGATES         silver_clinical_claims.py: silver_clinical_claims.py:_anon7 -> silver_clinical_claims.py:_anon8 groupby=['claim_id'] ops=['array_distinct'] out=['occurrence_codes']
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:_anon8 -> silver_clinical_claims.py:occ_agg_df col=claim_id_occ
+AGGREGATES         silver_clinical_claims.py: silver_clinical_claims.py:claim_interest_df -> silver_clinical_claims.py:_anon9 groupby=['claim_id_int'] ops=['sum', 'count'] out=['total_interest_amount', 'interest_line_count']
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:_anon9 -> silver_clinical_claims.py:interest_agg_df col=claim_id_int_agg
+JOINS              silver_clinical_claims.py: silver_clinical_claims.py:claim_hdr_df -> silver_clinical_claims.py:_anon10 right=silver_clinical_claims.py:pivoted_diag_df type=left keys=[['claim_id_hdr', 'claim_id_diag']]
+JOINS              silver_clinical_claims.py: silver_clinical_claims.py:_anon10 -> silver_clinical_claims.py:_anon11 right=silver_clinical_claims.py:pivoted_proc_df type=left keys=[['claim_id_hdr', 'claim_id_proc']]
+JOINS              silver_clinical_claims.py: silver_clinical_claims.py:_anon11 -> silver_clinical_claims.py:_anon12 right=silver_clinical_claims.py:aggregated_cob_df type=left keys=[['claim_id_hdr', 'claim_id_cob']]
+JOINS              silver_clinical_claims.py: silver_clinical_claims.py:_anon12 -> silver_clinical_claims.py:_anon13 right=silver_clinical_claims.py:claim_prov_df type=left keys=[['claim_id_hdr', 'claim_id_prov']]
+JOINS              silver_clinical_claims.py: silver_clinical_claims.py:_anon13 -> silver_clinical_claims.py:_anon14 right=silver_clinical_claims.py:member_df type=left keys=[['member_id_hdr', 'member_id_mbr']]
+JOINS              silver_clinical_claims.py: silver_clinical_claims.py:_anon14 -> silver_clinical_claims.py:_anon15 right=silver_clinical_claims.py:occ_agg_df type=left keys=[['claim_id_hdr', 'claim_id_occ']]
+JOINS              silver_clinical_claims.py: silver_clinical_claims.py:_anon15 -> silver_clinical_claims.py:final_df right=silver_clinical_claims.py:interest_agg_df type=left keys=[['claim_id_hdr', 'claim_id_int_agg']]
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df col=processing_status
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df col=claim_outcome
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df col=member_uid
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df col=identifiers
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df col=plan_id
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df col=payer_id
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df col=coverage_plans
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df col=service_locations
+READS              silver_clinical_claims.py: table:meridian.bronze.claim_provider -> silver_clinical_claims.py:ranked_providers_cte
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:ranked_providers_cte -> silver_clinical_claims.py:ranked_providers_cte col=provider_rank window(order=['seq_num desc'])
+JOINS              silver_clinical_claims.py: silver_clinical_claims.py:ranked_providers_cte -> silver_clinical_claims.py:primary_provider_joined right=<unresolved> type=left keys=[['rendering_npi', 'npi'], ['taxonomy_code', 'taxonomy_code']]
+JOINS              silver_clinical_claims.py: silver_clinical_claims.py:ranked_providers_cte -> silver_clinical_claims.py:any_pcp_signal_joined right=<unresolved> type=left keys=[['rendering_npi', 'npi'], ['taxonomy_code', 'taxonomy_code']]
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:any_pcp_signal_joined -> silver_clinical_claims.py:any_pcp_signal_cte col=any_pcp_flag
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:any_pcp_signal_joined -> silver_clinical_claims.py:any_pcp_signal_cte col=distinct_rendering_npis
+AGGREGATES         silver_clinical_claims.py: silver_clinical_claims.py:any_pcp_signal_joined -> silver_clinical_claims.py:any_pcp_signal_cte groupby=['claim_id'] ops=['max', 'count'] out=['any_pcp_flag', 'distinct_rendering_npis']
+JOINS              silver_clinical_claims.py: silver_clinical_claims.py:primary_provider_cte -> silver_clinical_claims.py:join_1 right=silver_clinical_claims.py:any_pcp_signal_cte type=left keys=[['claim_id', 'claim_id']]
+PROJECTS           silver_clinical_claims.py: silver_clinical_claims.py:primary_provider_cte -> silver_clinical_claims.py:provider_specialty_df drop=[]
+JOINS              silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df right=silver_clinical_claims.py:provider_specialty_df type=left keys=[['claim_id_hdr', 'claim_id']]
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df col=provider_specialty_code
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df col=provider_specialty_description
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df col=is_pcp_claim
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df col=claim_category
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:_anon16 col=claim_categories_raw
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:_anon16 col=claim_categories
+PROJECTS           silver_clinical_claims.py: silver_clinical_claims.py:_anon16 -> silver_clinical_claims.py:final_df drop=['claim_categories_raw']
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df col=extension_source_values
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:final_df col=other_amounts
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:silver_df col=etl_loaded_at
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:silver_df col=etl_source_job
+DERIVES            silver_clinical_claims.py: silver_clinical_claims.py:final_df -> silver_clinical_claims.py:silver_df col=source_system
+FILTERS            silver_clinical_claims.py: silver_clinical_claims.py:silver_df -> silver_clinical_claims.py:dq_passed_df
+WRITES             silver_clinical_claims.py: silver_clinical_claims.py:dq_passed_df -> table:meridian.silver.clinical_claims mode=overwrite fmt=delta
+
+# WARNINGS
+WARN [dynamic-aggregation] silver_clinical_claims.py: agg list contains star-unpacked runtime variable in silver_clinical_claims.py:200
+WARN [dynamic-aggregation] silver_clinical_claims.py: agg list contains star-unpacked runtime variable in silver_clinical_claims.py:270

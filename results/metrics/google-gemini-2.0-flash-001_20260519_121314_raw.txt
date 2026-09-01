@@ -1,0 +1,42 @@
+DEGraph Q&A Experiment Report
+=================================================================
+Backend:   openrouter / google/gemini-2.0-flash-001
+Mode:      raw_source
+Tokens:    ~23,683
+Timestamp: 20260519_121314
+
+AGGREGATE SCORES
+----------------------------------------
+  Not graded yet. Edit the JSON file and set 'score' for each answer.
+
+INDIVIDUAL ANSWERS
+=================================================================
+
+[Q1] direct-cross-file-impact / medium
+Q: If the column `customer_id` in `main.dbdemos_ecom.orders_raw` is renamed to `cust_id`, which silver and gold tables in this repo need updating? List each affected table and the reason it is affected.
+Score: None
+
+REFERENCE:
+Per the graph, `orders_raw` is read by 4 silver files: `silver/orders_cleaned.py`, `silver/customer_profile.py`, `silver/refunds_enriched.py`, and `silver/shipments_timeline.py`. Affected silver tables: (1) `silver.orders_cleaned` — `customer_id` passes through the column-set propagation chain (trim → withColumns → drop → filter) unchanged. (2) `silver.customer_profile` — `customer_id` is the join key with `customers_raw` and a `groupBy` key in the aggregate. (3) `silver.refunds_enriched` — the file joins refunds → returns → orders, and `customer_id` propagates from `orders_raw` into the silver output. (4) `silver.shipments_timeline` — joins shipments with `orders_raw.select(order_id, customer_id)`; the renamed column breaks that select. Affected gold tables: (5) `gold.customer_ltv` — inherits from `customer_profile` via the SQL `base` CTE. (6) `gold.customer_return_rate` — joins `customer_profile` (via customer_id). (7) `gold.revenue_forecast_features` — inherits from `customer_ltv`. NOT affected: `silver.returns_cleaned` (reads `returns_raw` not `orders_raw`), `silver.inventory_daily`, `silver.marketing_touchpoints`, `gold.product_performance` (groups by product_id and order_date only), `gold.inventory_turnover_daily`, `gold.attribution_funnel_daily` (the orders_cleaned-side branch uses order_id and order_date, not customer_id directly).
+
+MODEL (google/gemini-2.0-flash-001):
+Here's an analysis of the impact of renaming `customer_id` in `main.dbdemos_ecom.orders_raw` to `cust_id`:
+
+*   **silver.customer\_profile**: This table is affected because it reads from `orders_raw` and joins with `customers_raw` on `customer_id`. The join condition in `silver/customer_profile.py` would need to be updated to reflect the new column name in `orders_raw`.
+*   **silver.shipments\_timeline**: This table is affected because it reads from `orders_raw` and joins with `shipments_raw` on `order_id` to pull `customer_id` into the silver output. The join condition in `silver/shipments_timeline.py` would need to be updated to reflect the new column name in `orders_raw`.
+*   **gold.attribution\_funnel\_daily**: This table is affected because it reads from `events_raw` and `orders_cleaned`. The `orders_cleaned` table is derived from `orders_raw`, so the change would propagate to `orders_cleaned`. The SQL query in `gold/attribution_funnel_daily.py` joins `orders_cleaned` with `marketing_touchpoints` using `customer_id`. This join would need to be updated.
+*   **gold.customer\_ltv**: This table is affected because it reads from `silver.customer_profile`, which is directly impacted by the change in `orders_raw`.
+*   **gold.customer\_return\_rate**: This table is affected because it reads from `silver.customer_profile`, which is directly impacted by the change in `orders_raw`.
+*   **gold.revenue\_forecast\_features**: This table is affected because it reads from `gold.customer_ltv`, `gold.product_performance`, and `gold.inventory_turnover_daily`. Since `gold.customer_ltv` is affected, this table is also affected.
+
+In summary, the following tables need updating:
+
+*   `silver.customer_profile`
+*   `silver.shipments_timeline`
+*   `gold.attribution_funnel_daily`
+*   `gold.customer_ltv`
+*   `gold.customer_return_rate`
+*   `gold.revenue_forecast_features`
+
+Notes: 
+-----------------------------------------------------------------

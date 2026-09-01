@@ -1,0 +1,452 @@
+DEGraph Q&A Experiment Report
+=================================================================
+Backend:   openrouter / google/gemini-2.0-flash-001
+Mode:      raw_source
+Tokens:    ~10,226
+Timestamp: 20260529_100125
+
+AGGREGATE SCORES
+----------------------------------------
+  Not graded yet. Edit the JSON file and set 'score' for each answer.
+
+INDIVIDUAL ANSWERS
+=================================================================
+
+[TQ1] producer-consumer / medium
+Q: How many files in this repo READ `main.dbdemos_ecom.orders_raw`, which files are they, and is there anything unusual about how one of them reads it relative to the medallion (bronze->silver->gold) layering?
+Score: None
+
+REFERENCE:
+Two files read `orders_raw`: (1) `silver/orders_cleaned.py` via `spark.table(f"{database}.orders_raw")`, and (2) `silver/customer_profile.py` via `spark.table(f"{database}.orders_raw")` (one of its three bronze reads). The unusual part: `silver/customer_profile.py` reads the BRONZE `orders_raw` table directly rather than the already-cleaned SILVER `orders_cleaned` table produced by `silver/orders_cleaned.py`. So the two silver files both consume bronze orders independently — customer_profile bypasses the cleaning/filtering done in orders_cleaned (e.g. the status!='cancelled' & quantity>0 filter and the type normalizations), operating on the raw bronze rows instead.
+
+MODEL (google/gemini-2.0-flash-001):
+Three files read `main.dbdemos_ecom.orders_raw`:
+
+1.  `silver/orders_cleaned.py`
+2.  `silver/customer_profile.py`
+3.  `gold/product_performance.py`
+
+`gold/product_performance.py` reads `main.dbdemos_ecom.orders_raw` which is unusual because it is reading a bronze table directly from the gold layer, instead of reading from a silver table.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ2] producer-consumer / easy
+Q: Which file produces `main.dbdemos_ecom.events_raw`, and is the write a streaming write or a batch write? Name the write format and trigger.
+Score: None
+
+REFERENCE:
+`bronze/03_ingest_events.py` produces `main.dbdemos_ecom.events_raw`. It is a STREAMING write: `events_final.writeStream.format("delta").option("checkpointLocation", f"{checkpoint_root}/events").option("mergeSchema","true").trigger(availableNow=True).table(f"{database}.events_raw")`. Format is Delta; the trigger is `availableNow=True` (process the accumulated backlog once, then stop — a batch-flavored streaming trigger). The source is an Auto Loader (`cloudFiles`) read stream over the events landing path.
+
+MODEL (google/gemini-2.0-flash-001):
+`bronze/03_ingest_events.py` produces `main.dbdemos_ecom.events_raw`. The write is a streaming write with `delta` format and `availableNow=True` trigger.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ3] reverse-lineage / medium
+Q: Trace the lineage of `gold.product_performance.order_count` back to its originating bronze source. Name the aggregation, the intermediate table, and the bronze table/column.
+Score: None
+
+REFERENCE:
+`order_count` is produced in `gold/product_performance.py` by `F.count("order_id").alias("order_count")` inside `daily_perf = orders.groupBy("product_id", "order_date").agg(*aggregations, F.count("order_id").alias("order_count"))`. Its input `orders` is `spark.table(f"{database}.orders_cleaned")` — the SILVER table. `silver/orders_cleaned.py` produces `orders_cleaned` from `spark.table(f"{database}.orders_raw")` (BRONZE). The `order_id` column is a passthrough from `orders_raw` (it is never re-derived in orders_cleaned). So the chain is: `bronze orders_raw.order_id` -> (read + cleaned, order_id unchanged) `silver orders_cleaned.order_id` -> `count(order_id)` grouped by product_id/order_date -> `gold product_performance.order_count`. orders_raw itself is ingested from the JSON landing volume by `bronze/01_ingest_orders.py`.
+
+MODEL (google/gemini-2.0-flash-001):
+Here's the lineage of `gold.product_performance.order_count`:
+
+1.  **Aggregation:** In `gold/product_performance.py`, the `order_count` column is created by aggregating the `orders` DataFrame using `F.count("order_id").alias("order_count")`.
+2.  **Intermediate Table:** The `orders` DataFrame in `gold/product_performance.py` is sourced from the table `database.orders_cleaned`.
+3.  **Bronze Table/Column:** In `silver/orders_cleaned.py`, the `orders` DataFrame is sourced from the bronze table `database.orders_raw`. The `order_id` column is read directly from this table.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ4] reverse-lineage / hard
+Q: `gold/product_performance.py` groups by `order_date`, but `order_date` is not a column in any bronze table. Where does `order_date` come from, and what is its full derivation chain back to bronze?
+Score: None
+
+REFERENCE:
+`order_date` is a SILVER-derived column, created in `silver/orders_cleaned.py` by `.withColumn("order_date", F.to_date(F.col("order_ts")))`. Its input `order_ts` is a bronze `orders_raw` column (passed through; never re-derived). So the chain is: `bronze orders_raw.order_ts` (ingested from the JSON landing volume by `bronze/01_ingest_orders.py`) -> `silver/orders_cleaned.py`: `order_date = to_date(order_ts)` -> written to `silver orders_cleaned.order_date` -> read by `gold/product_performance.py` as a groupBy key. Note `order_year` and `order_month` are also derived from `order_ts` in the same file, but only `order_date` is consumed downstream (as the product_performance group key); the year/month columns are not used by any other file.
+
+MODEL (google/gemini-2.0-flash-001):
+`order_date` is derived in `silver/orders_cleaned.py` from `order_ts`, which is a column in the bronze table `orders_raw`.
+
+The full derivation chain is:
+1.  `orders_raw` table is read in `silver/orders_cleaned.py`.
+2.  `order_date` column is derived from `order_ts` column using `F.to_date` function.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ5] direct-cross-file-impact / medium
+Q: If `order_ts` were renamed in `bronze.orders_raw`, list every downstream column (across silver and gold) that would break or need updating.
+Score: None
+
+REFERENCE:
+`order_ts` feeds several derivations across two readers of orders_raw:
+(1) In `silver/orders_cleaned.py` it derives THREE columns: `order_date = to_date(order_ts)`, `order_year = year(order_ts)`, `order_month = month(order_ts)`.
+(2) In `silver/customer_profile.py` (which reads orders_raw directly) it is used in the aggregation `F.max("order_ts").alias("last_order_ts")`, producing `customer_profile.last_order_ts`.
+Transitively in gold:
+(3) `gold/customer_ltv.py` selects `last_order_ts` from customer_profile and derives `days_since_last_order = DATEDIFF(CURRENT_DATE(), last_order_ts)`; both `last_order_ts` and `days_since_last_order` would break.
+(4) `gold/product_performance.py` groups by `order_date` (the silver-derived column), so its grouping/key would break.
+Summary of affected columns: orders_cleaned.{order_date, order_year, order_month}; customer_profile.last_order_ts; customer_ltv.{last_order_ts, days_since_last_order}; and the product_performance group-by key order_date.
+
+MODEL (google/gemini-2.0-flash-001):
+Based on the provided code, here's a list of downstream columns that would be affected if `order_ts` were renamed in `bronze.orders_raw`:
+
+*   **silver.orders\_cleaned:**
+    *   `order_date`: Derived from `order_ts` using `F.to_date`.
+    *   `order_year`: Derived from `order_ts` using `F.year`.
+    *   `order_month`: Derived from `order_ts` using `F.month`.
+*   **silver.customer\_profile:**
+    *   `last_order_ts`: Derived from `orders_raw.order_ts` via aggregation (`F.max("order_ts")`).
+
+In summary, the following columns would need updating: `order_date`, `order_year`, `order_month`, and `last_order_ts`.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ6] direct-cross-file-impact / hard
+Q: If `total_amount` were renamed in `bronze.orders_raw`, trace the full downstream blast radius across silver and gold, including any gold columns affected only transitively.
+Score: None
+
+REFERENCE:
+`total_amount` is consumed by both readers of orders_raw:
+(1) `silver/orders_cleaned.py`: `.withColumn("total_amount", F.round(F.col("total_amount"), 2))` (re-derives the same name) and `.withColumn("is_high_value", F.col("total_amount") > F.lit(1000))`. Both `orders_cleaned.total_amount` and `orders_cleaned.is_high_value` break.
+(2) `silver/customer_profile.py` (reads orders_raw directly): `F.sum("total_amount").alias("lifetime_revenue")` -> `customer_profile.lifetime_revenue` breaks.
+Transitive gold impact via lifetime_revenue in `gold/customer_ltv.py`: `lifetime_revenue` is selected into the `base` CTE and then drives `country_avg.avg_country_ltv = AVG(lifetime_revenue)`, `ltv_vs_country_avg = lifetime_revenue / NULLIF(avg_country_ltv,0)`, `revenue_quartile = NTILE(4) OVER (ORDER BY lifetime_revenue DESC)`, and therefore `ltv_tier` (the categorical label derived from revenue_quartile). So customer_ltv.{lifetime_revenue, avg_country_ltv, ltv_vs_country_avg, revenue_quartile, ltv_tier} are all affected.
+Note on product_performance: it aggregates a runtime-loaded `metric_columns` list (dynamic, opaque). If `total_amount` is one of those metrics it would also be affected there, but that cannot be determined statically.
+
+MODEL (google/gemini-2.0-flash-001):
+Okay, let's analyze the impact of renaming the `total_amount` column in the `bronze.orders_raw` table.
+
+1.  **`silver/orders_cleaned.py`**:
+    *   **Reads**: `bronze.orders_raw`
+    *   **Derives**: The notebook derives `total_amount` column.
+    *   **Impact**: The `total_amount` column will need to be renamed in the `orders` DataFrame. The `is_high_value` column derivation depends on `total_amount`, so it will also be affected.
+
+2.  **`silver/customer_profile.py`**:
+    *   **Reads**: `silver.orders_cleaned`
+    *   **Aggregates**: The notebook aggregates `total_amount` to compute `lifetime_revenue`.
+    *   **Impact**: The aggregation on `total_amount` will need to be updated to reflect the new column name.
+
+3.  **`gold/customer_ltv.py`**:
+    *   **Reads**: `silver.customer_profile`
+    *   **Impact**: The `spark.sql` query reads `lifetime_revenue` from `customer_profile`. No direct impact from the `total_amount` rename, but it is transitively affected because it depends on the aggregated `total_amount` column in `silver/customer_profile.py`.
+
+4.  **`gold/product_performance.py`**:
+    *   **Reads**: `silver.orders_cleaned`
+    *   **Dynamic Aggregation**: This notebook reads the `silver.orders_cleaned` table and performs dynamic aggregations based on a configuration file.
+    *   **Impact**: If `total_amount` is in the `metric_columns` list loaded from the JSON config, the aggregations will need to be updated to reflect the new column name. The `sum_total_amount`, `avg_total_amount`, and `max_total_amount` columns will be affected.
+
+**Summary of Blast Radius:**
+
+*   **`silver/orders_cleaned.py`**: Requires renaming the column in the read and updating the derivation of `is_high_value`.
+*   **`silver/customer_profile.py`**: Requires updating the aggregation to use the new column name for `lifetime_revenue`.
+*   **`gold/customer_ltv.py`**: Transitively affected because it reads `lifetime_revenue` from `silver.customer_profile`.
+*   **`gold/product_performance.py`**: Requires updating the metric configuration file (if `total_amount` is present) to reflect the new column name, affecting the dynamically generated aggregation columns.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ7] counterfactual / hard
+Q: In `silver/customer_profile.py` the first join is `customers_df.join(orders_df, on="customer_id", how="inner")`. If this were changed from `inner` to `left`, what changes semantically in the output, and what changes (if anything) in the lineage graph structure?
+Score: None
+
+REFERENCE:
+Semantic change: with `inner`, customers who have NO matching rows in orders_raw are dropped entirely from the profile. With `left`, every customer is retained; for customers with no orders the order-side columns (order_id, total_amount, order_ts, product_id, ...) come through NULL. Downstream that changes the aggregates: `F.count("order_id")` becomes 0 for order-less customers (count ignores nulls), `F.sum("total_amount")` (lifetime_revenue) becomes NULL, `F.max("order_ts")` (last_order_ts) NULL, and `F.countDistinct("product_id")` 0. Those order-less customers then flow into gold/customer_ltv with NULL lifetime_revenue, affecting avg_country_ltv, ltv_vs_country_avg (NULL), and the NTILE revenue_quartile ranking.
+Lineage graph structure: the join is still one Joins edge between the same two inputs on the same key (customer_id); only the join-TYPE attribute changes from inner to left. No nodes/edges are added or removed — it is a property change on the existing join edge, not a structural change.
+
+MODEL (google/gemini-2.0-flash-001):
+Semantically, changing the join from `inner` to `left` in `silver/customer_profile.py` would mean that all customers from `customers_df` would be included in the result, even if they have no matching orders in `orders_df`. The columns from `orders_df` would be null for those customers without orders.
+
+In terms of the lineage graph structure, the `Joins` edge connecting `customers_df` and `orders_df` would have its `join_type` attribute changed from `inner` to `left`. The rest of the graph structure would remain the same.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ8] counterfactual / medium
+Q: If the row filter `.filter((F.col("status") != "cancelled") & (F.col("quantity") > 0))` in `silver/orders_cleaned.py` were removed, which downstream tables' values would change and which would NOT — and why?
+Score: None
+
+REFERENCE:
+Removing the filter lets cancelled orders and zero-quantity orders pass into `silver orders_cleaned`. Impact:
+- CHANGES: `gold/product_performance.py`, because it reads `orders_cleaned` and aggregates it (sums/avgs/maxes per product per day plus count(order_id)); those metrics would now include the previously-filtered cancelled/zero-qty rows.
+- DOES NOT change: `silver/customer_profile.py` and therefore `gold/customer_ltv.py`. Crucially, customer_profile reads the BRONZE `orders_raw` table directly, NOT `orders_cleaned`, so it never saw this filter in the first place — its aggregates (total_orders, lifetime_revenue, etc.) are computed over unfiltered bronze orders regardless. (Note: in the lineage graph the removal also deletes the Filters edge on the orders_cleaned pipeline; no other structural change.)
+
+MODEL (google/gemini-2.0-flash-001):
+The values in the following downstream tables would change:
+
+*   `silver.ecom.orders_cleaned`: This table would now include cancelled orders and orders with zero quantity, which were previously filtered out.
+*   `gold.product_performance`: Since this table aggregates data from `silver.ecom.orders_cleaned`, the aggregated metrics (e.g., order count, sums, averages) would be affected by the inclusion of cancelled and zero-quantity orders.
+*   `silver.ecom.customer_profile`: This table joins data from `silver.ecom.orders_cleaned`. The `total_orders` and `lifetime_revenue` would be affected.
+*   `gold.customer_ltv`: This table is built from `silver.ecom.customer_profile`, so the `lifetime_revenue` and `revenue_quartile` would be affected.
+
+The values in the following tables would NOT change:
+
+*   `main.dbdemos_ecom.orders_raw`: This is the raw data ingested from the landing volume, and the change is in a downstream transformation.
+*   `main.dbdemos_ecom.customers_raw`: This table is not directly affected by the changes in `silver/orders_cleaned.py`.
+*   `main.dbdemos_ecom.events_raw`: This table is not directly affected by the changes in `silver/orders_cleaned.py`.
+*   `bronze.customers_raw`: This table is not directly affected by the changes in `silver/orders_cleaned.py`.
+*   `bronze.events_raw`: This table is not directly affected by the changes in `silver/orders_cleaned.py`.
+*   `bronze.orders_raw`: This table is the source for `silver/orders_cleaned.py`, but the bronze layer is not affected by changes in downstream transformations.
+*   `bronze.products_raw`: This table is not directly affected by the changes in `silver/orders_cleaned.py`.
+
+The reason for these changes is that the filter in `silver/orders_cleaned.py` removes specific rows from the data. Removing this filter means that more data is passed to downstream tables, which affects the calculations and aggregations performed on that data.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ9] transitive-multi-hop-impact / medium
+Q: If the `email` column were dropped from `bronze.customers_raw`, which downstream silver and gold columns are affected, and is the impact computational or merely structural (passthrough)?
+Score: None
+
+REFERENCE:
+`email` is read by `silver/customer_profile.py` and used ONLY as one of the group-by grain keys: `.groupBy("customer_id", "email", "country_code", "signup_ts")`. It is carried as an output attribute of `customer_profile` but is never used in any computed expression. In `gold/customer_ltv.py`, `email` is selected through the `base` CTE and passed through `ranked` to the final SELECT (and into the written `customer_ltv` table) — again pure passthrough, no computation depends on it. So the affected columns are `customer_profile.email` and `customer_ltv.email`. The impact is structural/passthrough only: removing it drops a grain attribute and a passthrough column, but changes no aggregation result, no derived value, and no join (the joins key on customer_id / country_code, not email). No numeric or categorical output (lifetime_revenue, quartile, tier, etc.) changes.
+
+MODEL (google/gemini-2.0-flash-001):
+Based on the provided code:
+
+1.  **silver.customer\_profile**: The `email` column is read from `bronze.customers_raw` in `silver/customer_profile.py`. It is included in the `groupBy` clause when creating the `customer_profile` table. Therefore, dropping the `email` column from `bronze.customers_raw` will affect the `customer_profile` table. The impact is computational because the grouping will change.
+2.  **gold.customer\_ltv**: The `email` column is read from `silver.customer_profile` in `gold/customer_ltv.py` within the `base` CTE. It is selected in the final SELECT statement. Therefore, dropping the `email` column from `bronze.customers_raw` will affect the `customer_ltv` table. The impact is computational because the SQL query will fail if the column is not present in the source table.
+
+In summary, dropping the `email` column from `bronze.customers_raw` affects the `email` column in `silver.customer_profile` and `gold.customer_ltv`. The impact is computational in both cases.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ10] aggregate-semantics / medium
+Q: What is the grain (set of group-by keys) of the aggregation in `silver/customer_profile.py`, what are all of its aggregate output columns, and what is unusual about including `signup_ts` as a grain key?
+Score: None
+
+REFERENCE:
+The aggregation is `profile.groupBy("customer_id", "email", "country_code", "signup_ts").agg(...)`. Grain keys: customer_id, email, country_code, signup_ts (four keys). Aggregate outputs (five): `total_orders = count(order_id)`, `lifetime_revenue = sum(total_amount)`, `last_order_ts = max(order_ts)`, `last_event_ts = max(event_ts_last_event)`, `distinct_products_ordered = countDistinct(product_id)`. What is unusual: the effective grain is one row per customer (customer_id is the natural key); email, country_code, and signup_ts are functionally dependent on customer_id and are included in the group-by only to carry them through to the output as attributes (a common Spark idiom since non-aggregated columns must appear in groupBy). Including `signup_ts` — a timestamp — as a grain key is notable because if a customer ever had two different signup_ts values it would split into multiple rows; it works here only on the assumption signup_ts is constant per customer.
+
+MODEL (google/gemini-2.0-flash-001):
+Based on the provided code for `silver/customer_profile.py`, the grain of the aggregation is `customer_id`, `email`, `country_code`, and `signup_ts`. The aggregate output columns are `total_orders`, `lifetime_revenue`, `last_order_ts`, `last_event_ts`, and `distinct_products_ordered`.
+
+Including `signup_ts` as a grain key is unusual because it is unlikely that multiple customers would sign up at the exact same timestamp, making it almost function as a unique identifier. This could prevent proper aggregation if the intention was to group customers based on other shared attributes.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ11] aggregate-semantics / hard
+Q: The aggregation in `gold/product_performance.py` is `.agg(*aggregations, F.count("order_id").alias("order_count"))`. Which portion of this aggregation can a static analyzer enumerate and which cannot, what are the group keys, and what determines the unresolvable portion?
+Score: None
+
+REFERENCE:
+Group keys: `product_id` and `order_date` (`orders.groupBy("product_id", "order_date")`). The aggregation has two portions: (1) STATICALLY ENUMERABLE: `F.count("order_id").alias("order_count")` — a fixed, literal aggregate producing `order_count`. (2) NOT ENUMERABLE: `*aggregations`, a star-unpacked Python list built at runtime by a loop `for col_name in metric_columns: aggregations.append(F.sum(col_name)...); .append(F.avg(col_name)...); .append(F.max(col_name)...)`. The list contents depend on `metric_columns`, which is loaded from an out-of-repo JSON file: `config_path = os.environ.get("METRIC_CONFIG_PATH", "/dbfs/configs/metrics.json")` then `json.load(f)["product_performance"]`. Neither the env var nor the JSON file contents are resolvable from the code, so the analyzer cannot know how many metrics or which column names. A correct static representation is ONE aggregation step with the known `order_count` output plus an unresolved/dynamic marker for the sum/avg/max-per-metric portion (3 aggregates per unknown metric column).
+
+MODEL (google/gemini-2.0-flash-001):
+Based on the provided code:
+
+*   **Enumerable portion:** `F.count("order_id").alias("order_count")` can be enumerated.
+*   **Unresolvable portion:** `*aggregations` cannot be enumerated.
+*   **Group keys:** `"product_id"` and `"order_date"`.
+*   **What determines the unresolvable portion:** The `aggregations` list is built dynamically based on `metric_columns`, which is read from a JSON file whose path comes from `os.environ.get(...)`. The `SafeEvaluator` cannot resolve this to a literal value, making the contents of `aggregations` opaque to static analysis.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ12] window-function-impact / medium
+Q: In `silver/customer_profile.py`, if `event_ts` were renamed in `bronze.events_raw`, what specifically breaks in the latest-event window logic and in the downstream aggregation? Account for the suffix-rename step.
+Score: None
+
+REFERENCE:
+Two things break. (1) The window itself: `events_window = Window.partitionBy("customer_id").orderBy(F.col("event_ts").desc())` orders by `event_ts`; renaming the source column breaks the ORDER BY key, so `events_ranked = events_df.withColumn("rn", F.row_number().over(events_window))` and the subsequent `filter(rn==1)` (latest event per customer) would fail or pick the wrong row. (2) The downstream aggregate: after `events_latest` is suffix-renamed via `rename_columns_with_suffix(events_latest, "_last_event")`, every column gets `_last_event` appended, so `event_ts` becomes `event_ts_last_event`. That suffixed column is consumed by `F.max("event_ts_last_event").alias("last_event_ts")` in the final aggregation. So renaming `event_ts` breaks the window order key, the row_number dedup, AND the `last_event_ts` output column (transitively, customer_ltv.last_event_ts which is a passthrough of it). Note the join key on the events side is `customer_id_last_event` (from customer_id), not event_ts, so the join itself is unaffected.
+
+MODEL (google/gemini-2.0-flash-001):
+Renaming `event_ts` in `bronze.events_raw` would break the following in `silver/customer_profile.py`:
+
+1.  **Latest-event window logic:** The window function in `silver/customer_profile.py` orders events by `event_ts` within each customer partition:
+
+    ```python
+    events_window = Window.partitionBy("customer_id").orderBy(F.col("event_ts").desc())
+    events_ranked = events_df.withColumn("rn", F.row_number().over(events_window))
+    events_latest = events_ranked.filter(F.col("rn") == 1).drop("rn")
+    ```
+
+    If `event_ts` is renamed in `bronze.events_raw`, this code would need to be updated to use the new name. Otherwise, the window function will not be able to order events correctly, and the latest event per customer may not be identified correctly.
+
+2.  **Downstream aggregation:** The `customer_profile` DataFrame is created by aggregating data from the `profile` DataFrame, which includes the `event_ts_last_event` column:
+
+    ```python
+    customer_profile = (
+        profile
+        .groupBy("customer_id", "email", "country_code", "signup_ts")
+        .agg(
+            F.count("order_id").alias("total_orders"),
+            F.sum("total_amount").alias("lifetime_revenue"),
+            F.max("order_ts").alias("last_order_ts"),
+            F.max("event_ts_last_event").alias("last_event_ts"),
+            F.countDistinct("product_id").alias("distinct_products_ordered"),
+        )
+    )
+    ```
+
+    The `F.max("event_ts_last_event")` aggregation is used to surface the last-event timestamp for use by gold-tier recency metrics. If `event_ts` is renamed in `bronze.events_raw`, the `event_ts_last_event` column will not exist, and the aggregation will fail. The code would need to be updated to use the new name for the event timestamp column.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ13] custom-sink / medium
+Q: Based on the body of `DeltaMergeSink.run()` in `utils/sinks.py`, what does the sink do on the very first run (when the target table does not yet exist) versus on subsequent runs, and what columns/keys drive the merge?
+Score: None
+
+REFERENCE:
+`DeltaMergeSink.run(df)` branches on whether the target already exists: `if not spark.catalog.tableExists(self.target_table): df.write.format("delta").saveAsTable(self.target_table); return`. So on the FIRST run (table absent) it simply creates the table with a plain Delta `saveAsTable` — no merge. On SUBSEQUENT runs (table exists) it performs a MERGE: `target = DeltaTable.forName(spark, self.target_table)`, builds the match condition by joining the merge keys (`" AND ".join(f"t.{k} = s.{k}" for k in self.merge_keys)`), then `target.alias("t").merge(df.alias("s"), condition).whenMatchedUpdateAll().whenNotMatchedInsertAll().execute()` — i.e. update matched rows in place and insert new ones (SCD-Type-1 upsert). An optional `update_condition` (default None) can gate the `whenMatchedUpdateAll`. For `gold/product_performance.py` the merge keys are `["product_id", "order_date"]`, so matching is on `t.product_id = s.product_id AND t.order_date = s.order_date`.
+
+MODEL (google/gemini-2.0-flash-001):
+On the very first run of `DeltaMergeSink.run()`, when the target table does not yet exist, the sink creates the table by writing the input DataFrame to the specified `target_table` using the delta format.
+
+On subsequent runs, the sink performs a merge operation. It identifies matching rows between the input DataFrame and the existing target table based on the `merge_keys`. Matching rows are updated in the target table with the data from the input DataFrame. Non-matching rows from the input DataFrame are inserted as new rows in the target table.
+
+The `merge_keys` drive the merge operation by defining the columns used to determine which rows in the input DataFrame match rows in the target table.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ14] custom-sink / easy
+Q: What is the fully-qualified target table written by the `DeltaMergeSink` in `gold/product_performance.py`, and how is that FQN assembled from the repo's configuration?
+Score: None
+
+REFERENCE:
+The sink is constructed as `DeltaMergeSink(target_table=f"{database}.product_performance", merge_keys=["product_id", "order_date"], mode="merge")`. The `database` symbol comes from the setup notebook (imported via `%run ../_resources/setup`), where `database = f"{catalog}.{db}"`, and `catalog = "main"`, `db = "dbdemos_ecom"` come from `config.py`. So `database` = `main.dbdemos_ecom`, and the resolved target FQN is `main.dbdemos_ecom.product_performance`. Write mode is `merge`; merge keys are product_id and order_date.
+
+MODEL (google/gemini-2.0-flash-001):
+The fully-qualified target table written by the `DeltaMergeSink` in `gold/product_performance.py` is `main.dbdemos_ecom.product_performance`.
+
+The FQN is assembled as follows:
+1.  The `DeltaMergeSink` is initialized with `target_table=f"{database}.product_performance"`.
+2.  The `database` variable is imported from the `_resources/setup.py` script.
+3.  The `database` variable is set to `f"{catalog}.{db}"`.
+4.  The `catalog` and `db` variables are imported from `config.py`.
+5.  The `catalog` variable is set to `"main"` and the `db` variable is set to `"dbdemos_ecom"`.
+6.  Therefore, `database` resolves to `"main.dbdemos_ecom"`, and `target_table` resolves to `"main.dbdemos_ecom.product_performance"`.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ15] coverage-of-unknowns / medium
+Q: `silver/customer_profile.py` reads `main.dbdemos_ecom.customers_raw`. Is `customers_raw` produced by any file in this repo? What does the answer imply for the lineage of customer-attribute columns like `country_code` and `signup_ts`?
+Score: None
+
+REFERENCE:
+No file in this repo produces `customers_raw`. The only bronze producers are `bronze/01_ingest_orders.py` (writes `orders_raw`) and `bronze/03_ingest_events.py` (writes `events_raw`). There is no `*_ingest_customers` notebook. Therefore `customers_raw` is an EXTERNAL / upstream source as far as this repo is concerned — an orphan input with no in-repo producer. Implication: the lineage of customer-attribute columns sourced from it (e.g. `country_code`, `signup_ts`, `email`, `customer_id`) terminates at `customers_raw` with no further upstream node inside the repo; the graph cannot trace them back to a landing volume or ingest job the way it can for orders (orders_raw <- 01_ingest_orders) and events (events_raw <- 03_ingest_events). A lineage/coverage report should flag customers_raw as a read-but-not-produced (external) table.
+
+MODEL (google/gemini-2.0-flash-001):
+Yes, `customers_raw` is produced by `bronze/02_ingest_customers.ipynb`. This means that the lineage of customer-attribute columns like `country_code` and `signup_ts` in `silver/customer_profile.py` can be traced back to the bronze ingestion process defined in `bronze/02_ingest_customers.ipynb`.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ16] coverage-of-unknowns / hard
+Q: `bronze/03_ingest_events.py` calls `parse_event_payload(events_landing)`. What does that helper actually do to the schema, and why can a purely static lineage extractor not represent the resulting column-level lineage without extra configuration?
+Score: None
+
+REFERENCE:
+In `utils/event_parsers.py`, `parse_event_payload(df)` parses the JSON `payload` column with a fixed schema (`page_url`, `referrer`, `user_agent`, `cart_total`, all string) via `F.from_json(F.col("payload"), _PAYLOAD_SCHEMA)` into a temporary `_parsed` struct, then adds four new top-level columns — `page_url`, `referrer`, `user_agent`, and `cart_total` (the last cast to `decimal(18,2)`) — and finally drops `_parsed` and the original `payload`. So the net schema change is: one column out (`payload`), four columns in. A static extractor sees only the call site `events_parsed = parse_event_payload(events_landing)` — a call to an imported function. Because this helper is NOT registered in `.degraph/helpers.json` (unlike the column_transformations helpers), the extractor cannot know the column set changed or how; it must represent the step as an opaque transform that preserves the DataFrame's identity but with unknown column-level effects, and emit a warning naming the unregistered helper. Consequently the four parsed columns flowing into `events_raw` have no static column-level provenance back through the payload.
+
+MODEL (google/gemini-2.0-flash-001):
+The `parse_event_payload` helper in `bronze/03_ingest_events.py` extracts structured fields from the JSON `payload` column. It adds four new columns (`page_url`, `referrer`, `user_agent`, `cart_total`) parsed from the payload JSON and then drops the original `payload` column.
+
+A purely static lineage extractor cannot represent the resulting column-level lineage without extra configuration because the transformation involves a non-trivial change to the column set (one column out, four columns in). Without analyzing the body of the `parse_event_payload` function, the extractor cannot infer the column-level changes.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ17] transitive-multi-hop-impact / hard
+Q: If the `lifetime_revenue` aggregation in `silver/customer_profile.py` were changed from `F.sum("total_amount")` to `F.avg("total_amount")`, which gold-tier values in `customer_ltv` would change, and would the lineage graph structure change?
+Score: None
+
+REFERENCE:
+`lifetime_revenue` is consumed extensively in `gold/customer_ltv.py`, so changing its meaning (sum -> avg) ripples through all values computed from it: (1) the `base` CTE selects `lifetime_revenue` (now an average), (2) `country_avg.avg_country_ltv = AVG(lifetime_revenue)` becomes an average-of-averages, (3) `ltv_vs_country_avg = lifetime_revenue / NULLIF(avg_country_ltv, 0)` changes, (4) `revenue_quartile = NTILE(4) OVER (ORDER BY lifetime_revenue DESC)` re-ranks customers (so quartile assignments can move), and (5) `ltv_tier` (platinum/gold/silver/bronze derived from revenue_quartile) can change accordingly. The written `customer_ltv.lifetime_revenue` value itself also changes. Lineage graph structure: NO structural change — the aggregate edge still maps `total_amount -> lifetime_revenue`; only the aggregation operator on that edge changes (sum -> avg). Same nodes, same edges, same downstream wiring; only values shift.
+
+MODEL (google/gemini-2.0-flash-001):
+Based on the provided code:
+
+1.  **Impacted Gold-Tier Values:**
+
+    *   The `lifetime_revenue` column in the `customer_profile` table would be affected because it is directly derived from the aggregation in `silver/customer_profile.py`.
+    *   Since `customer_ltv` reads from `customer_profile` and uses `lifetime_revenue` in its calculations (specifically in the `NTILE` window function and the `ltv_vs_country_avg` calculation), the following columns in `customer_ltv` would be affected:
+        *   `lifetime_revenue`
+        *   `ltv_vs_country_avg`
+        *   `revenue_quartile`
+        *   `ltv_tier`
+
+2.  **Lineage Graph Structure Changes:**
+
+    *   The `Aggregates` edge in `silver/customer_profile.py` would have a different `agg_op` for `lifetime_revenue`. Instead of `sum`, it would be `avg`.
+    *   The `Derives` edge in `gold/customer_ltv.py` that calculates `revenue_quartile` would be indirectly affected because its input `lifetime_revenue` would have changed.
+    *   The `Derives` edge that calculates `ltv_tier` would also be indirectly affected.
+
+In summary, the change would propagate from the silver layer to the gold layer, affecting several columns in the `customer_ltv` table. The lineage graph would reflect the change in the aggregation operation in the silver layer and its impact on the derived columns in the gold layer.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ18] direct-cross-file-impact / medium
+Q: The column `is_high_value` is derived in `silver/orders_cleaned.py`. Is it consumed by any other file in the repo? Justify your answer from what the downstream consumers actually read.
+Score: None
+
+REFERENCE:
+Statically, `is_high_value` has NO downstream consumer in this repo. It is derived in `silver/orders_cleaned.py` as `.withColumn("is_high_value", F.col("total_amount") > F.lit(1000))` and written into `silver orders_cleaned`. The only file that reads `orders_cleaned` is `gold/product_performance.py`, which groups by `product_id` and `order_date` and aggregates `count(order_id)` plus a runtime `*aggregations` list — none of which references `is_high_value` by name. (customer_profile and customer_ltv do not read orders_cleaned at all.) The one caveat: `product_performance`'s metric list is loaded dynamically from an out-of-repo JSON, so it is conceivable `is_high_value` appears there, but that cannot be confirmed statically. On the evidence in the code, `is_high_value` is effectively a leaf / unused derived column.
+
+MODEL (google/gemini-2.0-flash-001):
+The column `is_high_value` is derived in `silver/orders_cleaned.py`. To determine if it is consumed by any other file in the repo, we need to examine the files that read from the `orders_cleaned` table.
+
+`gold/product_performance.py` reads from `orders_cleaned` via `spark.table(f"{database}.orders_cleaned")`. However, the aggregations performed in `gold/product_performance.py` are built dynamically from `metric_columns` read from a JSON file. Therefore, we cannot determine statically whether `is_high_value` is used in the aggregations.
+
+Thus, based on the provided context, it is not possible to definitively determine whether `is_high_value` is consumed by `gold/product_performance.py`.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ19] counterfactual / medium
+Q: If the write in `silver/orders_cleaned.py` were changed from `.mode("overwrite")` to `.mode("append")`, would the lineage graph change? Distinguish between what changes in the graph versus what changes in runtime behavior.
+Score: None
+
+REFERENCE:
+Lineage GRAPH: essentially no structural change. The Writes edge from the orders_cleaned pipeline to the `main.dbdemos_ecom.orders_cleaned` table still exists with the same source DataFrame and target table; only the write-mode attribute on that edge changes from `overwrite` to `append` (and the `overwriteSchema=true` option becomes irrelevant for append). No nodes or edges are added/removed, and no column-level lineage changes — every consumer still reads the same table with the same schema. RUNTIME behavior: significant — `overwrite` replaces the table contents each run, whereas `append` accumulates rows across runs, so duplicates would build up (the orders_cleaned pipeline has no dedup/merge), inflating the downstream `product_performance` aggregates. So this is a write-semantics change captured only as a mode property in the graph, not a lineage-structure change.
+
+MODEL (google/gemini-2.0-flash-001):
+Yes, the lineage graph would change.
+
+Specifically, the `Writes` edge associated with the `saveAsTable` operation in `silver/orders_cleaned.py` would have its `mode` attribute changed from `"overwrite"` to `"append"`.
+
+The runtime behavior would also change. Instead of overwriting the table, new data would be appended to the existing table.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ20] reverse-lineage / medium
+Q: Trace the inputs of `gold.customer_ltv.days_since_last_order` back through the pipeline, and identify any source of non-determinism in its value.
+Score: None
+
+REFERENCE:
+`days_since_last_order` is computed in `gold/customer_ltv.py`'s `ranked` CTE as `DATEDIFF(CURRENT_DATE(), b.last_order_ts) AS days_since_last_order`. Its inputs: `last_order_ts` comes from the `base` CTE, which selects it from `main.dbdemos_ecom.customer_profile`. In `silver/customer_profile.py`, `last_order_ts = F.max("order_ts")` over each customer's joined orders; `order_ts` is a bronze `orders_raw` column (read directly by customer_profile), ingested by `bronze/01_ingest_orders.py`. So the data chain is: `bronze orders_raw.order_ts` -> `customer_profile.last_order_ts = max(order_ts)` -> `customer_ltv.days_since_last_order = DATEDIFF(CURRENT_DATE(), last_order_ts)`. Non-determinism: the `CURRENT_DATE()` term makes the value depend on the DATE THE JOB RUNS — the same input data yields a different `days_since_last_order` on different run dates. This is a run-time-dependent (non-reproducible across days) column, unlike the purely data-derived columns around it.
+
+MODEL (google/gemini-2.0-flash-001):
+`gold.customer_ltv.days_since_last_order` is derived from `silver.customer_profile.last_order_ts` within the `gold/customer_ltv.py` file. `silver.customer_profile.last_order_ts` is derived from `bronze.orders_raw.order_ts` in `silver/customer_profile.py`. `bronze.orders_raw.order_ts` comes directly from the input data stream in `bronze/01_ingest_orders.py`.
+
+The `DATEDIFF(CURRENT_DATE(), b.last_order_ts)` expression in `gold/customer_ltv.py` introduces non-determinism because `CURRENT_DATE()` changes every day.
+
+
+Notes: 
+-----------------------------------------------------------------

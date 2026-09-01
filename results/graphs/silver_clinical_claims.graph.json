@@ -1,0 +1,5318 @@
+{
+  "metadata": {
+    "schema_version": "0.1.0",
+    "extractor_version": "0.1.0",
+    "repo_root": "data\\benchmarks\\silver_clinical_claims",
+    "files_parsed": 1,
+    "files_skipped": 0,
+    "extraction_seconds": 0.05
+  },
+  "tables": [
+    {
+      "id": "table:meridian.bronze.claim_header",
+      "kind": "table",
+      "fqn": "meridian.bronze.claim_header",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": [
+        "silver_clinical_claims.py"
+      ]
+    },
+    {
+      "id": "table:meridian.bronze.claim_diagnosis",
+      "kind": "table",
+      "fqn": "meridian.bronze.claim_diagnosis",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": [
+        "silver_clinical_claims.py"
+      ]
+    },
+    {
+      "id": "table:meridian.bronze.claim_procedure",
+      "kind": "table",
+      "fqn": "meridian.bronze.claim_procedure",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": [
+        "silver_clinical_claims.py"
+      ]
+    },
+    {
+      "id": "table:meridian.bronze.claim_cob_payment",
+      "kind": "table",
+      "fqn": "meridian.bronze.claim_cob_payment",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": [
+        "silver_clinical_claims.py"
+      ]
+    },
+    {
+      "id": "table:meridian.bronze.claim_payable",
+      "kind": "table",
+      "fqn": "meridian.bronze.claim_payable",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": [
+        "silver_clinical_claims.py"
+      ]
+    },
+    {
+      "id": "table:meridian.bronze.claim_interest",
+      "kind": "table",
+      "fqn": "meridian.bronze.claim_interest",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": [
+        "silver_clinical_claims.py"
+      ]
+    },
+    {
+      "id": "table:meridian.bronze.claim_occurrence",
+      "kind": "table",
+      "fqn": "meridian.bronze.claim_occurrence",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": [
+        "silver_clinical_claims.py"
+      ]
+    },
+    {
+      "id": "table:meridian.bronze.claim_provider",
+      "kind": "table",
+      "fqn": "meridian.bronze.claim_provider",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": [
+        "silver_clinical_claims.py"
+      ]
+    },
+    {
+      "id": "table:meridian.bronze.member_eligibility",
+      "kind": "table",
+      "fqn": "meridian.bronze.member_eligibility",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": [
+        "silver_clinical_claims.py"
+      ]
+    },
+    {
+      "id": "table:meridian.bronze.provider_registry",
+      "kind": "table",
+      "fqn": "meridian.bronze.provider_registry",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": [
+        "silver_clinical_claims.py"
+      ]
+    },
+    {
+      "id": "table:meridian.silver.clinical_claims",
+      "kind": "table",
+      "fqn": "meridian.silver.clinical_claims",
+      "format": null,
+      "location": null,
+      "columns": [
+        {
+          "name": "claim_id_diag",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "other_diagnoses",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "claim_id_proc",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "other_procedures",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "claim_id_occ",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "occurrence_codes",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "claim_id_int_agg",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "total_interest_amount",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "interest_line_count",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "processing_status",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "claim_outcome",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "member_uid",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "identifiers",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "plan_id",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "payer_id",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "coverage_plans",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "service_locations",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "pp.claim_id",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "pp.rendering_npi",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "pp.rendering_specialty",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "pp.specialty_code_reg",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "pp.specialty_desc_reg",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "pp.is_pcp_eligible_reg",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "pp.taxonomy_group_reg",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "aps.any_pcp_flag",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "aps.distinct_rendering_npis",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "provider_specialty_code",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "provider_specialty_description",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "is_pcp_claim",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "claim_category",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "claim_categories",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "extension_source_values",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "other_amounts",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        }
+      ],
+      "partition_cols": [],
+      "written_by": [
+        "silver_clinical_claims.py"
+      ],
+      "read_by": []
+    }
+  ],
+  "external_sources": [],
+  "dataframes": [
+    {
+      "id": "df:silver_clinical_claims.py:60:claim_hdr_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "claim_hdr_df",
+      "lineno": 60,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:61:claim_diag_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "claim_diag_df",
+      "lineno": 61,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:62:claim_proc_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "claim_proc_df",
+      "lineno": 62,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:63:claim_cob_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "claim_cob_df",
+      "lineno": 63,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:64:claim_payable_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "claim_payable_df",
+      "lineno": 64,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:65:claim_interest_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "claim_interest_df",
+      "lineno": 65,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:66:claim_occ_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "claim_occ_df",
+      "lineno": 66,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:67:claim_prov_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "claim_prov_df",
+      "lineno": 67,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:68:member_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "member_df",
+      "lineno": 68,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:69:provider_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "provider_df",
+      "lineno": 69,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:84:cob_line_agg_cte",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "cob_line_agg_cte",
+      "lineno": 84,
+      "columns": [
+        "claim_id",
+        "claim_line_id",
+        "cob_allowed_amount",
+        "cob_billed_amount",
+        "cob_patient_liability",
+        "cob_copay_amount",
+        "cob_deductible_amount"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:85:payable_agg_cte",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "payable_agg_cte",
+      "lineno": 85,
+      "columns": [
+        "claim_id",
+        "claim_line_id",
+        "total_paid_amount",
+        "total_contractual_adj"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:86:join_2",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "join_2",
+      "lineno": 86,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:87:join_2",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "join_2",
+      "lineno": 87,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:83:aggregated_cob_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "aggregated_cob_df",
+      "lineno": 83,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:179:ranked_diag_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "ranked_diag_df",
+      "lineno": 179,
+      "columns": [
+        "diag_rank"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:180:_anon1",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 180,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:199:pivoted_diag_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "pivoted_diag_df",
+      "lineno": 199,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:200:_anon2",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 200,
+      "columns": [
+        "claim_id_hdr",
+        "<unresolved>"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:225:pivoted_diag_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "pivoted_diag_df",
+      "lineno": 225,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:226:_anon3",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 226,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses_raw",
+        "other_diagnoses"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:246:ranked_proc_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "ranked_proc_df",
+      "lineno": 246,
+      "columns": [
+        "proc_rank"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:247:_anon4",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 247,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:269:pivoted_proc_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "pivoted_proc_df",
+      "lineno": 269,
+      "columns": [
+        "claim_id_proc",
+        "<unresolved>"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:270:_anon5",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 270,
+      "columns": [
+        "claim_id_hdr",
+        "<unresolved>"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:294:pivoted_proc_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "pivoted_proc_df",
+      "lineno": 294,
+      "columns": [
+        "claim_id_proc",
+        "<unresolved>",
+        "other_procedures"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:295:_anon6",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 295,
+      "columns": [
+        "claim_id_proc",
+        "<unresolved>",
+        "other_procedures_raw",
+        "other_procedures"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:311:occ_agg_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "occ_agg_df",
+      "lineno": 311,
+      "columns": [
+        "claim_id_occ",
+        "occurrence_codes"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:312:_anon7",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 312,
+      "columns": [
+        "occ_struct"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:312:_anon8",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 312,
+      "columns": [
+        "claim_id",
+        "occurrence_codes"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:336:interest_agg_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "interest_agg_df",
+      "lineno": 336,
+      "columns": [
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:337:_anon9",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 337,
+      "columns": [
+        "claim_id_int",
+        "total_interest_amount",
+        "interest_line_count"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:352:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 352,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:353:_anon10",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 353,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:353:_anon11",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 353,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:353:_anon12",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 353,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:353:_anon13",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 353,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:353:_anon14",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 353,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:353:_anon15",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 353,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:387:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 387,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:398:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 398,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:414:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 414,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:429:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 429,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:496:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 496,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:505:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 505,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id",
+        "payer_id"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:527:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 527,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id",
+        "payer_id",
+        "coverage_plans"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:587:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 587,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id",
+        "payer_id",
+        "coverage_plans",
+        "service_locations"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:648:ranked_providers_cte",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "ranked_providers_cte",
+      "lineno": 648,
+      "columns": [
+        "claim_id",
+        "rendering_npi",
+        "taxonomy_code",
+        "rendering_specialty",
+        "seq_num",
+        "provider_rank"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:649:primary_provider_cte",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "primary_provider_cte",
+      "lineno": 649,
+      "columns": [
+        "claim_id",
+        "rendering_npi",
+        "rendering_specialty",
+        "provider_rank",
+        "specialty_code_reg",
+        "specialty_desc_reg",
+        "is_pcp_eligible_reg",
+        "taxonomy_group_reg"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:650:primary_provider_joined",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "primary_provider_joined",
+      "lineno": 650,
+      "columns": [
+        "claim_id",
+        "rendering_npi",
+        "taxonomy_code",
+        "rendering_specialty",
+        "seq_num",
+        "provider_rank"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:651:any_pcp_signal_cte",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "any_pcp_signal_cte",
+      "lineno": 651,
+      "columns": [
+        "claim_id",
+        "any_pcp_flag",
+        "distinct_rendering_npis"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:652:any_pcp_signal_joined",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "any_pcp_signal_joined",
+      "lineno": 652,
+      "columns": [
+        "claim_id",
+        "rendering_npi",
+        "taxonomy_code",
+        "rendering_specialty",
+        "seq_num",
+        "provider_rank"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:653:join_1",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "join_1",
+      "lineno": 653,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:647:provider_specialty_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "provider_specialty_df",
+      "lineno": 647,
+      "columns": [
+        "pp.claim_id",
+        "pp.rendering_npi",
+        "pp.rendering_specialty",
+        "pp.specialty_code_reg",
+        "pp.specialty_desc_reg",
+        "pp.is_pcp_eligible_reg",
+        "pp.taxonomy_group_reg",
+        "aps.any_pcp_flag",
+        "aps.distinct_rendering_npis"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:704:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 704,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id",
+        "payer_id",
+        "coverage_plans",
+        "service_locations",
+        "pp.claim_id",
+        "pp.rendering_npi",
+        "pp.rendering_specialty",
+        "pp.specialty_code_reg",
+        "pp.specialty_desc_reg",
+        "pp.is_pcp_eligible_reg",
+        "pp.taxonomy_group_reg",
+        "aps.any_pcp_flag",
+        "aps.distinct_rendering_npis"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:725:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 725,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id",
+        "payer_id",
+        "coverage_plans",
+        "service_locations",
+        "pp.claim_id",
+        "pp.rendering_npi",
+        "pp.rendering_specialty",
+        "pp.specialty_code_reg",
+        "pp.specialty_desc_reg",
+        "pp.is_pcp_eligible_reg",
+        "pp.taxonomy_group_reg",
+        "aps.any_pcp_flag",
+        "aps.distinct_rendering_npis",
+        "provider_specialty_code"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:746:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 746,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id",
+        "payer_id",
+        "coverage_plans",
+        "service_locations",
+        "pp.claim_id",
+        "pp.rendering_npi",
+        "pp.rendering_specialty",
+        "pp.specialty_code_reg",
+        "pp.specialty_desc_reg",
+        "pp.is_pcp_eligible_reg",
+        "pp.taxonomy_group_reg",
+        "aps.any_pcp_flag",
+        "aps.distinct_rendering_npis",
+        "provider_specialty_code",
+        "provider_specialty_description"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:755:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 755,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id",
+        "payer_id",
+        "coverage_plans",
+        "service_locations",
+        "pp.claim_id",
+        "pp.rendering_npi",
+        "pp.rendering_specialty",
+        "pp.specialty_code_reg",
+        "pp.specialty_desc_reg",
+        "pp.is_pcp_eligible_reg",
+        "pp.taxonomy_group_reg",
+        "aps.any_pcp_flag",
+        "aps.distinct_rendering_npis",
+        "provider_specialty_code",
+        "provider_specialty_description",
+        "is_pcp_claim"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:906:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 906,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id",
+        "payer_id",
+        "coverage_plans",
+        "service_locations",
+        "pp.claim_id",
+        "pp.rendering_npi",
+        "pp.rendering_specialty",
+        "pp.specialty_code_reg",
+        "pp.specialty_desc_reg",
+        "pp.is_pcp_eligible_reg",
+        "pp.taxonomy_group_reg",
+        "aps.any_pcp_flag",
+        "aps.distinct_rendering_npis",
+        "provider_specialty_code",
+        "provider_specialty_description",
+        "is_pcp_claim",
+        "claim_category"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:913:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 913,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id",
+        "payer_id",
+        "coverage_plans",
+        "service_locations",
+        "pp.claim_id",
+        "pp.rendering_npi",
+        "pp.rendering_specialty",
+        "pp.specialty_code_reg",
+        "pp.specialty_desc_reg",
+        "pp.is_pcp_eligible_reg",
+        "pp.taxonomy_group_reg",
+        "aps.any_pcp_flag",
+        "aps.distinct_rendering_npis",
+        "provider_specialty_code",
+        "provider_specialty_description",
+        "is_pcp_claim",
+        "claim_category",
+        "claim_categories"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:914:_anon16",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": null,
+      "lineno": 914,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id",
+        "payer_id",
+        "coverage_plans",
+        "service_locations",
+        "pp.claim_id",
+        "pp.rendering_npi",
+        "pp.rendering_specialty",
+        "pp.specialty_code_reg",
+        "pp.specialty_desc_reg",
+        "pp.is_pcp_eligible_reg",
+        "pp.taxonomy_group_reg",
+        "aps.any_pcp_flag",
+        "aps.distinct_rendering_npis",
+        "provider_specialty_code",
+        "provider_specialty_description",
+        "is_pcp_claim",
+        "claim_category",
+        "claim_categories_raw",
+        "claim_categories"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:929:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 929,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id",
+        "payer_id",
+        "coverage_plans",
+        "service_locations",
+        "pp.claim_id",
+        "pp.rendering_npi",
+        "pp.rendering_specialty",
+        "pp.specialty_code_reg",
+        "pp.specialty_desc_reg",
+        "pp.is_pcp_eligible_reg",
+        "pp.taxonomy_group_reg",
+        "aps.any_pcp_flag",
+        "aps.distinct_rendering_npis",
+        "provider_specialty_code",
+        "provider_specialty_description",
+        "is_pcp_claim",
+        "claim_category",
+        "claim_categories",
+        "extension_source_values"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:971:final_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "final_df",
+      "lineno": 971,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id",
+        "payer_id",
+        "coverage_plans",
+        "service_locations",
+        "pp.claim_id",
+        "pp.rendering_npi",
+        "pp.rendering_specialty",
+        "pp.specialty_code_reg",
+        "pp.specialty_desc_reg",
+        "pp.is_pcp_eligible_reg",
+        "pp.taxonomy_group_reg",
+        "aps.any_pcp_flag",
+        "aps.distinct_rendering_npis",
+        "provider_specialty_code",
+        "provider_specialty_description",
+        "is_pcp_claim",
+        "claim_category",
+        "claim_categories",
+        "extension_source_values",
+        "other_amounts"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:1008:silver_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "silver_df",
+      "lineno": 1008,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id",
+        "payer_id",
+        "coverage_plans",
+        "service_locations",
+        "pp.claim_id",
+        "pp.rendering_npi",
+        "pp.rendering_specialty",
+        "pp.specialty_code_reg",
+        "pp.specialty_desc_reg",
+        "pp.is_pcp_eligible_reg",
+        "pp.taxonomy_group_reg",
+        "aps.any_pcp_flag",
+        "aps.distinct_rendering_npis",
+        "provider_specialty_code",
+        "provider_specialty_description",
+        "is_pcp_claim",
+        "claim_category",
+        "claim_categories",
+        "extension_source_values",
+        "other_amounts"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:silver_clinical_claims.py:1116:dq_passed_df",
+      "kind": "dataframe",
+      "file": "silver_clinical_claims.py",
+      "var_name": "dq_passed_df",
+      "lineno": 1116,
+      "columns": [
+        "claim_id_diag",
+        "<unresolved>",
+        "other_diagnoses",
+        "claim_id_proc",
+        "other_procedures",
+        "claim_id_occ",
+        "occurrence_codes",
+        "claim_id_int_agg",
+        "total_interest_amount",
+        "interest_line_count",
+        "processing_status",
+        "claim_outcome",
+        "member_uid",
+        "identifiers",
+        "plan_id",
+        "payer_id",
+        "coverage_plans",
+        "service_locations",
+        "pp.claim_id",
+        "pp.rendering_npi",
+        "pp.rendering_specialty",
+        "pp.specialty_code_reg",
+        "pp.specialty_desc_reg",
+        "pp.is_pcp_eligible_reg",
+        "pp.taxonomy_group_reg",
+        "aps.any_pcp_flag",
+        "aps.distinct_rendering_npis",
+        "provider_specialty_code",
+        "provider_specialty_description",
+        "is_pcp_claim",
+        "claim_category",
+        "claim_categories",
+        "extension_source_values",
+        "other_amounts"
+      ],
+      "derived_from": []
+    }
+  ],
+  "expressions": [
+    {
+      "id": "expr:e01",
+      "kind": "expression",
+      "text": "row_number().over(diag_rank_window)",
+      "referenced_cols": [],
+      "udf": false
+    },
+    {
+      "id": "expr:e02",
+      "kind": "expression",
+      "text": "rename(claim_id_hdr → claim_id_diag)",
+      "referenced_cols": [
+        "claim_id_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e03",
+      "kind": "expression",
+      "text": "array(*diag_structs)",
+      "referenced_cols": [],
+      "udf": false
+    },
+    {
+      "id": "expr:e04",
+      "kind": "expression",
+      "text": "array_sort(expr('filter(other_diagnoses_raw, x -> x is not null)'))",
+      "referenced_cols": [],
+      "udf": false
+    },
+    {
+      "id": "expr:e05",
+      "kind": "expression",
+      "text": "row_number().over(proc_rank_window)",
+      "referenced_cols": [],
+      "udf": false
+    },
+    {
+      "id": "expr:e06",
+      "kind": "expression",
+      "text": "rename(claim_id_hdr → claim_id_proc)",
+      "referenced_cols": [
+        "claim_id_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e07",
+      "kind": "expression",
+      "text": "array(*proc_structs)",
+      "referenced_cols": [],
+      "udf": false
+    },
+    {
+      "id": "expr:e08",
+      "kind": "expression",
+      "text": "expr('filter(other_procedures_raw, x -> x is not null)')",
+      "referenced_cols": [],
+      "udf": false
+    },
+    {
+      "id": "expr:e09",
+      "kind": "expression",
+      "text": "when(F.col('occ_code').isNotNull(), struct(lit(None).cast('string').alias('reference_id'), F.col('occ_code').alias('occurrence_code'), F.col('occ_date').alias('occurrence_date'), F.col('occ_span_from_date').alias('span_from_date'), F.col('occ_span_to_date').alias('span_to_date')))",
+      "referenced_cols": [
+        "occ_code",
+        "occ_date",
+        "occ_span_from_date",
+        "occ_span_to_date"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e10",
+      "kind": "expression",
+      "text": "rename(claim_id → claim_id_occ)",
+      "referenced_cols": [
+        "claim_id"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e11",
+      "kind": "expression",
+      "text": "rename(claim_id_int → claim_id_int_agg)",
+      "referenced_cols": [
+        "claim_id_int"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e12",
+      "kind": "expression",
+      "text": "when(col('claim_status_hdr') == 'Adjudicated', lit('active')).when(col('claim_status_hdr') == 'Denied', lit('active')).when(col('claim_status_hdr') == 'Pended', lit('draft')).when(col('claim_status_hdr') == 'Suspended', lit('draft')).when(col('claim_status_hdr') == 'Voided', lit('cancelled')).when(col('claim_status_hdr') == 'Adjusted', lit('active')).otherwise(lit('active'))",
+      "referenced_cols": [
+        "claim_status_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e13",
+      "kind": "expression",
+      "text": "when(col('claim_status_hdr') == 'Adjudicated', lit('complete')).when(col('claim_status_hdr') == 'Denied', lit('complete')).when(col('claim_status_hdr') == 'Pended', lit('queued')).when(col('claim_status_hdr') == 'Suspended', lit('error')).when(col('claim_status_hdr') == 'Voided', lit('complete')).when(col('claim_status_hdr') == 'Adjusted', lit('partial')).otherwise(lit(None))",
+      "referenced_cols": [
+        "claim_status_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e14",
+      "kind": "expression",
+      "text": "coalesce(col('member_uid_mbr'), concat_ws('_', col('subscriber_id_hdr'), col('member_seq_hdr')))",
+      "referenced_cols": [
+        "member_uid_mbr",
+        "subscriber_id_hdr",
+        "member_seq_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e15",
+      "kind": "expression",
+      "text": "array(struct(lit('claim_id').alias('key'), struct(lit(None).cast('string').alias('reference_id'), lit('claim_id').alias('identifier_type'), col('claim_id_hdr').alias('identifier'), lit('meridian').alias('identifier_source')).alias('value')), struct(lit('subscriber_id').alias('key'), struct(lit(None).cast('string').alias('reference_id'), lit('subscriber_id').alias('identifier_type'), col('subscriber_id_hdr').alias('identifier'), lit('meridian').alias('identifier_source')).alias('value')), struct(lit('member_id').alias('key'), struct(lit(None).cast('string').alias('reference_id'), lit('member_id').alias('identifier_type'), col('member_id_hdr').alias('identifier'), lit('meridian').alias('identifier_source')).alias('value')), struct(lit('payer_claim_control_number').alias('key'), struct(lit(None).cast('string').alias('reference_id'), lit('payer_claim_control_number').alias('identifier_type'), col('icn_hdr').alias('identifier'), lit('meridian').alias('identifier_source')).alias('value')), struct(lit('provider_claim_id').alias('key'), struct(lit(None).cast('string').alias('reference_id'), lit('provider_claim_id').alias('identifier_type'), concat_ws('_', col('claim_id_hdr'), col('billing_npi_prov')).alias('identifier'), lit('meridian').alias('identifier_source')).alias('value')), struct(lit('group_number').alias('key'), struct(lit(None).cast('string').alias('reference_id'), lit('group_number').alias('identifier_type'), col('group_number_hdr').alias('identifier'), lit('meridian').alias('identifier_source')).alias('value')))",
+      "referenced_cols": [
+        "claim_id_hdr",
+        "subscriber_id_hdr",
+        "member_id_hdr",
+        "icn_hdr",
+        "group_number_hdr",
+        "billing_npi_prov"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e16",
+      "kind": "expression",
+      "text": "when(col('product_code_hdr') == 'MERIDIAN_PPO', lit('MRD-PPO-001')).when(col('product_code_hdr') == 'MERIDIAN_HMO', lit('MRD-HMO-001')).when(col('product_code_hdr') == 'MERIDIAN_EPO', lit('MRD-EPO-001')).when(col('product_code_hdr') == 'MERIDIAN_DSNP', lit('MRD-DSNP-001')).otherwise(lit('UNKNOWN'))",
+      "referenced_cols": [
+        "product_code_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e17",
+      "kind": "expression",
+      "text": "when(col('product_code_hdr') == 'MERIDIAN_PPO', lit('1234567890')).when(col('product_code_hdr') == 'MERIDIAN_HMO', lit('1234567891')).when(col('product_code_hdr') == 'MERIDIAN_EPO', lit('1234567892')).when(col('product_code_hdr') == 'MERIDIAN_DSNP', lit('1234567893')).otherwise(lit('UNKNOWN'))",
+      "referenced_cols": [
+        "product_code_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e18",
+      "kind": "expression",
+      "text": "array(struct(lit(None).cast('string').alias('reference_id'), concat_ws('_', coalesce(col('member_uid'), lit('UNKNOWN')), coalesce(when(col('product_code_hdr') == 'MERIDIAN_PPO', lit('MRD-PPO-001')).when(col('product_code_hdr') == 'MERIDIAN_HMO', lit('MRD-HMO-001')).when(col('product_code_hdr') == 'MERIDIAN_EPO', lit('MRD-EPO-001')).when(col('product_code_hdr') == 'MERIDIAN_DSNP', lit('MRD-DSNP-001')).otherwise(lit('UNKNOWN')), lit('UNKNOWN'))).alias('policy_id'), lit(None).cast('string').alias('policy_name'), lit(None).cast('string').alias('policy_holder_id'), lit(None).cast('string').alias('policy_type_code'), lit(None).cast('string').alias('policy_type_display'), lit(None).cast('string').alias('policy_type_system'), lit(None).cast('string').alias('policy_order'), lit(None).cast('timestamp').alias('coverage_start_date'), lit(None).cast('timestamp').alias('coverage_end_date'), lit(None).cast('string').alias('group_id'), lit(None).cast('string').alias('group_name'), lit(None).cast('string').alias('sub_group_id'), lit(None).cast('string').alias('sub_group_name'), lit(None).cast('string').alias('plan_name'), coalesce(col('product_code_hdr'), lit('UNKNOWN')).alias('product_code'), lit('active').cast('string').alias('status'), lit(None).cast('string').alias('subrogation_flag'), lit(None).cast('string').alias('cost_sharing_type_system'), lit(None).cast('string').alias('cost_sharing_type_code'), lit(None).cast('string').alias('cost_sharing_type_display'), lit(None).cast('string').alias('cost_sharing_qty_system'), lit(None).cast('decimal(38,10)').alias('cost_sharing_qty_value'), lit(None).cast('string').alias('cost_sharing_qty_unit'), lit(None).cast('string').alias('cost_sharing_qty_code'), lit(None).cast('string').alias('cost_sharing_qty_comparator'), lit(None).cast('decimal(38,10)').alias('cost_sharing_amount'), lit(None).cast('string').alias('cost_sharing_exc_type_system'), lit(None).cast('string').alias('cost_sharing_exc_type_code'), lit(None).cast('string').alias('cost_sharing_exc_type_display'), lit(None).cast('timestamp').alias('cost_sharing_exc_start_date'), lit(None).cast('timestamp').alias('cost_sharing_exc_end_date'), coalesce(col('payer_id'), lit('UNKNOWN')).cast('string').alias('payer_id')))",
+      "referenced_cols": [
+        "product_code_hdr",
+        "member_uid",
+        "payer_id"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e19",
+      "kind": "expression",
+      "text": "array(struct(lit(None).cast('string').alias('reference_id'), col('rendering_facility_npi_prov').cast('string').alias('facility_npi'), col('rendering_facility_name_prov').alias('facility_name'), col('facility_type_code_prov').alias('facility_type_code'), col('place_of_service_code_hdr').alias('place_of_service_code'), lit(None).cast('string').alias('facility_taxonomy_code'), lit(None).cast('string').alias('address_line1'), lit(None).cast('string').alias('address_line2'), lit(None).cast('string').alias('city'), lit(None).cast('string').alias('state'), lit(None).cast('string').alias('postal_code'), lit(None).cast('string').alias('county_fips'), lit(None).cast('string').alias('country_code'), lit(None).cast('double').alias('latitude'), lit(None).cast('double').alias('longitude'), lit(None).cast('string').alias('phone'), lit(None).cast('string').alias('fax'), lit(None).cast('string').alias('email'), lit(None).cast('string').alias('contact_name'), lit(None).cast('string').alias('operational_status_code'), lit(None).cast('string').alias('operational_status_display'), lit(None).cast('string').alias('physical_type_code'), lit(None).cast('string').alias('physical_type_display'), lit(None).cast('string').alias('physical_type_system'), lit(None).cast('string').alias('managing_org_npi'), lit(None).cast('string').alias('managing_org_name'), lit(None).cast('string').alias('managing_org_id'), lit(None).cast('string').alias('part_of_location_id'), lit(None).cast('string').alias('availability_exceptions'), lit(None).cast('string').alias('endpoint_url'), lit(None).cast('string').alias('identifier_system'), lit(None).cast('string').alias('identifier_value'), lit(None).cast('string').alias('identifier_type_code')))",
+      "referenced_cols": [
+        "rendering_facility_name_prov",
+        "facility_type_code_prov",
+        "place_of_service_code_hdr",
+        "rendering_facility_npi_prov"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e20",
+      "kind": "expression",
+      "text": "when(F.coalesce(F.col('is_pcp_eligible_reg').cast('boolean'), F.lit(False)) == True, F.lit('PCP')).when(F.coalesce(F.col('any_pcp_flag'), F.lit(0)) == F.lit(1), F.lit('PCP')).when(F.col('specialty_code_reg').isNotNull(), F.col('specialty_code_reg')).when(F.col('rendering_specialty').isNotNull(), F.col('rendering_specialty')).otherwise(F.lit(None))",
+      "referenced_cols": [
+        "rendering_specialty",
+        "specialty_code_reg",
+        "any_pcp_flag",
+        "is_pcp_eligible_reg"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e21",
+      "kind": "expression",
+      "text": "coalesce(col('specialty_desc_reg'), col('rendering_specialty'), lit(None).cast('string'))",
+      "referenced_cols": [
+        "specialty_desc_reg",
+        "rendering_specialty"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e22",
+      "kind": "expression",
+      "text": "coalesce(F.col('is_pcp_eligible_reg').cast('boolean'), F.col('any_pcp_flag') == F.lit(1), F.lit(False))",
+      "referenced_cols": [
+        "any_pcp_flag",
+        "is_pcp_eligible_reg"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e23",
+      "kind": "expression",
+      "text": "claim_category_expr",
+      "referenced_cols": [
+        "Home Health",
+        "Durable Medical Equipment",
+        "Emergency / Observation",
+        "Hospice",
+        "Inpatient Rehabilitation",
+        "Skilled Nursing Facility",
+        "Maternity",
+        "Behavioral Health"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e24",
+      "kind": "expression",
+      "text": "multi_category_col",
+      "referenced_cols": [],
+      "udf": false
+    },
+    {
+      "id": "expr:e25",
+      "kind": "expression",
+      "text": "array_sort(expr('filter(claim_categories_raw, x -> x is not null)'))",
+      "referenced_cols": [],
+      "udf": false
+    },
+    {
+      "id": "expr:e26",
+      "kind": "expression",
+      "text": "array(struct(lit('claim_id').alias('name'), col('claim_id_hdr').cast('string').alias('value')), struct(lit('claim_line_id').alias('name'), col('claim_line_id_hdr').cast('string').alias('value')), struct(lit('member_id').alias('name'), col('member_id_hdr').cast('string').alias('value')), struct(lit('subscriber_id').alias('name'), col('subscriber_id_hdr').cast('string').alias('value')), struct(lit('billing_npi').alias('name'), col('billing_npi_prov').cast('string').alias('value')), struct(lit('rendering_npi').alias('name'), col('rendering_npi').cast('string').alias('value')), struct(lit('claim_type').alias('name'), col('claim_type_hdr').cast('string').alias('value')), struct(lit('type_of_bill').alias('name'), col('type_of_bill_hdr').cast('string').alias('value')), struct(lit('place_of_service').alias('name'), col('place_of_service_code_hdr').cast('string').alias('value')), struct(lit('product_code').alias('name'), col('product_code_hdr').cast('string').alias('value')), struct(lit('plan_id').alias('name'), col('plan_id').cast('string').alias('value')), struct(lit('payer_id').alias('name'), col('payer_id').cast('string').alias('value')), struct(lit('primary_diag_code').alias('name'), col('primary_diag_code_hdr').cast('string').alias('value')), struct(lit('admit_status').alias('name'), col('admit_status_hdr').cast('string').alias('value')), struct(lit('provider_specialty_code').alias('name'), col('provider_specialty_code').cast('string').alias('value')))",
+      "referenced_cols": [
+        "claim_id_hdr",
+        "claim_line_id_hdr",
+        "member_id_hdr",
+        "subscriber_id_hdr",
+        "billing_npi_prov",
+        "rendering_npi",
+        "claim_type_hdr",
+        "type_of_bill_hdr",
+        "place_of_service_code_hdr",
+        "product_code_hdr",
+        "plan_id",
+        "payer_id",
+        "primary_diag_code_hdr",
+        "admit_status_hdr",
+        "provider_specialty_code"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e27",
+      "kind": "expression",
+      "text": "array(struct(lit('billed_amount').alias('name'), col('billed_amount_hdr').cast('decimal(18,2)').alias('value')), struct(lit('allowed_amount').alias('name'), col('allowed_amount_hdr').cast('decimal(18,2)').alias('value')), struct(lit('paid_amount').alias('name'), col('total_paid_amount_cob').cast('decimal(18,2)').alias('value')), struct(lit('contractual_adjustment').alias('name'), col('total_contractual_adj_cob').cast('decimal(18,2)').alias('value')), struct(lit('cob_allowed_amount').alias('name'), col('cob_allowed_amount_cob').cast('decimal(18,2)').alias('value')), struct(lit('cob_billed_amount').alias('name'), col('cob_billed_amount_cob').cast('decimal(18,2)').alias('value')), struct(lit('patient_liability').alias('name'), col('cob_patient_liability_cob').cast('decimal(18,2)').alias('value')), struct(lit('copay_amount').alias('name'), col('cob_copay_amount_cob').cast('decimal(18,2)').alias('value')), struct(lit('deductible_amount').alias('name'), col('cob_deductible_amount_cob').cast('decimal(18,2)').alias('value')), struct(lit('interest_amount').alias('name'), col('total_interest_amount').cast('decimal(18,2)').alias('value')), struct(lit('coinsurance_amount').alias('name'), col('coinsurance_amount_hdr').cast('decimal(18,2)').alias('value')), struct(lit('member_responsibility').alias('name'), col('member_responsibility_hdr').cast('decimal(18,2)').alias('value')))",
+      "referenced_cols": [
+        "billed_amount_hdr",
+        "allowed_amount_hdr",
+        "total_paid_amount_cob",
+        "total_contractual_adj_cob",
+        "cob_allowed_amount_cob",
+        "cob_billed_amount_cob",
+        "cob_patient_liability_cob",
+        "cob_copay_amount_cob",
+        "cob_deductible_amount_cob",
+        "total_interest_amount",
+        "coinsurance_amount_hdr",
+        "member_responsibility_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e28",
+      "kind": "expression",
+      "text": "rename(claim_id_hdr -> claim_id)",
+      "referenced_cols": [
+        "claim_id_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e29",
+      "kind": "expression",
+      "text": "rename(claim_line_id_hdr -> claim_line_id)",
+      "referenced_cols": [
+        "claim_line_id_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e30",
+      "kind": "expression",
+      "text": "rename(icn_hdr -> internal_control_number)",
+      "referenced_cols": [
+        "icn_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e31",
+      "kind": "expression",
+      "text": "rename(claim_type_hdr -> claim_type)",
+      "referenced_cols": [
+        "claim_type_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e32",
+      "kind": "expression",
+      "text": "rename(claim_status_hdr -> claim_status)",
+      "referenced_cols": [
+        "claim_status_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e33",
+      "kind": "expression",
+      "text": "rename(member_id_hdr -> member_id)",
+      "referenced_cols": [
+        "member_id_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e34",
+      "kind": "expression",
+      "text": "rename(subscriber_id_hdr -> subscriber_id)",
+      "referenced_cols": [
+        "subscriber_id_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e35",
+      "kind": "expression",
+      "text": "rename(member_dob_mbr -> member_date_of_birth)",
+      "referenced_cols": [
+        "member_dob_mbr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e36",
+      "kind": "expression",
+      "text": "rename(member_gender_mbr -> member_gender)",
+      "referenced_cols": [
+        "member_gender_mbr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e37",
+      "kind": "expression",
+      "text": "rename(member_state_mbr -> member_state)",
+      "referenced_cols": [
+        "member_state_mbr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e38",
+      "kind": "expression",
+      "text": "rename(billing_npi_prov -> billing_npi)",
+      "referenced_cols": [
+        "billing_npi_prov"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e39",
+      "kind": "expression",
+      "text": "rename(referring_npi_prov -> referring_npi)",
+      "referenced_cols": [
+        "referring_npi_prov"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e40",
+      "kind": "expression",
+      "text": "rename(taxonomy_group_reg -> provider_taxonomy_group)",
+      "referenced_cols": [
+        "taxonomy_group_reg"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e41",
+      "kind": "expression",
+      "text": "rename(service_from_date_hdr -> service_from_date)",
+      "referenced_cols": [
+        "service_from_date_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e42",
+      "kind": "expression",
+      "text": "rename(service_to_date_hdr -> service_to_date)",
+      "referenced_cols": [
+        "service_to_date_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e43",
+      "kind": "expression",
+      "text": "rename(admit_date_hdr -> admit_date)",
+      "referenced_cols": [
+        "admit_date_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e44",
+      "kind": "expression",
+      "text": "rename(discharge_date_hdr -> discharge_date)",
+      "referenced_cols": [
+        "discharge_date_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e45",
+      "kind": "expression",
+      "text": "rename(statement_from_date_hdr -> statement_from_date)",
+      "referenced_cols": [
+        "statement_from_date_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e46",
+      "kind": "expression",
+      "text": "rename(statement_to_date_hdr -> statement_to_date)",
+      "referenced_cols": [
+        "statement_to_date_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e47",
+      "kind": "expression",
+      "text": "rename(type_of_bill_hdr -> type_of_bill_code)",
+      "referenced_cols": [
+        "type_of_bill_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e48",
+      "kind": "expression",
+      "text": "rename(place_of_service_code_hdr -> place_of_service_code)",
+      "referenced_cols": [
+        "place_of_service_code_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e49",
+      "kind": "expression",
+      "text": "rename(admit_status_hdr -> admit_status_code)",
+      "referenced_cols": [
+        "admit_status_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e50",
+      "kind": "expression",
+      "text": "rename(drg_code_hdr -> drg_code)",
+      "referenced_cols": [
+        "drg_code_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e51",
+      "kind": "expression",
+      "text": "rename(drg_description_hdr -> drg_description)",
+      "referenced_cols": [
+        "drg_description_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e52",
+      "kind": "expression",
+      "text": "rename(discharge_status_hdr -> discharge_status_code)",
+      "referenced_cols": [
+        "discharge_status_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e53",
+      "kind": "expression",
+      "text": "rename(billed_amount_hdr -> billed_amount)",
+      "referenced_cols": [
+        "billed_amount_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e54",
+      "kind": "expression",
+      "text": "rename(allowed_amount_hdr -> allowed_amount)",
+      "referenced_cols": [
+        "allowed_amount_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e55",
+      "kind": "expression",
+      "text": "rename(total_paid_amount_cob -> paid_amount)",
+      "referenced_cols": [
+        "total_paid_amount_cob"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e56",
+      "kind": "expression",
+      "text": "rename(total_contractual_adj_cob -> contractual_adjustment)",
+      "referenced_cols": [
+        "total_contractual_adj_cob"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e57",
+      "kind": "expression",
+      "text": "rename(cob_allowed_amount_cob -> cob_allowed_amount)",
+      "referenced_cols": [
+        "cob_allowed_amount_cob"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e58",
+      "kind": "expression",
+      "text": "rename(cob_billed_amount_cob -> cob_billed_amount)",
+      "referenced_cols": [
+        "cob_billed_amount_cob"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e59",
+      "kind": "expression",
+      "text": "rename(cob_patient_liability_cob -> patient_liability)",
+      "referenced_cols": [
+        "cob_patient_liability_cob"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e60",
+      "kind": "expression",
+      "text": "rename(cob_copay_amount_cob -> copay_amount)",
+      "referenced_cols": [
+        "cob_copay_amount_cob"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e61",
+      "kind": "expression",
+      "text": "rename(cob_deductible_amount_cob -> deductible_amount)",
+      "referenced_cols": [
+        "cob_deductible_amount_cob"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e62",
+      "kind": "expression",
+      "text": "rename(total_interest_amount -> interest_amount)",
+      "referenced_cols": [
+        "total_interest_amount"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e63",
+      "kind": "expression",
+      "text": "rename(coinsurance_amount_hdr -> coinsurance_amount)",
+      "referenced_cols": [
+        "coinsurance_amount_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e64",
+      "kind": "expression",
+      "text": "rename(member_responsibility_hdr -> member_responsibility)",
+      "referenced_cols": [
+        "member_responsibility_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e65",
+      "kind": "expression",
+      "text": "rename(product_code_hdr -> product_code)",
+      "referenced_cols": [
+        "product_code_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e66",
+      "kind": "expression",
+      "text": "rename(group_number_hdr -> group_number)",
+      "referenced_cols": [
+        "group_number_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e67",
+      "kind": "expression",
+      "text": "rename(network_status_hdr -> network_status)",
+      "referenced_cols": [
+        "network_status_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e68",
+      "kind": "expression",
+      "text": "rename(primary_diag_code_hdr -> primary_diagnosis_code)",
+      "referenced_cols": [
+        "primary_diag_code_hdr"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e69",
+      "kind": "expression",
+      "text": "F.current_timestamp()",
+      "referenced_cols": [],
+      "udf": false
+    },
+    {
+      "id": "expr:e70",
+      "kind": "expression",
+      "text": "F.lit('silver_clinical_claims')",
+      "referenced_cols": [],
+      "udf": false
+    },
+    {
+      "id": "expr:e71",
+      "kind": "expression",
+      "text": "F.lit('meridian')",
+      "referenced_cols": [],
+      "udf": false
+    },
+    {
+      "id": "expr:e72",
+      "kind": "expression",
+      "text": "F.col('claim_id').isNotNull()",
+      "referenced_cols": [
+        "claim_id"
+      ],
+      "udf": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "e:r:silver_clinical_claims:001",
+      "file": "silver_clinical_claims.py",
+      "lineno": 60,
+      "kind": "reads",
+      "source": "table:meridian.bronze.claim_header",
+      "target": "df:silver_clinical_claims.py:60:claim_hdr_df",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:silver_clinical_claims:002",
+      "file": "silver_clinical_claims.py",
+      "lineno": 61,
+      "kind": "reads",
+      "source": "table:meridian.bronze.claim_diagnosis",
+      "target": "df:silver_clinical_claims.py:61:claim_diag_df",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:silver_clinical_claims:003",
+      "file": "silver_clinical_claims.py",
+      "lineno": 62,
+      "kind": "reads",
+      "source": "table:meridian.bronze.claim_procedure",
+      "target": "df:silver_clinical_claims.py:62:claim_proc_df",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:silver_clinical_claims:004",
+      "file": "silver_clinical_claims.py",
+      "lineno": 63,
+      "kind": "reads",
+      "source": "table:meridian.bronze.claim_cob_payment",
+      "target": "df:silver_clinical_claims.py:63:claim_cob_df",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:silver_clinical_claims:005",
+      "file": "silver_clinical_claims.py",
+      "lineno": 64,
+      "kind": "reads",
+      "source": "table:meridian.bronze.claim_payable",
+      "target": "df:silver_clinical_claims.py:64:claim_payable_df",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:silver_clinical_claims:006",
+      "file": "silver_clinical_claims.py",
+      "lineno": 65,
+      "kind": "reads",
+      "source": "table:meridian.bronze.claim_interest",
+      "target": "df:silver_clinical_claims.py:65:claim_interest_df",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:silver_clinical_claims:007",
+      "file": "silver_clinical_claims.py",
+      "lineno": 66,
+      "kind": "reads",
+      "source": "table:meridian.bronze.claim_occurrence",
+      "target": "df:silver_clinical_claims.py:66:claim_occ_df",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:silver_clinical_claims:008",
+      "file": "silver_clinical_claims.py",
+      "lineno": 67,
+      "kind": "reads",
+      "source": "table:meridian.bronze.claim_provider",
+      "target": "df:silver_clinical_claims.py:67:claim_prov_df",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:silver_clinical_claims:009",
+      "file": "silver_clinical_claims.py",
+      "lineno": 68,
+      "kind": "reads",
+      "source": "table:meridian.bronze.member_eligibility",
+      "target": "df:silver_clinical_claims.py:68:member_df",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:silver_clinical_claims:010",
+      "file": "silver_clinical_claims.py",
+      "lineno": 69,
+      "kind": "reads",
+      "source": "table:meridian.bronze.provider_registry",
+      "target": "df:silver_clinical_claims.py:69:provider_df",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:silver_clinical_claims:011",
+      "file": "silver_clinical_claims.py",
+      "lineno": 83,
+      "kind": "reads",
+      "source": "table:meridian.bronze.claim_cob_payment",
+      "target": "df:silver_clinical_claims.py:84:cob_line_agg_cte",
+      "projected_cols": [
+        "claim_id",
+        "claim_line_id"
+      ],
+      "streaming": false
+    },
+    {
+      "id": "e:d:silver_clinical_claims:012",
+      "file": "silver_clinical_claims.py",
+      "lineno": 83,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:84:cob_line_agg_cte",
+      "target": "df:silver_clinical_claims.py:84:cob_line_agg_cte",
+      "output_col": "cob_allowed_amount",
+      "source_cols": [
+        "allowed_amount"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:013",
+      "file": "silver_clinical_claims.py",
+      "lineno": 83,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:84:cob_line_agg_cte",
+      "target": "df:silver_clinical_claims.py:84:cob_line_agg_cte",
+      "output_col": "cob_billed_amount",
+      "source_cols": [
+        "billed_amount"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:014",
+      "file": "silver_clinical_claims.py",
+      "lineno": 83,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:84:cob_line_agg_cte",
+      "target": "df:silver_clinical_claims.py:84:cob_line_agg_cte",
+      "output_col": "cob_patient_liability",
+      "source_cols": [
+        "patient_liability"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:015",
+      "file": "silver_clinical_claims.py",
+      "lineno": 83,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:84:cob_line_agg_cte",
+      "target": "df:silver_clinical_claims.py:84:cob_line_agg_cte",
+      "output_col": "cob_copay_amount",
+      "source_cols": [
+        "copay_amount"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:016",
+      "file": "silver_clinical_claims.py",
+      "lineno": 83,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:84:cob_line_agg_cte",
+      "target": "df:silver_clinical_claims.py:84:cob_line_agg_cte",
+      "output_col": "cob_deductible_amount",
+      "source_cols": [
+        "deductible_amount"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:r:silver_clinical_claims:017",
+      "file": "silver_clinical_claims.py",
+      "lineno": 83,
+      "kind": "reads",
+      "source": "table:meridian.bronze.claim_payable",
+      "target": "df:silver_clinical_claims.py:85:payable_agg_cte",
+      "projected_cols": [
+        "claim_id",
+        "claim_line_id"
+      ],
+      "streaming": false
+    },
+    {
+      "id": "e:d:silver_clinical_claims:018",
+      "file": "silver_clinical_claims.py",
+      "lineno": 83,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:85:payable_agg_cte",
+      "target": "df:silver_clinical_claims.py:85:payable_agg_cte",
+      "output_col": "total_paid_amount",
+      "source_cols": [
+        "paid_amount"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:019",
+      "file": "silver_clinical_claims.py",
+      "lineno": 83,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:85:payable_agg_cte",
+      "target": "df:silver_clinical_claims.py:85:payable_agg_cte",
+      "output_col": "total_contractual_adj",
+      "source_cols": [
+        "contractual_adj"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:r:silver_clinical_claims:020",
+      "file": "silver_clinical_claims.py",
+      "lineno": 83,
+      "kind": "reads",
+      "source": "table:meridian.bronze.claim_header",
+      "target": "df:silver_clinical_claims.py:83:aggregated_cob_df",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:j:silver_clinical_claims:021",
+      "file": "silver_clinical_claims.py",
+      "lineno": 83,
+      "kind": "joins",
+      "left_source": "table:meridian.bronze.claim_header",
+      "right_source": "df:silver_clinical_claims.py:84:cob_line_agg_cte",
+      "target": "df:silver_clinical_claims.py:86:join_2",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "claim_id",
+          "claim_id"
+        ],
+        [
+          "claim_line_id",
+          "claim_line_id"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:j:silver_clinical_claims:022",
+      "file": "silver_clinical_claims.py",
+      "lineno": 83,
+      "kind": "joins",
+      "left_source": "df:silver_clinical_claims.py:86:join_2",
+      "right_source": "df:silver_clinical_claims.py:85:payable_agg_cte",
+      "target": "df:silver_clinical_claims.py:87:join_2",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "claim_id",
+          "claim_id"
+        ],
+        [
+          "claim_line_id",
+          "claim_line_id"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:j:silver_clinical_claims:023",
+      "file": "silver_clinical_claims.py",
+      "lineno": 180,
+      "kind": "joins",
+      "left_source": "df:silver_clinical_claims.py:60:claim_hdr_df",
+      "right_source": "df:silver_clinical_claims.py:61:claim_diag_df",
+      "target": "df:silver_clinical_claims.py:180:_anon1",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "claim_id_hdr",
+          "claim_id"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:d:silver_clinical_claims:024",
+      "file": "silver_clinical_claims.py",
+      "lineno": 180,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:180:_anon1",
+      "target": "df:silver_clinical_claims.py:179:ranked_diag_df",
+      "output_col": "diag_rank",
+      "source_cols": [
+        "claim_id_hdr",
+        "diag_priority",
+        "icd10_code"
+      ],
+      "expr_id": "expr:e01",
+      "window_spec": {
+        "partition_cols": [
+          "claim_id_hdr"
+        ],
+        "order_cols": [
+          "diag_priority asc_nulls_last",
+          "icd10_code asc_nulls_last"
+        ],
+        "frame": null
+      },
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:a:silver_clinical_claims:025",
+      "file": "silver_clinical_claims.py",
+      "lineno": 200,
+      "kind": "aggregates",
+      "source": "df:silver_clinical_claims.py:179:ranked_diag_df",
+      "target": "df:silver_clinical_claims.py:200:_anon2",
+      "group_keys": [
+        "claim_id_hdr"
+      ],
+      "agg_ops": [
+        "<unresolved>"
+      ],
+      "agg_inputs": [
+        "<unresolved>"
+      ],
+      "output_cols": [
+        "<unresolved>"
+      ],
+      "dynamic": true,
+      "dynamic_note": "agg list star-unpacked from a runtime-built variable; column list cannot be enumerated statically; controlled by env-var(s): $MERIDIAN_DATABASE"
+    },
+    {
+      "id": "e:d:silver_clinical_claims:026",
+      "file": "silver_clinical_claims.py",
+      "lineno": 200,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:200:_anon2",
+      "target": "df:silver_clinical_claims.py:199:pivoted_diag_df",
+      "output_col": "claim_id_diag",
+      "source_cols": [
+        "claim_id_hdr"
+      ],
+      "expr_id": "expr:e02",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:027",
+      "file": "silver_clinical_claims.py",
+      "lineno": 226,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:199:pivoted_diag_df",
+      "target": "df:silver_clinical_claims.py:226:_anon3",
+      "output_col": "other_diagnoses_raw",
+      "source_cols": [],
+      "expr_id": "expr:e03",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": [
+        {
+          "field": "reference_id",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "sequence_number",
+          "kind": "expr",
+          "value": "col(f'diagnosis_{i}_priority')",
+          "source_cols": []
+        },
+        {
+          "field": "codeset",
+          "kind": "expr",
+          "value": "col(f'diagnosis_{i}_code')",
+          "source_cols": []
+        },
+        {
+          "field": "codeset_display",
+          "kind": "expr",
+          "value": "col(f'diagnosis_{i}_description')",
+          "source_cols": []
+        },
+        {
+          "field": "diagnosis_type",
+          "kind": "expr",
+          "value": "col(f'diagnosis_{i}_type')",
+          "source_cols": []
+        },
+        {
+          "field": "present_on_admission_code",
+          "kind": "expr",
+          "value": "col(f'diagnosis_{i}_poa')",
+          "source_cols": []
+        },
+        {
+          "field": "codeset_system",
+          "kind": "lit",
+          "value": "'ICD-10-CM'",
+          "source_cols": []
+        },
+        {
+          "field": "diagnosis_group",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        }
+      ],
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:028",
+      "file": "silver_clinical_claims.py",
+      "lineno": 226,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:199:pivoted_diag_df",
+      "target": "df:silver_clinical_claims.py:226:_anon3",
+      "output_col": "other_diagnoses",
+      "source_cols": [],
+      "expr_id": "expr:e04",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:p:silver_clinical_claims:029",
+      "file": "silver_clinical_claims.py",
+      "lineno": 226,
+      "kind": "projects",
+      "source": "df:silver_clinical_claims.py:226:_anon3",
+      "target": "df:silver_clinical_claims.py:225:pivoted_diag_df",
+      "removed_cols": [
+        "other_diagnoses_raw"
+      ],
+      "kept_cols": []
+    },
+    {
+      "id": "e:j:silver_clinical_claims:030",
+      "file": "silver_clinical_claims.py",
+      "lineno": 247,
+      "kind": "joins",
+      "left_source": "df:silver_clinical_claims.py:60:claim_hdr_df",
+      "right_source": "df:silver_clinical_claims.py:62:claim_proc_df",
+      "target": "df:silver_clinical_claims.py:247:_anon4",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "claim_id_hdr",
+          "claim_id"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:d:silver_clinical_claims:031",
+      "file": "silver_clinical_claims.py",
+      "lineno": 247,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:247:_anon4",
+      "target": "df:silver_clinical_claims.py:246:ranked_proc_df",
+      "output_col": "proc_rank",
+      "source_cols": [
+        "claim_id_hdr",
+        "proc_priority",
+        "hcpcs_code"
+      ],
+      "expr_id": "expr:e05",
+      "window_spec": {
+        "partition_cols": [
+          "claim_id_hdr"
+        ],
+        "order_cols": [
+          "proc_priority asc_nulls_last",
+          "hcpcs_code asc_nulls_last"
+        ],
+        "frame": null
+      },
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:a:silver_clinical_claims:032",
+      "file": "silver_clinical_claims.py",
+      "lineno": 270,
+      "kind": "aggregates",
+      "source": "df:silver_clinical_claims.py:246:ranked_proc_df",
+      "target": "df:silver_clinical_claims.py:270:_anon5",
+      "group_keys": [
+        "claim_id_hdr"
+      ],
+      "agg_ops": [
+        "<unresolved>"
+      ],
+      "agg_inputs": [
+        "<unresolved>"
+      ],
+      "output_cols": [
+        "<unresolved>"
+      ],
+      "dynamic": true,
+      "dynamic_note": "agg list star-unpacked from a runtime-built variable; column list cannot be enumerated statically; controlled by env-var(s): $MERIDIAN_DATABASE"
+    },
+    {
+      "id": "e:d:silver_clinical_claims:033",
+      "file": "silver_clinical_claims.py",
+      "lineno": 270,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:270:_anon5",
+      "target": "df:silver_clinical_claims.py:269:pivoted_proc_df",
+      "output_col": "claim_id_proc",
+      "source_cols": [
+        "claim_id_hdr"
+      ],
+      "expr_id": "expr:e06",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:034",
+      "file": "silver_clinical_claims.py",
+      "lineno": 295,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:269:pivoted_proc_df",
+      "target": "df:silver_clinical_claims.py:295:_anon6",
+      "output_col": "other_procedures_raw",
+      "source_cols": [],
+      "expr_id": "expr:e07",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": [
+        {
+          "field": "reference_id",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "codeset",
+          "kind": "expr",
+          "value": "col(f'procedure_{i}_code')",
+          "source_cols": []
+        },
+        {
+          "field": "codeset_display",
+          "kind": "expr",
+          "value": "col(f'procedure_{i}_description')",
+          "source_cols": []
+        },
+        {
+          "field": "modifier_code",
+          "kind": "expr",
+          "value": "col(f'procedure_{i}_modifier')",
+          "source_cols": []
+        },
+        {
+          "field": "procedure_date",
+          "kind": "expr",
+          "value": "col(f'procedure_{i}_date')",
+          "source_cols": []
+        },
+        {
+          "field": "sequence_number",
+          "kind": "expr",
+          "value": "col(f'procedure_{i}_priority')",
+          "source_cols": []
+        },
+        {
+          "field": "procedure_type",
+          "kind": "expr",
+          "value": "col(f'procedure_{i}_type')",
+          "source_cols": []
+        },
+        {
+          "field": "codeset_system",
+          "kind": "lit",
+          "value": "'HCPCS'",
+          "source_cols": []
+        }
+      ],
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:035",
+      "file": "silver_clinical_claims.py",
+      "lineno": 295,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:269:pivoted_proc_df",
+      "target": "df:silver_clinical_claims.py:295:_anon6",
+      "output_col": "other_procedures",
+      "source_cols": [],
+      "expr_id": "expr:e08",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:p:silver_clinical_claims:036",
+      "file": "silver_clinical_claims.py",
+      "lineno": 295,
+      "kind": "projects",
+      "source": "df:silver_clinical_claims.py:295:_anon6",
+      "target": "df:silver_clinical_claims.py:294:pivoted_proc_df",
+      "removed_cols": [
+        "other_procedures_raw"
+      ],
+      "kept_cols": []
+    },
+    {
+      "id": "e:d:silver_clinical_claims:037",
+      "file": "silver_clinical_claims.py",
+      "lineno": 312,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:66:claim_occ_df",
+      "target": "df:silver_clinical_claims.py:312:_anon7",
+      "output_col": "occ_struct",
+      "source_cols": [
+        "occ_code",
+        "occ_date",
+        "occ_span_from_date",
+        "occ_span_to_date"
+      ],
+      "expr_id": "expr:e09",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:a:silver_clinical_claims:038",
+      "file": "silver_clinical_claims.py",
+      "lineno": 312,
+      "kind": "aggregates",
+      "source": "df:silver_clinical_claims.py:312:_anon7",
+      "target": "df:silver_clinical_claims.py:312:_anon8",
+      "group_keys": [
+        "claim_id"
+      ],
+      "agg_ops": [
+        "array_distinct"
+      ],
+      "agg_inputs": [
+        "<unresolved>"
+      ],
+      "output_cols": [
+        "occurrence_codes"
+      ],
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:039",
+      "file": "silver_clinical_claims.py",
+      "lineno": 312,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:312:_anon8",
+      "target": "df:silver_clinical_claims.py:311:occ_agg_df",
+      "output_col": "claim_id_occ",
+      "source_cols": [
+        "claim_id"
+      ],
+      "expr_id": "expr:e10",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:a:silver_clinical_claims:040",
+      "file": "silver_clinical_claims.py",
+      "lineno": 337,
+      "kind": "aggregates",
+      "source": "df:silver_clinical_claims.py:65:claim_interest_df",
+      "target": "df:silver_clinical_claims.py:337:_anon9",
+      "group_keys": [
+        "claim_id_int"
+      ],
+      "agg_ops": [
+        "sum",
+        "count"
+      ],
+      "agg_inputs": [
+        "interest_amount_int",
+        "interest_amount_int"
+      ],
+      "output_cols": [
+        "total_interest_amount",
+        "interest_line_count"
+      ],
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:041",
+      "file": "silver_clinical_claims.py",
+      "lineno": 337,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:337:_anon9",
+      "target": "df:silver_clinical_claims.py:336:interest_agg_df",
+      "output_col": "claim_id_int_agg",
+      "source_cols": [
+        "claim_id_int"
+      ],
+      "expr_id": "expr:e11",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:j:silver_clinical_claims:042",
+      "file": "silver_clinical_claims.py",
+      "lineno": 353,
+      "kind": "joins",
+      "left_source": "df:silver_clinical_claims.py:60:claim_hdr_df",
+      "right_source": "df:silver_clinical_claims.py:225:pivoted_diag_df",
+      "target": "df:silver_clinical_claims.py:353:_anon10",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "claim_id_hdr",
+          "claim_id_diag"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:j:silver_clinical_claims:043",
+      "file": "silver_clinical_claims.py",
+      "lineno": 353,
+      "kind": "joins",
+      "left_source": "df:silver_clinical_claims.py:353:_anon10",
+      "right_source": "df:silver_clinical_claims.py:294:pivoted_proc_df",
+      "target": "df:silver_clinical_claims.py:353:_anon11",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "claim_id_hdr",
+          "claim_id_proc"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:j:silver_clinical_claims:044",
+      "file": "silver_clinical_claims.py",
+      "lineno": 353,
+      "kind": "joins",
+      "left_source": "df:silver_clinical_claims.py:353:_anon11",
+      "right_source": "df:silver_clinical_claims.py:83:aggregated_cob_df",
+      "target": "df:silver_clinical_claims.py:353:_anon12",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "claim_id_hdr",
+          "claim_id_cob"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:j:silver_clinical_claims:045",
+      "file": "silver_clinical_claims.py",
+      "lineno": 353,
+      "kind": "joins",
+      "left_source": "df:silver_clinical_claims.py:353:_anon12",
+      "right_source": "df:silver_clinical_claims.py:67:claim_prov_df",
+      "target": "df:silver_clinical_claims.py:353:_anon13",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "claim_id_hdr",
+          "claim_id_prov"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:j:silver_clinical_claims:046",
+      "file": "silver_clinical_claims.py",
+      "lineno": 353,
+      "kind": "joins",
+      "left_source": "df:silver_clinical_claims.py:353:_anon13",
+      "right_source": "df:silver_clinical_claims.py:68:member_df",
+      "target": "df:silver_clinical_claims.py:353:_anon14",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "member_id_hdr",
+          "member_id_mbr"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:j:silver_clinical_claims:047",
+      "file": "silver_clinical_claims.py",
+      "lineno": 353,
+      "kind": "joins",
+      "left_source": "df:silver_clinical_claims.py:353:_anon14",
+      "right_source": "df:silver_clinical_claims.py:311:occ_agg_df",
+      "target": "df:silver_clinical_claims.py:353:_anon15",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "claim_id_hdr",
+          "claim_id_occ"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:j:silver_clinical_claims:048",
+      "file": "silver_clinical_claims.py",
+      "lineno": 353,
+      "kind": "joins",
+      "left_source": "df:silver_clinical_claims.py:353:_anon15",
+      "right_source": "df:silver_clinical_claims.py:336:interest_agg_df",
+      "target": "df:silver_clinical_claims.py:352:final_df",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "claim_id_hdr",
+          "claim_id_int_agg"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:d:silver_clinical_claims:049",
+      "file": "silver_clinical_claims.py",
+      "lineno": 387,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:352:final_df",
+      "target": "df:silver_clinical_claims.py:387:final_df",
+      "output_col": "processing_status",
+      "source_cols": [
+        "claim_status_hdr"
+      ],
+      "expr_id": "expr:e12",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": [
+        {
+          "cond": "col('claim_status_hdr') == 'Adjudicated'",
+          "value": "lit('active')"
+        },
+        {
+          "cond": "col('claim_status_hdr') == 'Denied'",
+          "value": "lit('active')"
+        },
+        {
+          "cond": "col('claim_status_hdr') == 'Pended'",
+          "value": "lit('draft')"
+        },
+        {
+          "cond": "col('claim_status_hdr') == 'Suspended'",
+          "value": "lit('draft')"
+        },
+        {
+          "cond": "col('claim_status_hdr') == 'Voided'",
+          "value": "lit('cancelled')"
+        },
+        {
+          "cond": "col('claim_status_hdr') == 'Adjusted'",
+          "value": "lit('active')"
+        },
+        {
+          "cond": "otherwise",
+          "value": "lit('active')"
+        }
+      ],
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:050",
+      "file": "silver_clinical_claims.py",
+      "lineno": 398,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:387:final_df",
+      "target": "df:silver_clinical_claims.py:398:final_df",
+      "output_col": "claim_outcome",
+      "source_cols": [
+        "claim_status_hdr"
+      ],
+      "expr_id": "expr:e13",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": [
+        {
+          "cond": "col('claim_status_hdr') == 'Adjudicated'",
+          "value": "lit('complete')"
+        },
+        {
+          "cond": "col('claim_status_hdr') == 'Denied'",
+          "value": "lit('complete')"
+        },
+        {
+          "cond": "col('claim_status_hdr') == 'Pended'",
+          "value": "lit('queued')"
+        },
+        {
+          "cond": "col('claim_status_hdr') == 'Suspended'",
+          "value": "lit('error')"
+        },
+        {
+          "cond": "col('claim_status_hdr') == 'Voided'",
+          "value": "lit('complete')"
+        },
+        {
+          "cond": "col('claim_status_hdr') == 'Adjusted'",
+          "value": "lit('partial')"
+        },
+        {
+          "cond": "otherwise",
+          "value": "lit(None)"
+        }
+      ],
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:051",
+      "file": "silver_clinical_claims.py",
+      "lineno": 414,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:398:final_df",
+      "target": "df:silver_clinical_claims.py:414:final_df",
+      "output_col": "member_uid",
+      "source_cols": [
+        "member_uid_mbr",
+        "subscriber_id_hdr",
+        "member_seq_hdr"
+      ],
+      "expr_id": "expr:e14",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:052",
+      "file": "silver_clinical_claims.py",
+      "lineno": 429,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:414:final_df",
+      "target": "df:silver_clinical_claims.py:429:final_df",
+      "output_col": "identifiers",
+      "source_cols": [
+        "claim_id_hdr",
+        "subscriber_id_hdr",
+        "member_id_hdr",
+        "icn_hdr",
+        "group_number_hdr",
+        "billing_npi_prov"
+      ],
+      "expr_id": "expr:e15",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": [
+        {
+          "field": "key",
+          "kind": "lit",
+          "value": "'claim_id'",
+          "source_cols": []
+        },
+        {
+          "field": "value",
+          "kind": "expr",
+          "value": "struct(lit(None).cast('string').alias('reference_id'), lit('claim_id').alias('identifier_type'), col('claim_id_hdr').alias('identifier'), lit('meridian').alias('identifier_source'))",
+          "source_cols": [
+            "claim_id_hdr"
+          ]
+        }
+      ],
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:053",
+      "file": "silver_clinical_claims.py",
+      "lineno": 496,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:429:final_df",
+      "target": "df:silver_clinical_claims.py:496:final_df",
+      "output_col": "plan_id",
+      "source_cols": [
+        "product_code_hdr"
+      ],
+      "expr_id": "expr:e16",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": [
+        {
+          "cond": "col('product_code_hdr') == 'MERIDIAN_PPO'",
+          "value": "lit('MRD-PPO-001')"
+        },
+        {
+          "cond": "col('product_code_hdr') == 'MERIDIAN_HMO'",
+          "value": "lit('MRD-HMO-001')"
+        },
+        {
+          "cond": "col('product_code_hdr') == 'MERIDIAN_EPO'",
+          "value": "lit('MRD-EPO-001')"
+        },
+        {
+          "cond": "col('product_code_hdr') == 'MERIDIAN_DSNP'",
+          "value": "lit('MRD-DSNP-001')"
+        },
+        {
+          "cond": "otherwise",
+          "value": "lit('UNKNOWN')"
+        }
+      ],
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:054",
+      "file": "silver_clinical_claims.py",
+      "lineno": 505,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:496:final_df",
+      "target": "df:silver_clinical_claims.py:505:final_df",
+      "output_col": "payer_id",
+      "source_cols": [
+        "product_code_hdr"
+      ],
+      "expr_id": "expr:e17",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": [
+        {
+          "cond": "col('product_code_hdr') == 'MERIDIAN_PPO'",
+          "value": "lit('1234567890')"
+        },
+        {
+          "cond": "col('product_code_hdr') == 'MERIDIAN_HMO'",
+          "value": "lit('1234567891')"
+        },
+        {
+          "cond": "col('product_code_hdr') == 'MERIDIAN_EPO'",
+          "value": "lit('1234567892')"
+        },
+        {
+          "cond": "col('product_code_hdr') == 'MERIDIAN_DSNP'",
+          "value": "lit('1234567893')"
+        },
+        {
+          "cond": "otherwise",
+          "value": "lit('UNKNOWN')"
+        }
+      ],
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:055",
+      "file": "silver_clinical_claims.py",
+      "lineno": 527,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:505:final_df",
+      "target": "df:silver_clinical_claims.py:527:final_df",
+      "output_col": "coverage_plans",
+      "source_cols": [
+        "product_code_hdr",
+        "member_uid",
+        "payer_id"
+      ],
+      "expr_id": "expr:e18",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": [
+        {
+          "field": "reference_id",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "policy_id",
+          "kind": "expr",
+          "value": "concat_ws('_', coalesce(col('member_uid'), lit('UNKNOWN')), coalesce(when(col('product_code_hdr') == 'MERIDIAN_PPO', lit('MRD-PPO-001')).when(col('product_code_hdr') == 'MERIDIAN_HMO', lit('MRD-HMO-001')).when(col('product_code_hdr') == 'MERIDIAN_...",
+          "source_cols": [
+            "member_uid",
+            "product_code_hdr"
+          ],
+          "rule_logic": [
+            {
+              "cond": "col('product_code_hdr') == 'MERIDIAN_PPO'",
+              "value": "lit('MRD-PPO-001')"
+            },
+            {
+              "cond": "col('product_code_hdr') == 'MERIDIAN_HMO'",
+              "value": "lit('MRD-HMO-001')"
+            },
+            {
+              "cond": "col('product_code_hdr') == 'MERIDIAN_EPO'",
+              "value": "lit('MRD-EPO-001')"
+            },
+            {
+              "cond": "col('product_code_hdr') == 'MERIDIAN_DSNP'",
+              "value": "lit('MRD-DSNP-001')"
+            },
+            {
+              "cond": "otherwise",
+              "value": "lit('UNKNOWN')"
+            }
+          ]
+        },
+        {
+          "field": "policy_name",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "policy_holder_id",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "policy_type_code",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "policy_type_display",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "policy_type_system",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "policy_order",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "coverage_start_date",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "coverage_end_date",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "group_id",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "group_name",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "sub_group_id",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "sub_group_name",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "plan_name",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "product_code",
+          "kind": "expr",
+          "value": "coalesce(col('product_code_hdr'), lit('UNKNOWN'))",
+          "source_cols": [
+            "product_code_hdr"
+          ]
+        },
+        {
+          "field": "status",
+          "kind": "lit",
+          "value": "'active'",
+          "source_cols": []
+        },
+        {
+          "field": "subrogation_flag",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "cost_sharing_type_system",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "cost_sharing_type_code",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "cost_sharing_type_display",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "cost_sharing_qty_system",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "cost_sharing_qty_value",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "cost_sharing_qty_unit",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "cost_sharing_qty_code",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "cost_sharing_qty_comparator",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "cost_sharing_amount",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "cost_sharing_exc_type_system",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "cost_sharing_exc_type_code",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "cost_sharing_exc_type_display",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "cost_sharing_exc_start_date",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "cost_sharing_exc_end_date",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "payer_id",
+          "kind": "expr",
+          "value": "coalesce(col('payer_id'), lit('UNKNOWN'))",
+          "source_cols": [
+            "payer_id"
+          ]
+        }
+      ],
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:056",
+      "file": "silver_clinical_claims.py",
+      "lineno": 587,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:527:final_df",
+      "target": "df:silver_clinical_claims.py:587:final_df",
+      "output_col": "service_locations",
+      "source_cols": [
+        "rendering_facility_name_prov",
+        "facility_type_code_prov",
+        "place_of_service_code_hdr",
+        "rendering_facility_npi_prov"
+      ],
+      "expr_id": "expr:e19",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": [
+        {
+          "field": "reference_id",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "facility_npi",
+          "kind": "col",
+          "value": null,
+          "source_cols": [
+            "rendering_facility_npi_prov"
+          ]
+        },
+        {
+          "field": "facility_name",
+          "kind": "col",
+          "value": null,
+          "source_cols": [
+            "rendering_facility_name_prov"
+          ]
+        },
+        {
+          "field": "facility_type_code",
+          "kind": "col",
+          "value": null,
+          "source_cols": [
+            "facility_type_code_prov"
+          ]
+        },
+        {
+          "field": "place_of_service_code",
+          "kind": "col",
+          "value": null,
+          "source_cols": [
+            "place_of_service_code_hdr"
+          ]
+        },
+        {
+          "field": "facility_taxonomy_code",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "address_line1",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "address_line2",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "city",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "state",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "postal_code",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "county_fips",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "country_code",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "latitude",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "longitude",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "phone",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "fax",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "email",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "contact_name",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "operational_status_code",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "operational_status_display",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "physical_type_code",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "physical_type_display",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "physical_type_system",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "managing_org_npi",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "managing_org_name",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "managing_org_id",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "part_of_location_id",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "availability_exceptions",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "endpoint_url",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "identifier_system",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "identifier_value",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        },
+        {
+          "field": "identifier_type_code",
+          "kind": "lit",
+          "value": "None",
+          "source_cols": []
+        }
+      ],
+      "column_var": null
+    },
+    {
+      "id": "e:r:silver_clinical_claims:057",
+      "file": "silver_clinical_claims.py",
+      "lineno": 647,
+      "kind": "reads",
+      "source": "table:meridian.bronze.claim_provider",
+      "target": "df:silver_clinical_claims.py:648:ranked_providers_cte",
+      "projected_cols": [
+        "claim_id",
+        "rendering_npi",
+        "taxonomy_code",
+        "rendering_specialty",
+        "seq_num"
+      ],
+      "streaming": false
+    },
+    {
+      "id": "e:d:silver_clinical_claims:058",
+      "file": "silver_clinical_claims.py",
+      "lineno": 647,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:648:ranked_providers_cte",
+      "target": "df:silver_clinical_claims.py:648:ranked_providers_cte",
+      "output_col": "provider_rank",
+      "source_cols": [
+        "claim_id",
+        "seq_num"
+      ],
+      "expr_id": null,
+      "window_spec": {
+        "partition_cols": [
+          "claim_id"
+        ],
+        "order_cols": [
+          "seq_num desc"
+        ],
+        "frame": null
+      },
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:j:silver_clinical_claims:059",
+      "file": "silver_clinical_claims.py",
+      "lineno": 647,
+      "kind": "joins",
+      "left_source": "df:silver_clinical_claims.py:648:ranked_providers_cte",
+      "right_source": "<unresolved>",
+      "target": "df:silver_clinical_claims.py:650:primary_provider_joined",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "rendering_npi",
+          "npi"
+        ],
+        [
+          "taxonomy_code",
+          "taxonomy_code"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:j:silver_clinical_claims:060",
+      "file": "silver_clinical_claims.py",
+      "lineno": 647,
+      "kind": "joins",
+      "left_source": "df:silver_clinical_claims.py:648:ranked_providers_cte",
+      "right_source": "<unresolved>",
+      "target": "df:silver_clinical_claims.py:652:any_pcp_signal_joined",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "rendering_npi",
+          "npi"
+        ],
+        [
+          "taxonomy_code",
+          "taxonomy_code"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:d:silver_clinical_claims:061",
+      "file": "silver_clinical_claims.py",
+      "lineno": 647,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:652:any_pcp_signal_joined",
+      "target": "df:silver_clinical_claims.py:651:any_pcp_signal_cte",
+      "output_col": "any_pcp_flag",
+      "source_cols": [
+        "is_pcp_eligible"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:062",
+      "file": "silver_clinical_claims.py",
+      "lineno": 647,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:652:any_pcp_signal_joined",
+      "target": "df:silver_clinical_claims.py:651:any_pcp_signal_cte",
+      "output_col": "distinct_rendering_npis",
+      "source_cols": [
+        "rendering_npi"
+      ],
+      "expr_id": null,
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:a:silver_clinical_claims:063",
+      "file": "silver_clinical_claims.py",
+      "lineno": 647,
+      "kind": "aggregates",
+      "source": "df:silver_clinical_claims.py:652:any_pcp_signal_joined",
+      "target": "df:silver_clinical_claims.py:651:any_pcp_signal_cte",
+      "group_keys": [
+        "claim_id"
+      ],
+      "agg_ops": [
+        "max",
+        "count"
+      ],
+      "agg_inputs": [
+        "is_pcp_eligible",
+        "rendering_npi"
+      ],
+      "output_cols": [
+        "any_pcp_flag",
+        "distinct_rendering_npis"
+      ],
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:j:silver_clinical_claims:064",
+      "file": "silver_clinical_claims.py",
+      "lineno": 647,
+      "kind": "joins",
+      "left_source": "df:silver_clinical_claims.py:649:primary_provider_cte",
+      "right_source": "df:silver_clinical_claims.py:651:any_pcp_signal_cte",
+      "target": "df:silver_clinical_claims.py:653:join_1",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "claim_id",
+          "claim_id"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:p:silver_clinical_claims:065",
+      "file": "silver_clinical_claims.py",
+      "lineno": 647,
+      "kind": "projects",
+      "source": "df:silver_clinical_claims.py:649:primary_provider_cte",
+      "target": "df:silver_clinical_claims.py:647:provider_specialty_df",
+      "removed_cols": [],
+      "kept_cols": [
+        "pp.claim_id",
+        "pp.rendering_npi",
+        "pp.rendering_specialty",
+        "pp.specialty_code_reg",
+        "pp.specialty_desc_reg",
+        "pp.is_pcp_eligible_reg",
+        "pp.taxonomy_group_reg",
+        "aps.any_pcp_flag",
+        "aps.distinct_rendering_npis"
+      ]
+    },
+    {
+      "id": "e:j:silver_clinical_claims:066",
+      "file": "silver_clinical_claims.py",
+      "lineno": 704,
+      "kind": "joins",
+      "left_source": "df:silver_clinical_claims.py:587:final_df",
+      "right_source": "df:silver_clinical_claims.py:647:provider_specialty_df",
+      "target": "df:silver_clinical_claims.py:704:final_df",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "claim_id_hdr",
+          "claim_id"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:d:silver_clinical_claims:067",
+      "file": "silver_clinical_claims.py",
+      "lineno": 725,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:704:final_df",
+      "target": "df:silver_clinical_claims.py:725:final_df",
+      "output_col": "provider_specialty_code",
+      "source_cols": [
+        "rendering_specialty",
+        "specialty_code_reg",
+        "any_pcp_flag",
+        "is_pcp_eligible_reg"
+      ],
+      "expr_id": "expr:e20",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": [
+        {
+          "cond": "F.coalesce(F.col('is_pcp_eligible_reg').cast('boolean'), F.lit(False)) == True",
+          "value": "F.lit('PCP')"
+        },
+        {
+          "cond": "F.coalesce(F.col('any_pcp_flag'), F.lit(0)) == F.lit(1)",
+          "value": "F.lit('PCP')"
+        },
+        {
+          "cond": "F.col('specialty_code_reg').isNotNull()",
+          "value": "F.col('specialty_code_reg')"
+        },
+        {
+          "cond": "F.col('rendering_specialty').isNotNull()",
+          "value": "F.col('rendering_specialty')"
+        },
+        {
+          "cond": "otherwise",
+          "value": "F.lit(None)"
+        }
+      ],
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:068",
+      "file": "silver_clinical_claims.py",
+      "lineno": 746,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:725:final_df",
+      "target": "df:silver_clinical_claims.py:746:final_df",
+      "output_col": "provider_specialty_description",
+      "source_cols": [
+        "specialty_desc_reg",
+        "rendering_specialty"
+      ],
+      "expr_id": "expr:e21",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:069",
+      "file": "silver_clinical_claims.py",
+      "lineno": 755,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:746:final_df",
+      "target": "df:silver_clinical_claims.py:755:final_df",
+      "output_col": "is_pcp_claim",
+      "source_cols": [
+        "any_pcp_flag",
+        "is_pcp_eligible_reg"
+      ],
+      "expr_id": "expr:e22",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:070",
+      "file": "silver_clinical_claims.py",
+      "lineno": 906,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:755:final_df",
+      "target": "df:silver_clinical_claims.py:906:final_df",
+      "output_col": "claim_category",
+      "source_cols": [
+        "Home Health",
+        "Durable Medical Equipment",
+        "Emergency / Observation",
+        "Hospice",
+        "Inpatient Rehabilitation",
+        "Skilled Nursing Facility",
+        "Maternity",
+        "Behavioral Health"
+      ],
+      "expr_id": "expr:e23",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": [
+        {
+          "cond": "F.col('primary_diag_code_hdr').isNotNull() & (F.trim(F.col('primary_diag_code_hdr')) != '') & (F.upper(F.trim(F.col('primary_diag_code_hdr'))) >= 'F01') & (F.upper(F.trim(F.col('primary_diag_code_hdr'))) <= 'F99.9999')",
+          "value": "F.lit('Behavioral Health')"
+        },
+        {
+          "cond": "F.expr(\"\\n        exists(\\n            filter(\\n                flatten(array(\\n                    primary_diag_code_hdr,\\n                    diagnosis_1_code, diagnosis_2_code,\\n                    diagnosis_3_code, diagnosis_4_code, diagnosis_5_code\\n                )),\\n                x -> x is not null AND trim(x) != ''\\n            ),\\n            d -> upper(trim(d)) >= 'O00' AND upper(trim(d)) <= 'O9A'\\n        )\\n    \")",
+          "value": "F.lit('Maternity')"
+        },
+        {
+          "cond": "F.trim(F.col('type_of_bill_hdr')).like('21%')",
+          "value": "F.lit('Skilled Nursing Facility')"
+        },
+        {
+          "cond": "F.upper(F.trim(F.col('type_of_bill_hdr'))).like('11%') & F.expr(\"\\n            exists(\\n                revenue_code_list,\\n                x -> x is not null\\n                    AND trim(x) != ''\\n                    AND lpad(regexp_replace(trim(x), '[^0-9]', ''), 4, '0')\\n                        IN ('0118', '0128', '0129', '0138', '0158')\\n            )\\n        \")",
+          "value": "F.lit('Inpatient Rehabilitation')"
+        },
+        {
+          "cond": "F.upper(F.trim(F.col('type_of_bill_hdr'))).like('81%') & F.expr(\"\\n            exists(\\n                revenue_code_list,\\n                x -> x is not null\\n                    AND trim(x) != ''\\n                    AND lpad(regexp_replace(trim(x), '[^0-9]', ''), 4, '0')\\n                        IN ('0651', '0652', '0655', '0656')\\n            )\\n        \")",
+          "value": "F.lit('Hospice')"
+        },
+        {
+          "cond": "(F.coalesce(F.col('admit_status_hdr'), F.lit('')) != F.lit('1')) & (F.expr(\"\\n                exists(\\n                    revenue_code_list,\\n                    x -> x is not null AND trim(x) != ''\\n                        AND lpad(regexp_replace(trim(x), '[^0-9]', ''), 4, '0')\\n                            IN ('0762', '0450')\\n                )\\n            \") | F.upper(F.trim(F.col('type_of_bill_hdr'))).like('13%'))",
+          "value": "F.lit('Emergency / Observation')"
+        },
+        {
+          "cond": "(F.col('place_of_service_code_hdr') == F.lit('12')) | (F.upper(F.trim(F.col('claim_type_hdr'))) == F.lit('DME'))",
+          "value": "F.lit('Durable Medical Equipment')"
+        },
+        {
+          "cond": "F.upper(F.trim(F.col('type_of_bill_hdr'))).like('32%') | F.upper(F.trim(F.col('type_of_bill_hdr'))).like('33%')",
+          "value": "F.lit('Home Health')"
+        },
+        {
+          "cond": "otherwise",
+          "value": "F.lit(None)"
+        }
+      ],
+      "struct_fields": null,
+      "column_var": "claim_category_expr"
+    },
+    {
+      "id": "e:d:silver_clinical_claims:071",
+      "file": "silver_clinical_claims.py",
+      "lineno": 914,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:906:final_df",
+      "target": "df:silver_clinical_claims.py:914:_anon16",
+      "output_col": "claim_categories_raw",
+      "source_cols": [],
+      "expr_id": "expr:e24",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": "multi_category_col"
+    },
+    {
+      "id": "e:d:silver_clinical_claims:072",
+      "file": "silver_clinical_claims.py",
+      "lineno": 914,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:906:final_df",
+      "target": "df:silver_clinical_claims.py:914:_anon16",
+      "output_col": "claim_categories",
+      "source_cols": [],
+      "expr_id": "expr:e25",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:p:silver_clinical_claims:073",
+      "file": "silver_clinical_claims.py",
+      "lineno": 914,
+      "kind": "projects",
+      "source": "df:silver_clinical_claims.py:914:_anon16",
+      "target": "df:silver_clinical_claims.py:913:final_df",
+      "removed_cols": [
+        "claim_categories_raw"
+      ],
+      "kept_cols": []
+    },
+    {
+      "id": "e:d:silver_clinical_claims:074",
+      "file": "silver_clinical_claims.py",
+      "lineno": 929,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:913:final_df",
+      "target": "df:silver_clinical_claims.py:929:final_df",
+      "output_col": "extension_source_values",
+      "source_cols": [
+        "claim_id_hdr",
+        "claim_line_id_hdr",
+        "member_id_hdr",
+        "subscriber_id_hdr",
+        "billing_npi_prov",
+        "rendering_npi",
+        "claim_type_hdr",
+        "type_of_bill_hdr",
+        "place_of_service_code_hdr",
+        "product_code_hdr",
+        "plan_id",
+        "payer_id",
+        "primary_diag_code_hdr",
+        "admit_status_hdr",
+        "provider_specialty_code"
+      ],
+      "expr_id": "expr:e26",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": [
+        {
+          "field": "name",
+          "kind": "lit",
+          "value": "'claim_id'",
+          "source_cols": []
+        },
+        {
+          "field": "value",
+          "kind": "col",
+          "value": null,
+          "source_cols": [
+            "claim_id_hdr"
+          ]
+        }
+      ],
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:075",
+      "file": "silver_clinical_claims.py",
+      "lineno": 971,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:929:final_df",
+      "target": "df:silver_clinical_claims.py:971:final_df",
+      "output_col": "other_amounts",
+      "source_cols": [
+        "billed_amount_hdr",
+        "allowed_amount_hdr",
+        "total_paid_amount_cob",
+        "total_contractual_adj_cob",
+        "cob_allowed_amount_cob",
+        "cob_billed_amount_cob",
+        "cob_patient_liability_cob",
+        "cob_copay_amount_cob",
+        "cob_deductible_amount_cob",
+        "total_interest_amount",
+        "coinsurance_amount_hdr",
+        "member_responsibility_hdr"
+      ],
+      "expr_id": "expr:e27",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": [
+        {
+          "field": "name",
+          "kind": "lit",
+          "value": "'billed_amount'",
+          "source_cols": []
+        },
+        {
+          "field": "value",
+          "kind": "col",
+          "value": null,
+          "source_cols": [
+            "billed_amount_hdr"
+          ]
+        }
+      ],
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:076",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "claim_id",
+      "source_cols": [
+        "claim_id_hdr"
+      ],
+      "expr_id": "expr:e28",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:077",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "claim_line_id",
+      "source_cols": [
+        "claim_line_id_hdr"
+      ],
+      "expr_id": "expr:e29",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:078",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "internal_control_number",
+      "source_cols": [
+        "icn_hdr"
+      ],
+      "expr_id": "expr:e30",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:079",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "claim_type",
+      "source_cols": [
+        "claim_type_hdr"
+      ],
+      "expr_id": "expr:e31",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:080",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "claim_status",
+      "source_cols": [
+        "claim_status_hdr"
+      ],
+      "expr_id": "expr:e32",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:081",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "member_id",
+      "source_cols": [
+        "member_id_hdr"
+      ],
+      "expr_id": "expr:e33",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:082",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "subscriber_id",
+      "source_cols": [
+        "subscriber_id_hdr"
+      ],
+      "expr_id": "expr:e34",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:083",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "member_date_of_birth",
+      "source_cols": [
+        "member_dob_mbr"
+      ],
+      "expr_id": "expr:e35",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:084",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "member_gender",
+      "source_cols": [
+        "member_gender_mbr"
+      ],
+      "expr_id": "expr:e36",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:085",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "member_state",
+      "source_cols": [
+        "member_state_mbr"
+      ],
+      "expr_id": "expr:e37",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:086",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "billing_npi",
+      "source_cols": [
+        "billing_npi_prov"
+      ],
+      "expr_id": "expr:e38",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:087",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "referring_npi",
+      "source_cols": [
+        "referring_npi_prov"
+      ],
+      "expr_id": "expr:e39",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:088",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "provider_taxonomy_group",
+      "source_cols": [
+        "taxonomy_group_reg"
+      ],
+      "expr_id": "expr:e40",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:089",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "service_from_date",
+      "source_cols": [
+        "service_from_date_hdr"
+      ],
+      "expr_id": "expr:e41",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:090",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "service_to_date",
+      "source_cols": [
+        "service_to_date_hdr"
+      ],
+      "expr_id": "expr:e42",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:091",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "admit_date",
+      "source_cols": [
+        "admit_date_hdr"
+      ],
+      "expr_id": "expr:e43",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:092",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "discharge_date",
+      "source_cols": [
+        "discharge_date_hdr"
+      ],
+      "expr_id": "expr:e44",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:093",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "statement_from_date",
+      "source_cols": [
+        "statement_from_date_hdr"
+      ],
+      "expr_id": "expr:e45",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:094",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "statement_to_date",
+      "source_cols": [
+        "statement_to_date_hdr"
+      ],
+      "expr_id": "expr:e46",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:095",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "type_of_bill_code",
+      "source_cols": [
+        "type_of_bill_hdr"
+      ],
+      "expr_id": "expr:e47",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:096",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "place_of_service_code",
+      "source_cols": [
+        "place_of_service_code_hdr"
+      ],
+      "expr_id": "expr:e48",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:097",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "admit_status_code",
+      "source_cols": [
+        "admit_status_hdr"
+      ],
+      "expr_id": "expr:e49",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:098",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "drg_code",
+      "source_cols": [
+        "drg_code_hdr"
+      ],
+      "expr_id": "expr:e50",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:099",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "drg_description",
+      "source_cols": [
+        "drg_description_hdr"
+      ],
+      "expr_id": "expr:e51",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:100",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "discharge_status_code",
+      "source_cols": [
+        "discharge_status_hdr"
+      ],
+      "expr_id": "expr:e52",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:101",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "billed_amount",
+      "source_cols": [
+        "billed_amount_hdr"
+      ],
+      "expr_id": "expr:e53",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:102",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "allowed_amount",
+      "source_cols": [
+        "allowed_amount_hdr"
+      ],
+      "expr_id": "expr:e54",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:103",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "paid_amount",
+      "source_cols": [
+        "total_paid_amount_cob"
+      ],
+      "expr_id": "expr:e55",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:104",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "contractual_adjustment",
+      "source_cols": [
+        "total_contractual_adj_cob"
+      ],
+      "expr_id": "expr:e56",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:105",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "cob_allowed_amount",
+      "source_cols": [
+        "cob_allowed_amount_cob"
+      ],
+      "expr_id": "expr:e57",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:106",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "cob_billed_amount",
+      "source_cols": [
+        "cob_billed_amount_cob"
+      ],
+      "expr_id": "expr:e58",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:107",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "patient_liability",
+      "source_cols": [
+        "cob_patient_liability_cob"
+      ],
+      "expr_id": "expr:e59",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:108",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "copay_amount",
+      "source_cols": [
+        "cob_copay_amount_cob"
+      ],
+      "expr_id": "expr:e60",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:109",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "deductible_amount",
+      "source_cols": [
+        "cob_deductible_amount_cob"
+      ],
+      "expr_id": "expr:e61",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:110",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "interest_amount",
+      "source_cols": [
+        "total_interest_amount"
+      ],
+      "expr_id": "expr:e62",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:111",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "coinsurance_amount",
+      "source_cols": [
+        "coinsurance_amount_hdr"
+      ],
+      "expr_id": "expr:e63",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:112",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "member_responsibility",
+      "source_cols": [
+        "member_responsibility_hdr"
+      ],
+      "expr_id": "expr:e64",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:113",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "product_code",
+      "source_cols": [
+        "product_code_hdr"
+      ],
+      "expr_id": "expr:e65",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:114",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "group_number",
+      "source_cols": [
+        "group_number_hdr"
+      ],
+      "expr_id": "expr:e66",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:115",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "network_status",
+      "source_cols": [
+        "network_status_hdr"
+      ],
+      "expr_id": "expr:e67",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:116",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "primary_diagnosis_code",
+      "source_cols": [
+        "primary_diag_code_hdr"
+      ],
+      "expr_id": "expr:e68",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:117",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "etl_loaded_at",
+      "source_cols": [],
+      "expr_id": "expr:e69",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:118",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "etl_source_job",
+      "source_cols": [],
+      "expr_id": "expr:e70",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:silver_clinical_claims:119",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1008,
+      "kind": "derives",
+      "source": "df:silver_clinical_claims.py:971:final_df",
+      "target": "df:silver_clinical_claims.py:1008:silver_df",
+      "output_col": "source_system",
+      "source_cols": [],
+      "expr_id": "expr:e71",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:f:silver_clinical_claims:120",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1117,
+      "kind": "filters",
+      "source": "df:silver_clinical_claims.py:1008:silver_df",
+      "target": "df:silver_clinical_claims.py:1116:dq_passed_df",
+      "predicate_id": "expr:e72",
+      "referenced_cols": [
+        "claim_id"
+      ]
+    },
+    {
+      "id": "e:w:silver_clinical_claims:121",
+      "file": "silver_clinical_claims.py",
+      "lineno": 1130,
+      "kind": "writes",
+      "source": "df:silver_clinical_claims.py:1116:dq_passed_df",
+      "target": "table:meridian.silver.clinical_claims",
+      "mode": "overwrite",
+      "partition_cols": [
+        "service_from_date"
+      ],
+      "format": "delta",
+      "streaming": false,
+      "sink_class": null,
+      "merge_keys": [],
+      "sink_kwargs": {}
+    }
+  ],
+  "warnings": [
+    {
+      "file": "silver_clinical_claims.py",
+      "lineno": 200,
+      "category": "dynamic-aggregation",
+      "message": "agg list contains star-unpacked runtime variable in silver_clinical_claims.py:200"
+    },
+    {
+      "file": "silver_clinical_claims.py",
+      "lineno": 270,
+      "category": "dynamic-aggregation",
+      "message": "agg list contains star-unpacked runtime variable in silver_clinical_claims.py:270"
+    }
+  ],
+  "column_rules": {
+    "claim_category_expr": [
+      {
+        "cond": "F.col('primary_diag_code_hdr').isNotNull() & (F.trim(F.col('primary_diag_code_hdr')) != '') & (F.upper(F.trim(F.col('primary_diag_code_hdr'))) >= 'F01') & (F.upper(F.trim(F.col('primary_diag_code_hdr'))) <= 'F99.9999')",
+        "value": "F.lit('Behavioral Health')"
+      },
+      {
+        "cond": "F.expr(\"\\n        exists(\\n            filter(\\n                flatten(array(\\n                    primary_diag_code_hdr,\\n                    diagnosis_1_code, diagnosis_2_code,\\n                    diagnosis_3_code, diagnosis_4_code, diagnosis_5_code\\n                )),\\n                x -> x is not null AND trim(x) != ''\\n            ),\\n            d -> upper(trim(d)) >= 'O00' AND upper(trim(d)) <= 'O9A'\\n        )\\n    \")",
+        "value": "F.lit('Maternity')"
+      },
+      {
+        "cond": "F.trim(F.col('type_of_bill_hdr')).like('21%')",
+        "value": "F.lit('Skilled Nursing Facility')"
+      },
+      {
+        "cond": "F.upper(F.trim(F.col('type_of_bill_hdr'))).like('11%') & F.expr(\"\\n            exists(\\n                revenue_code_list,\\n                x -> x is not null\\n                    AND trim(x) != ''\\n                    AND lpad(regexp_replace(trim(x), '[^0-9]', ''), 4, '0')\\n                        IN ('0118', '0128', '0129', '0138', '0158')\\n            )\\n        \")",
+        "value": "F.lit('Inpatient Rehabilitation')"
+      },
+      {
+        "cond": "F.upper(F.trim(F.col('type_of_bill_hdr'))).like('81%') & F.expr(\"\\n            exists(\\n                revenue_code_list,\\n                x -> x is not null\\n                    AND trim(x) != ''\\n                    AND lpad(regexp_replace(trim(x), '[^0-9]', ''), 4, '0')\\n                        IN ('0651', '0652', '0655', '0656')\\n            )\\n        \")",
+        "value": "F.lit('Hospice')"
+      },
+      {
+        "cond": "(F.coalesce(F.col('admit_status_hdr'), F.lit('')) != F.lit('1')) & (F.expr(\"\\n                exists(\\n                    revenue_code_list,\\n                    x -> x is not null AND trim(x) != ''\\n                        AND lpad(regexp_replace(trim(x), '[^0-9]', ''), 4, '0')\\n                            IN ('0762', '0450')\\n                )\\n            \") | F.upper(F.trim(F.col('type_of_bill_hdr'))).like('13%'))",
+        "value": "F.lit('Emergency / Observation')"
+      },
+      {
+        "cond": "(F.col('place_of_service_code_hdr') == F.lit('12')) | (F.upper(F.trim(F.col('claim_type_hdr'))) == F.lit('DME'))",
+        "value": "F.lit('Durable Medical Equipment')"
+      },
+      {
+        "cond": "F.upper(F.trim(F.col('type_of_bill_hdr'))).like('32%') | F.upper(F.trim(F.col('type_of_bill_hdr'))).like('33%')",
+        "value": "F.lit('Home Health')"
+      },
+      {
+        "cond": "otherwise",
+        "value": "F.lit(None)"
+      }
+    ]
+  },
+  "predicate_dicts": {
+    "conds": {
+      "Behavioral Health": "F.col('primary_diag_code_hdr').isNotNull() & (F.trim(F.col('primary_diag_code_hdr')) != '') & (F.upper(F.trim(F.col('primary_diag_code_hdr'))) >= 'F01') & (F.upper(F.trim(F.col('primary_diag_code_hdr'",
+      "Maternity": "F.expr(\"\\n        exists(\\n            filter(\\n                flatten(array(\\n                    primary_diag_code_hdr,\\n                    diagnosis_1_code, diagnosis_2_code,\\n                   ",
+      "Skilled Nursing Facility": "F.trim(F.col('type_of_bill_hdr')).like('21%')",
+      "Inpatient Rehabilitation": "F.upper(F.trim(F.col('type_of_bill_hdr'))).like('11%') & F.expr(\"\\n            exists(\\n                revenue_code_list,\\n                x -> x is not null\\n                    AND trim(x) != ''\\n ",
+      "Hospice": "F.upper(F.trim(F.col('type_of_bill_hdr'))).like('81%') & F.expr(\"\\n            exists(\\n                revenue_code_list,\\n                x -> x is not null\\n                    AND trim(x) != ''\\n ",
+      "Emergency / Observation": "(F.coalesce(F.col('admit_status_hdr'), F.lit('')) != F.lit('1')) & (F.expr(\"\\n                exists(\\n                    revenue_code_list,\\n                    x -> x is not null AND trim(x) != ''\\",
+      "Durable Medical Equipment": "(F.col('place_of_service_code_hdr') == F.lit('12')) | (F.upper(F.trim(F.col('claim_type_hdr'))) == F.lit('DME'))",
+      "Home Health": "F.upper(F.trim(F.col('type_of_bill_hdr'))).like('32%') | F.upper(F.trim(F.col('type_of_bill_hdr'))).like('33%')"
+    }
+  }
+}

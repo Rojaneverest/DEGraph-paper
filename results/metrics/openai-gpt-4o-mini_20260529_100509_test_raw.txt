@@ -1,0 +1,575 @@
+DEGraph Q&A Experiment Report
+=================================================================
+Backend:   openrouter / openai/gpt-4o-mini
+Mode:      raw_source
+Tokens:    ~11,405
+Timestamp: 20260529_100509
+
+AGGREGATE SCORES
+----------------------------------------
+  Not graded yet. Edit the JSON file and set 'score' for each answer.
+
+INDIVIDUAL ANSWERS
+=================================================================
+
+[TQ1] struct-array-shape / medium
+Q: Describe the schema and population logic of the `other_procedures` column. List the inner struct fields in order, where each comes from, and explain how `procedure_<i>_type` is computed.
+Score: None
+
+REFERENCE:
+`other_procedures` is an `array<struct>` built from up to MAX_PROC=4 ranked procedure records. For each rank i (1..4) a struct is wrapped in `when(col(f'procedure_{i}_code').isNotNull(), struct(...))`, collected via `array(*proc_structs)` into `other_procedures_raw`, then `other_procedures = filter(other_procedures_raw, x -> x is not null)` drops the absent ranks. The inner struct has 8 fields in this order: (1) `reference_id` = `lit(None).cast('string')` (always NULL placeholder); (2) `codeset` = `procedure_{i}_code`; (3) `codeset_display` = `procedure_{i}_description`; (4) `modifier_code` = `procedure_{i}_modifier`; (5) `procedure_date` = `procedure_{i}_date`; (6) `sequence_number` = `procedure_{i}_priority`; (7) `procedure_type` = `procedure_{i}_type`; (8) `codeset_system` = `lit('HCPCS')` (always the literal 'HCPCS'). The `procedure_{i}_type` value itself was computed during the wide pivot via a nested CASE: `CASE WHEN is_principal_proc = 'Y' THEN 'Principal' ELSE 'Secondary' END` (wrapped in the `MAX(CASE WHEN proc_rank = i THEN ... END)` pivot). Note: unlike `other_diagnoses`, `other_procedures` is NOT wrapped in `array_sort` — it is filtered but left in rank order.
+
+MODEL (openai/gpt-4o-mini):
+The `other_procedures` column is an array of structs that contains information about additional procedures associated with a claim. Each struct within the array represents a procedure and is populated based on the pivoting of procedure data from the `claim_proc_df` DataFrame. 
+
+### Schema of `other_procedures`:
+The inner struct fields in the `other_procedures` array are as follows:
+
+1. **reference_id**: 
+   - **Source**: `lit(None).cast("string")` (a placeholder, not sourced from any data).
+   - **Description**: This field is intended to hold a reference ID but is set to `None` in this context.
+
+2. **codeset**: 
+   - **Source**: `col(f"procedure_{i}_code")` (where `i` is the rank of the procedure, from 1 to 4).
+   - **Description**: This field contains the HCPCS code for the procedure.
+
+3. **codeset_display**: 
+   - **Source**: `col(f"procedure_{i}_description")`.
+   - **Description**: This field contains the description of the procedure.
+
+4. **modifier_code**: 
+   - **Source**: `col(f"procedure_{i}_modifier")`.
+   - **Description**: This field contains any modifier code associated with the procedure.
+
+5. **procedure_date**: 
+   - **Source**: `col(f"procedure_{i}_date")`.
+   - **Description**: This field contains the date when the procedure was performed.
+
+6. **sequence_number**: 
+   - **Source**: `col(f"procedure_{i}_priority")`.
+   - **Description**: This field indicates the priority of the procedure, which is used to rank the procedures.
+
+7. **procedure_type**: 
+   - **Source**: 
+     ```python
+     F.when(
+         col(f"is_principal_proc") == 'Y', 
+         'Principal'
+     ).otherwise('Secondary')
+     ```
+   - **Description**: This field is computed based on the `is_principal_proc` column from the `claim_proc_df`. If the value is 'Y', it indicates that the procedure is the principal procedure; otherwise, it is classified as a secondary procedure.
+
+### Summary of Population Logic:
+The `other_procedures` column is populated by first pivoting the `claim_proc_df` DataFrame to create wide columns for each procedure (up to four). Each procedure's details are then structured into an array of structs, where each struct contains the fields listed above. The `procedure_type` is determined by checking if the procedure is marked as principal or secondary based on the `is_principal_proc` flag. The resulting array captures all additional procedures associated with the claim in a structured format.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ2] struct-array-shape / medium
+Q: The `service_locations` column is an `array<struct>` with a single element. Which of its fields carry real source data versus placeholder NULLs, and what is each real field sourced from?
+Score: None
+
+REFERENCE:
+`service_locations = array(struct(...))` — exactly one struct element. The struct has ~32 fields, but only FOUR carry real source data (after the leading `reference_id` which is a `lit(None).cast('string')` placeholder): (1) `facility_npi` = `col('rendering_facility_npi_prov').cast('string')` (from claim_provider, _prov suffix); (2) `facility_name` = `col('rendering_facility_name_prov')` (claim_provider); (3) `facility_type_code` = `col('facility_type_code_prov')` (claim_provider); (4) `place_of_service_code` = `col('place_of_service_code_hdr')` (claim_header, _hdr suffix). Every remaining field — `facility_taxonomy_code`, the address block (address_line1/2, city, state, postal_code, county_fips, country_code), latitude/longitude, phone/fax/email, contact_name, operational/physical status fields, managing-org fields, endpoint_url, and the identifier_* fields — is set to `lit(None)` cast to its type (string/double), i.e. placeholders populated later by the facility-enrichment pipeline. So 3 real fields come from claim_provider and 1 from claim_header; the rest are NULL placeholders plus the NULL reference_id.
+
+MODEL (openai/gpt-4o-mini):
+The `service_locations` column is an `array<struct>` with a single element that carries the following real source data fields:
+
+1. **facility_npi**: Sourced from `rendering_facility_npi_prov` in the `claim_provider` DataFrame.
+2. **facility_name**: Sourced from `rendering_facility_name_prov` in the `claim_provider` DataFrame.
+3. **facility_type_code**: Sourced from `facility_type_code_prov` in the `claim_provider` DataFrame.
+4. **place_of_service_code**: Sourced from `place_of_service_code_hdr` in the `claim_header` DataFrame.
+
+All other fields in the `service_locations` struct are placeholders set to `lit(None)` and do not carry real source data.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ3] struct-array-shape / hard
+Q: The `other_amounts` column is an `array<struct>` of name/value pairs. How many entries does it contain, what is the struct shape, and what are the source columns for the COB-derived and interest entries specifically?
+Score: None
+
+REFERENCE:
+`other_amounts = array(struct(...), ...)` with TWELVE entries. Each entry is a struct of two fields: `name` (a string literal label) and `value` (`col(...).cast('decimal(18,2)')`). The 12 (name -> source column) pairs are: billed_amount -> `billed_amount_hdr`; allowed_amount -> `allowed_amount_hdr`; paid_amount -> `total_paid_amount_cob`; contractual_adjustment -> `total_contractual_adj_cob`; cob_allowed_amount -> `cob_allowed_amount_cob`; cob_billed_amount -> `cob_billed_amount_cob`; patient_liability -> `cob_patient_liability_cob`; copay_amount -> `cob_copay_amount_cob`; deductible_amount -> `cob_deductible_amount_cob`; interest_amount -> `total_interest_amount`; coinsurance_amount -> `coinsurance_amount_hdr`; member_responsibility -> `member_responsibility_hdr`. The COB-derived entries (paid_amount, contractual_adjustment, cob_allowed_amount, cob_billed_amount, patient_liability, copay_amount, deductible_amount) all come from the `_cob`-suffixed columns produced by the aggregated_cob SQL CTE (which COALESCEd them to 0). The interest entry (`interest_amount`) comes from `total_interest_amount`, the SUM produced by `interest_agg_df`. The remaining (billed/allowed/coinsurance/member_responsibility) come from the `_hdr` claim_header columns. All values are cast to decimal(18,2).
+
+MODEL (openai/gpt-4o-mini):
+The `other_amounts` column contains 11 entries, each represented as a `struct`. The struct shape consists of two fields: `name` (a string) and `value` (a decimal).
+
+The specific entries in the `other_amounts` array are as follows:
+
+1. `billed_amount`
+2. `allowed_amount`
+3. `paid_amount`
+4. `contractual_adjustment`
+5. `cob_allowed_amount`
+6. `cob_billed_amount`
+7. `patient_liability`
+8. `copay_amount`
+9. `deductible_amount`
+10. `interest_amount`
+11. `coinsurance_amount`
+12. `member_responsibility`
+
+For the COB-derived entries:
+- `cob_allowed_amount` is sourced from `col("cob_allowed_amount_cob")`.
+- `cob_billed_amount` is sourced from `col("cob_billed_amount_cob")`.
+- `patient_liability` is sourced from `col("cob_patient_liability_cob")`.
+- `copay_amount` is sourced from `col("cob_copay_amount_cob")`.
+- `deductible_amount` is sourced from `col("cob_deductible_amount_cob")`.
+
+For the interest entry:
+- `interest_amount` is sourced from `col("total_interest_amount")`. 
+
+Thus, the COB-derived entries are specifically `cob_allowed_amount`, `cob_billed_amount`, `patient_liability`, `copay_amount`, and `deductible_amount`, while the interest entry is `interest_amount`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ4] struct-array-shape / medium
+Q: What is the purpose and shape of `extension_source_values`, how many entries does it have, and is any of its entries sourced from a DERIVED (pipeline-computed) column rather than a raw bronze column?
+Score: None
+
+REFERENCE:
+`extension_source_values` is an `array<struct>` of name/value audit pairs recording which source fed each key business attribute (used downstream by FHIR ExplanationOfBenefit extension jobs to audit provenance). It has FIFTEEN entries; each struct has `name` (string literal) and `value` (`col(...).cast('string')`). The entries map: claim_id->claim_id_hdr, claim_line_id->claim_line_id_hdr, member_id->member_id_hdr, subscriber_id->subscriber_id_hdr, billing_npi->billing_npi_prov, rendering_npi->rendering_npi, claim_type->claim_type_hdr, type_of_bill->type_of_bill_hdr, place_of_service->place_of_service_code_hdr, product_code->product_code_hdr, plan_id->plan_id, payer_id->payer_id, primary_diag_code->primary_diag_code_hdr, admit_status->admit_status_hdr, provider_specialty_code->provider_specialty_code. YES — several entries are sourced from DERIVED columns, not raw bronze: `plan_id` and `payer_id` are pipeline-computed via the product_code when-chains; `provider_specialty_code` is the signal-precedence when-chain result; and `rendering_npi` comes from the provider_specialty SQL rollup. So the audit array deliberately captures both raw header values and pipeline-derived values.
+
+MODEL (openai/gpt-4o-mini):
+The purpose of `extension_source_values` is to create an array of structs that record the source of each key business attribute in the `silver.clinical_claims` table. This allows downstream processes, such as FHIR ExplanationOfBenefit extension population jobs, to audit the provenance of fields without needing to re-derive them from the raw claims data.
+
+The shape of `extension_source_values` is an array of structs, where each struct contains two fields:
+- `name`: a string representing the name of the source column.
+- `value`: the value from the corresponding source column.
+
+The entries in `extension_source_values` include:
+1. `claim_id`
+2. `claim_line_id`
+3. `member_id`
+4. `subscriber_id`
+5. `billing_npi`
+6. `rendering_npi`
+7. `claim_type`
+8. `type_of_bill`
+9. `place_of_service`
+10. `product_code`
+11. `plan_id`
+12. `payer_id`
+13. `primary_diag_code`
+14. `admit_status`
+15. `provider_specialty_code`
+
+Each of these entries is sourced from a raw bronze column, except for `plan_id` and `payer_id`, which are derived from the `product_code_hdr` via a when-chain. Therefore, `extension_source_values` contains 15 entries, with `plan_id` and `payer_id` being the only entries sourced from derived columns rather than raw bronze columns.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ5] rule-logic / medium
+Q: How is `claim_outcome` derived from `claim_status_hdr`? Give the complete mapping including the default, and state how its default differs from `processing_status`'s default.
+Score: None
+
+REFERENCE:
+`claim_outcome` is a first-match `when`-chain on `claim_status_hdr`: 'Adjudicated' -> 'complete'; 'Denied' -> 'complete'; 'Pended' -> 'queued'; 'Suspended' -> 'error'; 'Voided' -> 'complete'; 'Adjusted' -> 'partial'; `.otherwise(lit(None))`. So three statuses (Adjudicated, Denied, Voided) map to 'complete', and Pended/Suspended/Adjusted map to queued/error/partial respectively. Crucially the DEFAULT differs from `processing_status`: `claim_outcome.otherwise` is `lit(None)` (unknown statuses produce NULL), whereas `processing_status.otherwise` is `lit('active')` (unknown statuses default to 'active'). Both columns are driven by the same source column `claim_status_hdr`, so a change to the claim_status vocabulary affects both — but an unrecognized status yields processing_status='active' and claim_outcome=NULL.
+
+MODEL (openai/gpt-4o-mini):
+The `claim_outcome` is derived from the `claim_status_hdr` using a series of conditional mappings. Here is the complete mapping:
+
+- If `claim_status_hdr` is "Adjudicated", then `claim_outcome` is "complete".
+- If `claim_status_hdr` is "Denied", then `claim_outcome` is "complete".
+- If `claim_status_hdr` is "Pended", then `claim_outcome` is "queued".
+- If `claim_status_hdr` is "Suspended", then `claim_outcome` is "error".
+- If `claim_status_hdr` is "Voided", then `claim_outcome` is "complete".
+- If `claim_status_hdr` is "Adjusted", then `claim_outcome` is "partial".
+- For any other value of `claim_status_hdr`, `claim_outcome` is set to `None`.
+
+The default value for `claim_outcome` is `None`, which differs from the default for `processing_status`. The default for `processing_status` is "active" when none of the specified conditions are met. Thus, while `claim_outcome` defaults to `None`, `processing_status` defaults to "active".
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ6] rule-logic / hard
+Q: Describe the `'Emergency / Observation'` category predicate. What two parts must hold, what revenue codes / type-of-bill pattern are checked, and how is the admit-status condition expressed?
+Score: None
+
+REFERENCE:
+`cond_er_obs` is a compound AND of two parts: (A) a non-elective admit check, and (B) an ER/Observation revenue-or-TOB check. Part A: `F.coalesce(F.col('admit_status_hdr'), F.lit('')) != F.lit('1')` — i.e. admit_status is NOT '1' (elective), with NULL coalesced to '' so a missing admit_status counts as non-elective (passes A). Part B is an OR of two conditions: (B1) `exists(revenue_code_list, x -> x is not null AND trim(x) != '' AND lpad(regexp_replace(trim(x), '[^0-9]', ''), 4, '0') IN ('0762','0450'))` — any revenue code normalizing to 0762 (observation) or 0450 (emergency room); OR (B2) `upper(trim(type_of_bill_hdr)) LIKE '13%'` — Type of Bill starting with 13 (hospital outpatient). A claim is Emergency/Observation iff A AND (B1 OR B2). The revenue-code normalization (trim, strip non-digits via regexp_replace, lpad to 4 with '0') is the same pattern used by the Rehab and Hospice predicates, only with a different code set.
+
+MODEL (openai/gpt-4o-mini):
+The `'Emergency / Observation'` category predicate is defined by two conditions that must both hold true:
+
+1. **Admit Status Condition**: The admit status must not be equal to `1`, which is expressed as:
+   ```python
+   F.coalesce(F.col("admit_status_hdr"), F.lit("")) != F.lit("1")
+   ```
+
+2. **Revenue Codes or Type-of-Bill Condition**: This condition checks for specific revenue codes or a type-of-bill pattern. It uses the `exists` function to verify if any revenue code in the `revenue_code_list` matches either of the following:
+   - Revenue codes `0762` or `0450`
+   - A type-of-bill that starts with `13`, which is expressed as:
+   ```python
+   F.expr("""
+       exists(
+           revenue_code_list,
+           x -> x is not null AND trim(x) != ''
+               AND lpad(regexp_replace(trim(x), '[^0-9]', ''), 4, '0')
+                   IN ('0762', '0450')
+       )
+   """) | F.upper(F.trim(F.col("type_of_bill_hdr"))).like("13%")
+   ```
+
+Thus, both the admit status condition and the revenue codes/type-of-bill condition must be satisfied for a claim to be classified under the `'Emergency / Observation'` category.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ7] rule-logic / easy
+Q: What is the `'Durable Medical Equipment'` category predicate? Which columns and values does it test?
+Score: None
+
+REFERENCE:
+`cond_dme` is a two-branch OR: `(F.col('place_of_service_code_hdr') == F.lit('12')) | (F.upper(F.trim(F.col('claim_type_hdr'))) == F.lit('DME'))`. A claim qualifies as Durable Medical Equipment iff EITHER the place-of-service code equals '12' (Home) OR the claim_type (uppercased and trimmed) equals 'DME'. It is the only category predicate that keys off place_of_service_code_hdr and claim_type_hdr, and unlike the TOB-based predicates it does not use any revenue-code or LIKE-pattern test. Note the place-of-service comparison is an exact string match on '12' (not trimmed/uppered), while the claim_type side is upper+trim normalized.
+
+MODEL (openai/gpt-4o-mini):
+The `'Durable Medical Equipment'` category predicate tests the following conditions:
+
+1. **Place of Service Code**: It checks if the `place_of_service_code_hdr` is equal to `12`.
+2. **Claim Type Flag**: It checks if the `claim_type_hdr` is equal to `DME`.
+
+The predicate is defined as:
+```python
+cond_dme = (
+    (F.col("place_of_service_code_hdr") == F.lit("12"))
+    | (F.upper(F.trim(F.col("claim_type_hdr"))) == F.lit("DME"))
+)
+```
+
+This means that a claim will be classified under the `'Durable Medical Equipment'` category if either of these conditions is satisfied.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ8] rule-logic / medium
+Q: Compare the `'Home Health'` and `'Skilled Nursing Facility'` category predicates. What Type-of-Bill patterns does each test, and is there a difference in how the type_of_bill string is normalized before the LIKE?
+Score: None
+
+REFERENCE:
+Both are Type-of-Bill (TOB) pattern tests but they normalize differently. Home Health (`cond_home_health`): `F.upper(F.trim(F.col('type_of_bill_hdr'))).like('32%') | F.upper(F.trim(F.col('type_of_bill_hdr'))).like('33%')` — TOB starting with 32 OR 33, with the string UPPERCASED and trimmed first. Skilled Nursing Facility (`cond_snf`): `F.trim(F.col('type_of_bill_hdr')).like('21%')` — TOB starting with 21, but only TRIMMED (NO `upper()`). So the difference: Home Health applies `upper(trim(...))`, whereas SNF applies only `trim(...)` before the LIKE. SNF tests a single pattern '21%'; Home Health tests two patterns '32%' and '33%'. (Since TOB codes are numeric the missing upper() on SNF is harmless in practice, but the normalization is genuinely different in the code.)
+
+MODEL (openai/gpt-4o-mini):
+The predicates for the `'Home Health'` and `'Skilled Nursing Facility'` categories are as follows:
+
+1. **Home Health**:
+   - Predicate: 
+     ```python
+     cond_home_health = (
+         F.upper(F.trim(F.col("type_of_bill_hdr"))).like("32%")
+         | F.upper(F.trim(F.col("type_of_bill_hdr"))).like("33%")
+     )
+     ```
+   - Type-of-Bill Patterns: It tests for Type-of-Bill values that start with "32" or "33".
+
+2. **Skilled Nursing Facility**:
+   - Predicate:
+     ```python
+     cond_snf = F.trim(F.col("type_of_bill_hdr")).like("21%")
+     ```
+   - Type-of-Bill Patterns: It tests for Type-of-Bill values that start with "21".
+
+**Normalization Differences**:
+- For the `'Home Health'` category, the `type_of_bill_hdr` string is first trimmed of whitespace and then converted to uppercase before applying the LIKE condition.
+- For the `'Skilled Nursing Facility'` category, the `type_of_bill_hdr` string is only trimmed of whitespace and does not undergo uppercase conversion before the LIKE condition.
+
+In summary, the main difference is that the `'Home Health'` predicate normalizes the string to uppercase, while the `'Skilled Nursing Facility'` predicate does not.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ9] join-condition / hard
+Q: The pipeline applies `suffix_rename` to some source DataFrames but not others. Which DataFrames get a suffix, which join inputs deliberately do NOT, and how do the un-suffixed ones still join correctly?
+Score: None
+
+REFERENCE:
+`suffix_rename(df, suffix)` uses `df.toDF(*[c+suffix for c in df.columns])` to append a suffix to every column. It is applied to FIVE DataFrames: `claim_hdr_df` ('_hdr'), `claim_prov_df` ('_prov'), `member_df` ('_mbr'), `aggregated_cob_df` ('_cob'), and `claim_interest_df` ('_int'). It is NOT applied to: `claim_diag_df`, `claim_proc_df`, `claim_occ_df`, `claim_payable_df`, or `provider_df`. How the un-suffixed ones still work: (a) claim_diag_df and claim_proc_df keep their original column names and are joined to the header on `claim_hdr_df['claim_id_hdr'] == claim_diag_df['claim_id']` (and similarly claim_proc) — they are immediately consumed by the wide PIVOTs, whose outputs are then renamed to `claim_id_diag` / `claim_id_proc` for the cascade; (b) claim_occ_df is aggregated separately and its key renamed `claim_id` -> `claim_id_occ`; (c) claim_payable_df is referenced only inside the aggregated_cob `spark.sql` CTE (by table name, not as a Python DataFrame join), so it never needs Python-side suffixing; (d) provider_df is used only inside the provider_specialty `spark.sql` block (joined by SQL alias `pr`). So suffixing is applied exactly to the DataFrames that participate in the Python cascade join where column-name collisions would otherwise occur.
+
+MODEL (openai/gpt-4o-mini):
+The `suffix_rename` function is applied to the following DataFrames:
+
+1. `claim_hdr_df` - suffixed as `_hdr`
+2. `claim_prov_df` - suffixed as `_prov`
+3. `member_df` - suffixed as `_mbr`
+4. `aggregated_cob_df` - suffixed as `_cob`
+5. `claim_interest_df` - suffixed as `_int`
+
+The following DataFrames do not receive a suffix:
+
+1. `claim_diag_df`
+2. `claim_proc_df`
+3. `occ_agg_df`
+4. `interest_agg_df`
+
+These un-suffixed DataFrames still join correctly because they are joined using their original column names, which are consistent with the columns in the suffixed DataFrames. For example, when joining `claim_hdr_df` (with `_hdr` suffix) to `claim_diag_df`, the join condition uses the original column names like `claim_id` from `claim_diag_df` and `claim_id_hdr` from `claim_hdr_df`. The join conditions are explicitly defined to match the appropriate columns, ensuring that the joins work correctly despite the suffixes on some DataFrames.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ10] column-derive / medium
+Q: How are `plan_id` and `payer_id` derived, what column drives them, and how do their value mappings relate to each other and to `coverage_plans.policy_id`?
+Score: None
+
+REFERENCE:
+Both `plan_id` and `payer_id` are first-match `when`-chains keyed on the SAME source column `product_code_hdr`, with four branches plus an otherwise. `plan_id`: MERIDIAN_PPO -> 'MRD-PPO-001', MERIDIAN_HMO -> 'MRD-HMO-001', MERIDIAN_EPO -> 'MRD-EPO-001', MERIDIAN_DSNP -> 'MRD-DSNP-001', otherwise 'UNKNOWN'. `payer_id`: MERIDIAN_PPO -> '1234567890', MERIDIAN_HMO -> '1234567891', MERIDIAN_EPO -> '1234567892', MERIDIAN_DSNP -> '1234567893', otherwise 'UNKNOWN'. So they share identical branch CONDITIONS (the four product codes) but emit different value sets (plan code strings vs 10-digit payer IDs). Relationship to coverage_plans: `coverage_plans[0].policy_id` is `concat_ws('_', coalesce(member_uid,'UNKNOWN'), coalesce(<the plan_id when-chain repeated INLINE>, 'UNKNOWN'))` — i.e. it re-derives the plan_id mapping inline rather than referencing the plan_id column, so a change to the product_code -> plan code mapping must be made in two places to stay consistent. (coverage_plans also carries payer_id via `coalesce(col('payer_id'), 'UNKNOWN')`, this time referencing the computed payer_id column.)
+
+MODEL (openai/gpt-4o-mini):
+The `plan_id` and `payer_id` are derived from the `product_code_hdr` column using a series of `when` conditions. The mappings are as follows:
+
+- **`plan_id` derivation:**
+  - If `product_code_hdr` is "MERIDIAN_PPO", then `plan_id` is "MRD-PPO-001".
+  - If `product_code_hdr` is "MERIDIAN_HMO", then `plan_id` is "MRD-HMO-001".
+  - If `product_code_hdr` is "MERIDIAN_EPO", then `plan_id` is "MRD-EPO-001".
+  - If `product_code_hdr` is "MERIDIAN_DSNP", then `plan_id` is "MRD-DSNP-001".
+  - Otherwise, `plan_id` is set to "UNKNOWN".
+
+- **`payer_id` derivation:**
+  - If `product_code_hdr` is "MERIDIAN_PPO", then `payer_id` is "1234567890".
+  - If `product_code_hdr` is "MERIDIAN_HMO", then `payer_id` is "1234567891".
+  - If `product_code_hdr` is "MERIDIAN_EPO", then `payer_id` is "1234567892".
+  - If `product_code_hdr` is "MERIDIAN_DSNP", then `payer_id` is "1234567893".
+  - Otherwise, `payer_id` is set to "UNKNOWN".
+
+**Relationship to `coverage_plans.policy_id`:**
+The `coverage_plans.policy_id` is constructed by concatenating the `member_uid` and the resolved `plan_id`. The `plan_id` is derived from the same `product_code_hdr` that drives the `payer_id`. Therefore, any change in `product_code_hdr` will affect both `plan_id` and `payer_id`, and consequently, the `policy_id` in `coverage_plans` will also reflect this change, as it directly incorporates the derived `plan_id`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ11] column-derive / easy
+Q: The final projection adds three ETL/audit columns: `etl_loaded_at`, `etl_source_job`, and `source_system`. How is each produced, and which one is non-deterministic across runs?
+Score: None
+
+REFERENCE:
+All three are added inside the final `silver_df = final_df.select(...)` projection as non-source-derived columns: `etl_loaded_at = F.current_timestamp().alias('etl_loaded_at')`; `etl_source_job = F.lit('silver_clinical_claims').alias('etl_source_job')`; `source_system = F.lit('meridian').alias('source_system')`. Two are constants (`etl_source_job` = literal 'silver_clinical_claims', `source_system` = literal 'meridian'), so they have no upstream lineage. The NON-DETERMINISTIC one is `etl_loaded_at`: `current_timestamp()` is evaluated at run time, so the same input data yields a different value on each run. A lineage tool should represent etl_loaded_at as derived from a runtime function (no source column) and the other two as literal constants.
+
+MODEL (openai/gpt-4o-mini):
+The final projection adds the following ETL/audit columns:
+
+1. **`etl_loaded_at`**: This column is produced using `F.current_timestamp()`, which captures the current timestamp at the time of the ETL job execution. This column is non-deterministic across runs because it will have a different value each time the job is executed, reflecting the exact time of that execution.
+
+2. **`etl_source_job`**: This column is produced using `F.lit("silver_clinical_claims")`, which assigns a constant string value indicating the name of the ETL job. This column is deterministic and will have the same value across all runs.
+
+3. **`source_system`**: This column is produced using `F.lit("meridian")`, which also assigns a constant string value indicating the source system. Like `etl_source_job`, this column is deterministic and will remain the same across all runs.
+
+In summary, `etl_loaded_at` is the non-deterministic column, while `etl_source_job` and `source_system` are deterministic.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ12] column-derive / medium
+Q: Two output columns are both derived from `claim_status_hdr`. Name them, and explain why a change to the claim_status code vocabulary in `bronze.claim_header` would affect both.
+Score: None
+
+REFERENCE:
+The two columns are `processing_status` and `claim_outcome`. Both are independent first-match `when`-chains whose conditions all test the SAME source column `claim_status_hdr` (values 'Adjudicated','Denied','Pended','Suspended','Voided','Adjusted'). `processing_status` maps them to a FHIR ClaimResponse.status value set (Adjudicated/Denied/Adjusted -> 'active', Pended/Suspended -> 'draft', Voided -> 'cancelled', otherwise -> 'active'); `claim_outcome` maps them to ClaimResponse.outcome (Adjudicated/Denied/Voided -> 'complete', Pended -> 'queued', Suspended -> 'error', Adjusted -> 'partial', otherwise -> NULL). Because both read only `claim_status_hdr`, any change to the claim_status vocabulary (a renamed code, a new status value, or a removed one) propagates to BOTH outputs simultaneously: a new unmapped status would fall through to processing_status='active' and claim_outcome=NULL. They are the file's example of one source column fanning out to two derived columns.
+
+MODEL (openai/gpt-4o-mini):
+The two output columns derived from `claim_status_hdr` are `processing_status` and `claim_outcome`. 
+
+A change to the `claim_status_hdr` code vocabulary in `bronze.claim_header` would affect both columns because both are determined by a series of `when` conditions that map specific values of `claim_status_hdr` to corresponding values for `processing_status` and `claim_outcome`. Since both columns rely on the same source column (`claim_status_hdr`) and are driven by the same logic, any modification to the values or definitions in `claim_status_hdr` would propagate through to both output columns, potentially altering their values based on the updated mappings.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ13] window-tiebreak / medium
+Q: Describe the window used to rank procedures for the wide pivot in the procedure stage. Give its full PARTITION BY / ORDER BY spec, the ranking function, and how `procedure_<i>_type` is determined within the pivot.
+Score: None
+
+REFERENCE:
+The procedure window is `proc_rank_window = Window.partitionBy('claim_id_hdr').orderBy(F.col('proc_priority').asc_nulls_last(), F.col('hcpcs_code').asc_nulls_last())`, applied as `row_number().over(proc_rank_window)` to produce `proc_rank` on `ranked_proc_df` (claim_hdr LEFT JOIN claim_proc on claim_id). Partition: `claim_id_hdr` (one ranking per claim). Sort: `proc_priority` ASCENDING nulls-last, tie-broken by `hcpcs_code` ASCENDING nulls-last — so the lowest-priority-number (most significant) procedure, then lowest HCPCS code, becomes rank 1. MAX_PROC=4, so the pivot keeps ranks 1..4 via `MAX(CASE WHEN proc_rank = i THEN ... END)`. `procedure_{i}_type` is determined inside the pivot by a nested CASE: `MAX(CASE WHEN proc_rank = i THEN CASE WHEN is_principal_proc = 'Y' THEN 'Principal' ELSE 'Secondary' END END)` — i.e. the rank-i procedure is labeled 'Principal' if its is_principal_proc flag is 'Y', else 'Secondary'. This window mirrors the diagnosis window's structure (same partition key, ASC-nulls-last two-key sort, row_number) but orders by proc_priority/hcpcs_code instead of diag_priority/icd10_code, and keeps 4 ranks instead of 5.
+
+MODEL (openai/gpt-4o-mini):
+The window used to rank procedures for the wide pivot in the procedure stage is defined as follows:
+
+- **PARTITION BY**: `claim_id_hdr`
+- **ORDER BY**: `proc_priority` (ascending, nulls last) and `hcpcs_code` (ascending, nulls last)
+- **Ranking Function**: `ROW_NUMBER()`
+
+The `procedure_<i>_type` is determined within the pivot by checking if the `is_principal_proc` column is equal to 'Y'. If it is, the value assigned to `procedure_<i>_type` will be 'Principal'; otherwise, it will be 'Secondary'. This logic is implemented in the pivot expression for each procedure rank.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ14] fallback-chain / medium
+Q: How is the boolean column `is_pcp_claim` derived, and what is its signal precedence? How does it relate to the PCP logic in `provider_specialty_code`?
+Score: None
+
+REFERENCE:
+`is_pcp_claim` is a `coalesce` of three boolean signals in precedence order: `coalesce(F.col('is_pcp_eligible_reg').cast('boolean'), (F.col('any_pcp_flag') == F.lit(1)), F.lit(False))`. Precedence: (1) the primary rendering provider's registry PCP flag `is_pcp_eligible_reg` (cast to boolean) if non-null; (2) else whether ANY rendering provider on the claim is PCP-eligible, expressed as `any_pcp_flag == 1` (any_pcp_flag is the MAX(CASE WHEN is_pcp_eligible=true THEN 1 ELSE 0) aggregate from the any_pcp_signal CTE); (3) else `False`. Relationship to `provider_specialty_code`: the same two PCP signals drive the top of that column's when-chain — if `coalesce(is_pcp_eligible_reg cast boolean, False) == True` OR `coalesce(any_pcp_flag,0) == 1`, provider_specialty_code is set to the literal 'PCP' (overriding the registry/claim specialty codes). So is_pcp_claim is the boolean form of the same PCP-touched logic that forces provider_specialty_code='PCP'; both prefer the top-ranked provider's registry flag and fall back to the claim-wide any_pcp_flag.
+
+MODEL (openai/gpt-4o-mini):
+The boolean column `is_pcp_claim` is derived using the following logic:
+
+1. It first checks the `is_pcp_eligible_reg` column from the `provider_specialty_df`, which indicates if the primary rendering NPI is marked as eligible to be a Primary Care Provider (PCP).
+2. If the first condition is not met, it checks the `any_pcp_flag`, which indicates if any rendering provider on the claim is PCP-eligible.
+3. If neither of the above conditions is satisfied, it defaults to `False`.
+
+The signal precedence for determining `is_pcp_claim` is as follows:
+- **Signal 1**: `is_pcp_eligible_reg` from the provider registry (highest precedence).
+- **Signal 2**: `any_pcp_flag`, which broadens the check to any rendering provider on the claim.
+- **Signal 3**: Defaults to `False` if neither condition is met.
+
+The `is_pcp_claim` logic is closely related to the `provider_specialty_code` logic. The `provider_specialty_code` is determined based on the same signals, where:
+- If `is_pcp_eligible_reg` is true, the `provider_specialty_code` is set to "PCP".
+- If `any_pcp_flag` is true, it also results in "PCP".
+- If neither condition is met, it falls back to the specialty code from the provider registry or the rendering specialty from the claim.
+
+Thus, both `is_pcp_claim` and `provider_specialty_code` utilize the same underlying logic to determine if a claim is associated with a PCP, ensuring consistency in the classification of claims related to primary care providers.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ15] struct-array-shape / medium
+Q: Both `other_diagnoses` and `other_procedures` are built as filtered arrays of conditional structs. What is the key processing difference between how the two final arrays are produced?
+Score: None
+
+REFERENCE:
+Both are built the same way up to a point: an intermediate `*_raw` column = `array(*[when(col('<code>_i').isNotNull(), struct(...)) ...])` over the ranked wide columns, then a `filter(..., x -> x is not null)` to drop ranks with no code, then the `_raw` column is dropped. The KEY DIFFERENCE is sorting: `other_diagnoses = array_sort(expr("filter(other_diagnoses_raw, x -> x is not null)"))` — it is wrapped in `array_sort`, so the surviving diagnosis structs are sorted (by natural struct ordering). `other_procedures = expr("filter(other_procedures_raw, x -> x is not null)")` — it is NOT wrapped in array_sort, so the surviving procedure structs remain in their original rank order. So diagnoses are filter+SORT; procedures are filter only. (Secondary differences: the diag inner struct has 8 fields with codeset_system='ICD-10-CM' and includes diagnosis_type / present_on_admission_code / diagnosis_group; the proc inner struct has 8 fields with codeset_system='HCPCS' and includes modifier_code / procedure_date / procedure_type — but the question's core answer is the array_sort vs no-sort distinction.)
+
+MODEL (openai/gpt-4o-mini):
+The key processing difference between how `other_diagnoses` and `other_procedures` are produced lies in the way they handle the filtering and structuring of their respective data.
+
+1. **`other_diagnoses`**:
+   - The `other_diagnoses` array is built by first creating a raw array of structs (`other_diagnoses_raw`) that includes all ranked diagnosis records. Each struct is created conditionally based on whether the diagnosis code is not null. 
+   - After constructing this raw array, it is filtered to remove any null entries using the `array_sort` and `filter` functions, resulting in the final `other_diagnoses` array.
+
+2. **`other_procedures`**:
+   - The `other_procedures` array is built similarly, but it directly filters the raw array of structs (`other_procedures_raw`) to remove null entries without the intermediate step of sorting. 
+   - The filtering is done using the `filter` function, and it does not require an additional sorting step.
+
+In summary, while both arrays are constructed from conditionally created structs, `other_diagnoses` involves an additional step of sorting after filtering, whereas `other_procedures` directly filters the raw array without sorting.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ16] write-sink / medium
+Q: How is the final table partitioned on write, and is there any discrepancy between the partitioning comment and the actual code? What guarantees the partition column is never NULL?
+Score: None
+
+REFERENCE:
+The write is `dq_passed_df.write.format('delta').mode('overwrite').option('overwriteSchema','true').partitionBy('service_from_date').saveAsTable(f'{SILVER}.clinical_claims')` — Delta format, full-refresh overwrite with overwriteSchema, partitioned by `service_from_date`, written to `meridian.silver.clinical_claims`. DISCREPANCY: the comment says the table is 'partitioned by service_from_date (date-truncated to month)', but the actual code calls `.partitionBy('service_from_date')` with NO month truncation — it partitions on the raw service_from_date value, not a month bucket. So the comment overstates/ misdescribes the code. What guarantees no NULL partition: the upstream DQ stage `dq_passed_df` filters `F.col('service_from_date').isNotNull()` (one of its three mandatory not-null filters, alongside claim_id and member_id), so every row reaching the write has a non-null service_from_date — there can be no NULL/default partition.
+
+MODEL (openai/gpt-4o-mini):
+The final table `silver.clinical_claims` is partitioned by the column `service_from_date` when it is written to Delta Lake. The comment states that the table is partitioned by `service_from_date` (date-truncated to month) to allow incremental downstream reads using partition pruning.
+
+There is no discrepancy between the partitioning comment and the actual code; both indicate that the partitioning is done on `service_from_date`.
+
+The guarantee that the partition column `service_from_date` is never NULL comes from the data quality checks applied before writing to the table. Specifically, the code includes a filter that ensures only rows where `service_from_date` is not NULL are passed to the write operation:
+
+```python
+dq_passed_df = (
+    silver_df
+    .filter(F.col("claim_id").isNotNull())
+    .filter(F.col("member_id").isNotNull())
+    .filter(F.col("service_from_date").isNotNull())
+)
+```
+
+This filtering ensures that any rows with a NULL `service_from_date` are excluded from the final DataFrame that is written to the table.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ17] join-condition / medium
+Q: The occurrence codes and interest adjustments are each aggregated to claim grain in their own steps and then joined back. For each, give the group key, the aggregate(s) produced, the renamed join key, and the join condition used in the cascade.
+Score: None
+
+REFERENCE:
+OCCURRENCE (`occ_agg_df`): built from `claim_occ_df`; first a per-row `occ_struct` = `when(occ_code.isNotNull(), struct(reference_id=lit(None), occurrence_code=occ_code, occurrence_date=occ_date, span_from_date=occ_span_from_date, span_to_date=occ_span_to_date))`; then `.groupBy('claim_id').agg(F.array_distinct(F.collect_list('occ_struct')).alias('occurrence_codes'))`; the key is renamed `claim_id` -> `claim_id_occ`. In the cascade it joins LEFT on `claim_hdr_df['claim_id_hdr'] == occ_agg_df['claim_id_occ']`. So its aggregate is array_distinct(collect_list(struct)) producing the `occurrence_codes` array.
+INTEREST (`interest_agg_df`): built from `claim_interest_df` (already _int-suffixed); `.groupBy('claim_id_int').agg(F.sum('interest_amount_int').alias('total_interest_amount'), F.count('interest_amount_int').alias('interest_line_count'))`; the key is renamed `claim_id_int` -> `claim_id_int_agg`. In the cascade it joins LEFT on `claim_hdr_df['claim_id_hdr'] == interest_agg_df['claim_id_int_agg']`. So it produces two aggregates: total_interest_amount (SUM) and interest_line_count (COUNT). Both join-backs are LEFT joins keyed on the claim_header's claim_id_hdr.
+
+MODEL (openai/gpt-4o-mini):
+For the occurrence codes and interest adjustments, here are the details:
+
+### Occurrence Codes
+- **Group Key**: `claim_id`
+- **Aggregates Produced**: 
+  - `occurrence_codes`: an array of distinct structs containing occurrence code details.
+- **Renamed Join Key**: `claim_id_occ`
+- **Join Condition**: 
+  ```sql
+  claim_hdr_df["claim_id_hdr"] == occ_agg_df["claim_id_occ"]
+  ```
+
+### Interest Adjustments
+- **Group Key**: `claim_id_int`
+- **Aggregates Produced**: 
+  - `total_interest_amount`: sum of interest amounts.
+  - `interest_line_count`: count of interest amount lines.
+- **Renamed Join Key**: `claim_id_int_agg`
+- **Join Condition**: 
+  ```sql
+  claim_hdr_df["claim_id_hdr"] == interest_agg_df["claim_id_int_agg"]
+  ```
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ18] write-sink / hard
+Q: How are the `BRONZE` and `SILVER` schema prefixes constructed, and does the `MERIDIAN_DATABASE` environment-variable override actually change which catalog/schema the pipeline reads from and writes to? Justify from the code.
+Score: None
+
+REFERENCE:
+`DATABASE = 'meridian'`, `BRONZE = f'{DATABASE}.bronze'` = 'meridian.bronze', `SILVER = f'{DATABASE}.silver'` = 'meridian.silver'. There is also `_env_db = os.environ.get('MERIDIAN_DATABASE', DATABASE)` with an inline comment calling it a 'runtime override hook'. However, the `MERIDIAN_DATABASE` override is INEFFECTIVE: `_env_db` is assigned but NEVER referenced anywhere else in the file. Both BRONZE and SILVER (and therefore every `spark.table(f'{BRONZE}....')` read, the `{BRONZE}` interpolations inside the two `spark.sql` CTE blocks, and the final `saveAsTable(f'{SILVER}.clinical_claims')`) are built from `DATABASE` directly, not from `_env_db`. So setting the MERIDIAN_DATABASE env var has no effect — all reads and the write stay pinned to the literal 'meridian' catalog/schema. A static lineage tool can resolve every table FQN to meridian.bronze.* / meridian.silver.* with certainty regardless of the environment, because the override variable is dead code.
+
+MODEL (openai/gpt-4o-mini):
+The `BRONZE` and `SILVER` schema prefixes are constructed using the `DATABASE` variable, which is initialized to the string `"meridian"`. The `BRONZE` and `SILVER` variables are then defined as follows:
+
+```python
+BRONZE = f"{DATABASE}.bronze"
+SILVER = f"{DATABASE}.silver"
+```
+
+This means that `BRONZE` resolves to `"meridian.bronze"` and `SILVER` resolves to `"meridian.silver"`.
+
+The `MERIDIAN_DATABASE` environment variable can override the `DATABASE` variable at runtime. This is done with the following line of code:
+
+```python
+_env_db = os.environ.get("MERIDIAN_DATABASE", DATABASE)   # runtime override hook
+```
+
+If the `MERIDIAN_DATABASE` environment variable is set, `_env_db` will take that value; otherwise, it will default to `"meridian"`. However, the code does not use `_env_db` to construct the `BRONZE` and `SILVER` variables. Therefore, the pipeline will always read from and write to the `"meridian.bronze"` and `"meridian.silver"` schemas, regardless of whether `MERIDIAN_DATABASE` is set or not.
+
+In summary, while the `MERIDIAN_DATABASE` environment variable is intended to allow for a runtime override, it does not actually affect the schema prefixes used in the pipeline because the code does not utilize `_env_db` for constructing `BRONZE` and `SILVER`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ19] rule-logic / hard
+Q: Several category predicates reference `revenue_code_list`. Is `revenue_code_list` produced, derived, or read anywhere in this file? What does that imply for tracing its lineage?
+Score: None
+
+REFERENCE:
+`revenue_code_list` is referenced inside `F.expr(...)` in three category predicates — `cond_rehab`, `cond_hospice`, and `cond_er_obs` (each does `exists(revenue_code_list, x -> ...)`). But it is NOT produced anywhere in this file: there is no `withColumn('revenue_code_list', ...)`, it is not in the final canonical projection, and — unlike every other column referenced in those predicates (e.g. `type_of_bill_hdr`, `admit_status_hdr`, `primary_diag_code_hdr`, which all carry the `_hdr` suffix from suffix_rename) — it is referenced WITHOUT any suffix. Since the claim_header columns were all suffixed to `_hdr`, a bare `revenue_code_list` does not correspond to any column this file creates or renames. Implication: `revenue_code_list` has no in-file producer; its origin is unresolved/assumed-preexisting (it would have to arrive on final_df from a source not handled in this file). For lineage this is a GAP — a static tool cannot trace revenue_code_list back to a bronze column from this file, and should flag it as an unresolved column reference used by three classification predicates. (At runtime this reference would not resolve against the suffixed header columns, making it a latent issue as well.)
+
+MODEL (openai/gpt-4o-mini):
+The `revenue_code_list` is referenced in the category predicates within the `build_claim_criteria()` function, specifically in conditions for "Inpatient Rehabilitation," "Hospice," and "Emergency / Observation." However, there is no indication in the provided code that `revenue_code_list` is produced, derived, or read from any DataFrame or source within the `silver_clinical_claims.py` file.
+
+This implies that `revenue_code_list` is likely expected to be part of the input DataFrames (such as `claim_header`, `claim_diagnosis`, or `claim_procedure`) but is not explicitly defined or processed in the provided code. Therefore, tracing its lineage would require examining the source DataFrames loaded from the bronze layer to determine where `revenue_code_list` originates and how it is populated. Without that information, the lineage of `revenue_code_list` cannot be fully traced within this file.
+
+Notes: 
+-----------------------------------------------------------------
+
+[TQ20] column-derive / hard
+Q: `MAX_DIAG = 5` controls the diagnosis pivot. If it were changed to 3, what specifically would change in the generated columns and the `other_diagnoses` array — and why would the final projection break?
+Score: None
+
+REFERENCE:
+`MAX_DIAG` drives two loops: (a) `diag_pivot_exprs` is built with `for i in range(1, MAX_DIAG + 1)`, generating five sets of wide pivot columns `diagnosis_1_*` .. `diagnosis_5_*` (code/description/type/poa/priority); (b) `diag_structs` is built with the same range, producing five conditional structs that feed `other_diagnoses_raw = array(*diag_structs)` and then `other_diagnoses`. If MAX_DIAG were changed to 3: only `diagnosis_1_*` .. `diagnosis_3_*` wide columns would be generated, and `other_diagnoses` would consider only the top 3 ranks (its array would hold at most 3 structs). The FINAL PROJECTION WOULD BREAK: `silver_df = final_df.select(...)` explicitly lists `col('diagnosis_4_code')` and `col('diagnosis_5_code')` (the canonical contract hardcodes diagnoses 1-5). With MAX_DIAG=3 those two columns are never created, so the `.select` would raise an AnalysisException for the missing `diagnosis_4_code` / `diagnosis_5_code`. So MAX_DIAG is implicitly coupled to the hardcoded 1-5 projection: changing it requires editing the final select too. (The Maternity predicate `cond_maternity` also references diagnosis_1_code..diagnosis_5_code explicitly, so it would likewise reference now-missing columns.) Lineage-wise, lowering MAX_DIAG removes the rank-4 and rank-5 derive edges and the other_diagnoses contributions from those ranks.
+
+MODEL (openai/gpt-4o-mini):
+If `MAX_DIAG` were changed from 5 to 3, the following specific changes would occur in the generated columns and the `other_diagnoses` array:
+
+1. **Generated Columns**: The pivoting logic for diagnosis codes would only create columns for `diagnosis_1_code`, `diagnosis_2_code`, and `diagnosis_3_code`. The columns `diagnosis_4_code` and `diagnosis_5_code` would no longer be generated. This is because the pivoting logic iterates from 1 to `MAX_DIAG`, and with `MAX_DIAG` set to 3, it would only create three sets of diagnosis columns.
+
+2. **`other_diagnoses` Array**: The `other_diagnoses` array would only include structs for the first three diagnoses. The logic that constructs this array relies on the existence of the diagnosis columns generated in the pivoting step. Since `diagnosis_4_code` and `diagnosis_5_code` would not be created, the array would be limited to the first three diagnoses.
+
+3. **Final Projection Break**: The final projection would break because the `silver_df` selection includes references to `diagnosis_4_code` and `diagnosis_5_code`. If these columns do not exist due to the change in `MAX_DIAG`, attempting to select them in the final projection would result in an error, as the columns would not be present in the DataFrame schema.
+
+In summary, changing `MAX_DIAG` to 3 would lead to the omission of the last two diagnosis columns and limit the `other_diagnoses` array to three entries, causing the final projection to fail due to missing columns.
+
+Notes: 
+-----------------------------------------------------------------

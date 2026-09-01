@@ -1,0 +1,39 @@
+scenario                                                   P     R    F1  found/GT
+--------------------------------------------------------------------------------------
+small: orders_raw.total_amount                          100%  100%  100%  7+0fp/7
+small: orders_raw.order_ts                              100%  100%  100%  8+0fp/8
+small: customers_raw.country_code                       100%   67%   80%  2+0fp/3
+    missed (recall gap): ['customer_ltv.ltv_vs_country_avg']
+small: customers_raw.email                              100%  100%  100%  2+0fp/2
+claims: claim_header.claim_status_hdr                   100%  100%  100%  2+0fp/2
+claims: claim_header.product_code_hdr                   100%   80%   89%  4+0fp/5
+    missed (recall gap): ['clinical_claims.product_code']
+medium: orders_raw.quantity                             100%   20%   33%  1+0fp/5
+    missed (recall gap): ['inventory_turnover_daily.days_of_stock', 'inventory_turnover_daily.sold_qty', 'inventory_turnover_daily.turnover_rate', 'revenue_forecast_features.avg_turnover']
+medium: marketing_attribution_raw.utm_campaign          100%   50%   67%  1+0fp/2
+    missed (recall gap): ['attribution_funnel_daily.utm_campaign']
+small: orders_raw.status                                100%  100%  100%  1+0fp/1
+small: orders_raw.order_id                              100%  100%  100%  4+0fp/4
+small: events_raw.event_ts                              100%  100%  100%  2+0fp/2
+small: customers_raw.customer_id                        100%  100%  100%  2+0fp/2
+small: orders_cleaned.order_date                        100%  100%  100%  1+0fp/1
+small: customer_ltv.revenue_quartile                    100%    0%    0%  0+0fp/1
+    missed (recall gap): ['customer_ltv.ltv_tier']
+medium: inventory_daily.on_hand_units                   100%   75%   86%  3+0fp/4
+    missed (recall gap): ['inventory_turnover_daily.on_hand_units']
+medium: orders_raw.order_id                             100%   67%   80%  6+0fp/9
+    missed (recall gap): ['attribution_funnel_daily.purchase_count', 'customer_return_rate.total_orders', 'inventory_turnover_daily.sales_count']
+medium: inventory_turnover_daily.turnover_rate          100%  100%  100%  1+0fp/1
+dbdemos: churn_users.creation_date                      100%  100%  100%  1+0fp/1
+dbdemos: churn_users.last_activity_date                 100%  100%  100%  1+0fp/1
+dbdemos: churn_orders.amount                            100%    0%    0%  0+0fp/1
+    missed (recall gap): ['churn_features.total_amount']
+dbdemos: churn_app_events.session_id                    100%    0%    0%  0+0fp/1
+    missed (recall gap): ['churn_features.session_count']
+--------------------------------------------------------------------------------------
+  dbdemos_retail_sdp             P 100%  R  50%  F1  67%  (tp=2 fp=0 fn=2)
+  repo_synthetic_medium          P 100%  R  57%  F1  73%  (tp=12 fp=0 fn=9)
+  repo_synthetic_small           P 100%  R  94%  F1  97%  (tp=29 fp=0 fn=2)
+  silver_clinical_claims         P 100%  R  86%  F1  92%  (tp=6 fp=0 fn=1)
+--------------------------------------------------------------------------------------
+POOLED (micro, 21 scenarios)                            100%   78%   88%  tp=49 fp=0 fn=14

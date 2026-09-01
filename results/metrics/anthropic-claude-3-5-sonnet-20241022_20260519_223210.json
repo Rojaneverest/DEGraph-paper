@@ -1,0 +1,33 @@
+{
+  "runs": [
+    {
+      "meta": {
+        "backend": "openrouter",
+        "model": "anthropic/claude-3-5-sonnet-20241022",
+        "context_mode": "raw_source",
+        "context_tokens": 23683,
+        "timestamp": "20260519_223210",
+        "context_limit": null
+      },
+      "scores": {
+        "message": "No scores yet \u2014 grade results manually then re-run with --score"
+      },
+      "results": [
+        {
+          "id": "Q1",
+          "category": "direct-cross-file-impact",
+          "difficulty": "medium",
+          "question": "If the column `customer_id` in `main.dbdemos_ecom.orders_raw` is renamed to `cust_id`, which silver and gold tables in this repo need updating? List each affected table and the reason it is affected.",
+          "context_mode": "raw_source",
+          "context_tokens": 23683,
+          "prompt_tokens": 23810,
+          "reference_answer": "Per the graph, `orders_raw` is read by 4 silver files: `silver/orders_cleaned.py`, `silver/customer_profile.py`, `silver/refunds_enriched.py`, and `silver/shipments_timeline.py`. Affected silver tables: (1) `silver.orders_cleaned` \u2014 `customer_id` passes through the column-set propagation chain (trim \u2192 withColumns \u2192 drop \u2192 filter) unchanged. (2) `silver.customer_profile` \u2014 `customer_id` is the join key with `customers_raw` and a `groupBy` key in the aggregate. (3) `silver.refunds_enriched` \u2014 the file joins refunds \u2192 returns \u2192 orders, and `customer_id` propagates from `orders_raw` into the silver output. (4) `silver.shipments_timeline` \u2014 joins shipments with `orders_raw.select(order_id, customer_id)`; the renamed column breaks that select. Affected gold tables: (5) `gold.customer_ltv` \u2014 inherits from `customer_profile` via the SQL `base` CTE. (6) `gold.customer_return_rate` \u2014 joins `customer_profile` (via customer_id). (7) `gold.revenue_forecast_features` \u2014 inherits from `customer_ltv`. NOT affected: `silver.returns_cleaned` (reads `returns_raw` not `orders_raw`), `silver.inventory_daily`, `silver.marketing_touchpoints`, `gold.product_performance` (groups by product_id and order_date only), `gold.inventory_turnover_daily`, `gold.attribution_funnel_daily` (the orders_cleaned-side branch uses order_id and order_date, not customer_id directly).",
+          "model_answer": "[ERROR: OpenRouter HTTP 404: {\"error\":{\"message\":\"No endpoints found for anthropic/claude-3-5-sonnet-20241022.\",\"code\":404},\"user_id\":\"user_3Dvo2YHDAb4tPJNAOQQexAgULqX\"}]",
+          "elapsed_s": 0.0,
+          "score": null,
+          "notes": ""
+        }
+      ]
+    }
+  ]
+}

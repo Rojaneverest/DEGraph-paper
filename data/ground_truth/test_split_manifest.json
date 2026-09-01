@@ -1,0 +1,51 @@
+{
+  "_doc": "See dev/evaluation_protocol.md. Seal records are immutable once written; re-sealing requires --force --reason.",
+  "splits": {
+    "repo_synthetic_medium.qa.test.json": {
+      "sha256": "f323a4686454af2f7a9ee9aabace2aac59a83abd71b49c7c5b8290a03e9bfa0a",
+      "commit": "f94ff508726b866067003d14f3a7923b9f29314b",
+      "commit_short": "f94ff50",
+      "sealed_at": "2026-05-29 09:53:35",
+      "sealed": true,
+      "num_questions": 20
+    },
+    "repo_synthetic_small.qa.test.json": {
+      "sha256": "6959bf67eac37ff1080944ae4b84cec598eccb4b2289c0ec323b7e48afbc0273",
+      "commit": "f94ff508726b866067003d14f3a7923b9f29314b",
+      "commit_short": "f94ff50",
+      "sealed_at": "2026-05-29 09:53:35",
+      "sealed": true,
+      "num_questions": 20
+    },
+    "silver_clinical_claims.qa.test.json": {
+      "sha256": "af686f9517e3ec9fa1b7544c0a185d8ee6e014eda5a86ad186a6f9472d7b2a78",
+      "commit": "f94ff508726b866067003d14f3a7923b9f29314b",
+      "commit_short": "f94ff50",
+      "sealed_at": "2026-05-29 09:53:35",
+      "sealed": true,
+      "num_questions": 20
+    }
+  },
+  "evaluations": [
+    {
+      "tool_tag": "v1.1-frozen-for-eval",
+      "tool_commit": "4e837883dadb55af042ed261837dcc68bafba1ce",
+      "logged_at": "2026-05-29 10:44:50",
+      "splits": {
+        "repo_synthetic_medium.qa.test.json": "f323a4686454af2f",
+        "repo_synthetic_small.qa.test.json": "6959bf67eac37ff1",
+        "silver_clinical_claims.qa.test.json": "af686f9517e3ec9f"
+      }
+    },
+    {
+      "tool_tag": "v1.2-frozen-for-eval",
+      "tool_commit": "f8ff4db300a33a92d87bc92fc57fcf803c73e688",
+      "logged_at": "2026-05-29 21:39:46",
+      "splits": {
+        "repo_synthetic_medium.qa.test.json": "f323a4686454af2f",
+        "repo_synthetic_small.qa.test.json": "6959bf67eac37ff1",
+        "silver_clinical_claims.qa.test.json": "af686f9517e3ec9f"
+      }
+    }
+  ]
+}

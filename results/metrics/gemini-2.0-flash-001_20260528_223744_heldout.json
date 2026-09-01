@@ -1,0 +1,31 @@
+{
+  "runs": [
+    {
+      "meta": {
+        "backend": "gemini",
+        "model": "gemini-2.0-flash-001",
+        "context_mode": "raw_source",
+        "context_tokens": 0,
+        "timestamp": "20260528_223744",
+        "context_limit": null
+      },
+      "scores": {},
+      "results": [
+        {
+          "id": "HQ1",
+          "category": "direct-cross-file-impact",
+          "difficulty": "medium",
+          "question": "If the column `country_code` in `main.dbdemos_ecom.customers_raw` is renamed to `ctry_code`, which silver and gold tables need updating? Be specific about every place country_code is referenced.",
+          "context_mode": "raw_source",
+          "context_tokens": 10226,
+          "prompt_tokens": 10351,
+          "reference_answer": "Two tables affected, and `country_code` is referenced in FOUR distinct places across them.\n\nSilver: `silver.customer_profile` \u2014 `customer_id` is read via `spark.table(f'{database}.customers_raw')` in `silver/customer_profile.py`. `country_code` is used as one of the four group keys in the final aggregate: `.groupBy('customer_id', 'email', 'country_code', 'signup_ts').agg(...)`. Renaming the bronze column would break the groupBy reference. The output silver table `customer_profile` exposes `country_code` as a top-level column (it survives the groupBy as a group key).\n\nGold: `gold.customer_ltv` \u2014 uses `country_code` in THREE separate places inside its `spark.sql` block: (a) The `base` CTE selects `country_code` from `customer_profile`; (b) The `country_avg` CTE groups BY `country_code` and computes `AVG(lifetime_revenue) AS avg_country_ltv`; (c) The `ranked` CTE LEFT JOINs back to `country_avg` via `USING (country_code)`, which both attaches `avg_country_ltv` to each customer and feeds the `b.lifetime_revenue / NULLIF(ca.avg_country_ltv, 0) AS ltv_vs_country_avg` derivation. All three references would need updating. The output gold table `customer_ltv` also carries `country_code` forward.\n\nNOT affected: `silver.orders_cleaned` (does not consume customers_raw); `gold.product_performance` (groups by product_id, order_date \u2014 does not touch country_code). `bronze.products_raw` is an orphan (no consumers) so it cannot be affected by anything.",
+          "model_answer": "[ERROR: Gemini gave up after 6 retries. Last error: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\\nPlease retry in 58.526023454s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-2.0-flash', 'location': 'global'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'model': 'gemini-2.0-flash', 'location': 'global'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '58s'}]}}]",
+          "elapsed_s": 0.0,
+          "score": null,
+          "notes": ""
+        }
+      ]
+    }
+  ]
+}

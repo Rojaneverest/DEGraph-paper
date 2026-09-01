@@ -1,0 +1,3666 @@
+[
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_ltv.revenue_quartile",
+    "author": 1,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "orders_cleaned.is_high_value",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_ltv.signup_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "orders_cleaned.total_amount",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_ltv.avg_country_ltv",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_ltv.ltv_vs_country_avg",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "product_performance.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "orders_cleaned.order_year",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_ltv.ltv_tier",
+    "author": 1,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "orders_raw.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_ltv.lifetime_revenue",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "orders_raw.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "orders_raw.quantity",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_profile.lifetime_revenue",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "orders_cleaned.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_profile.total_orders",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.order_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "customer_profile.last_order_ts",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.is_high_value",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "product_performance.order_date",
+    "author": 1,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.quantity",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.order_month",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "customer_ltv.days_since_last_order",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.order_ts",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.status",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "customer_ltv.last_order_ts",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.order_year",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "customers_raw.source_file",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "customer_profile.signup_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.order_date",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "customers_raw.country_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "events_raw.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "customer_ltv.ltv_vs_country_avg",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "customer_profile.last_event_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "orders_raw.source_file",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "orders_cleaned.unit_price",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "orders_cleaned.order_month",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "customer_ltv.country_code",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "orders_cleaned.is_high_value",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "customer_ltv.avg_country_ltv",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "customers_raw._rescued_data",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "customers_raw.source_file",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "orders_raw.status",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "customer_profile.country_code",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "customer_profile.email",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "customer_profile.last_event_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "customer_profile.signup_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "customer_ltv.country_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "customer_ltv.ltv_tier",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "orders_raw.currency",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "orders_cleaned.order_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "orders_cleaned.order_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "customer_ltv.email",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "customer_ltv.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.claim_id_occ",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.claim_outcome",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.occurrence_codes",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.processing_status",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.claim_categories",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.total_interest_amount",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.pp.claim_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.coverage_plans",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.pp.specialty_code_reg",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.member_uid",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.processing_status",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.claim_outcome",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.claim_id_proc",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.plan_id",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.pp.is_pcp_eligible_reg",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.product_code",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.occurrence_codes",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.other_amounts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.extension_source_values",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.payer_id",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.pp.rendering_specialty",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.coverage_plans",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.claim_category",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "shipments_raw.shipment_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "customer_ltv.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "returns_cleaned.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "customers_raw.source_file",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "inventory_turnover_daily.days_of_stock",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "customers_raw.last_name",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "orders_cleaned.quantity",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "refunds_enriched.payment_method",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "returns_cleaned.warehouse_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "inventory_daily.utilization_pct",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "revenue_forecast_features.avg_turnover",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "inventory_turnover_daily.turnover_rate",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "inventory_turnover_daily.sold_qty",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "returns_raw.reason_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "customer_profile.last_order_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "inventory_snapshots_raw.snapshot_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "shipments_raw.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "promotions_raw.ends_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "orders_cleaned.order_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "attribution_funnel_daily.utm_campaign",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "orders_cleaned.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "inventory_daily.on_hand_units",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "marketing_touchpoints.utm_campaign",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "orders_raw.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "orders_cleaned.order_year",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "customer_ltv.days_since_last_order",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "orders_cleaned.status",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "orders_raw.order_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "orders_raw.currency",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "orders_cleaned.order_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "customer_ltv.country_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "customer_ltv.signup_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "customer_profile.distinct_products_ordered",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "customers_raw.first_name",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "orders_raw.ingested_ts",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "customer_ltv.total_orders",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "product_performance.order_count",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "orders_cleaned.order_id",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "customers_raw.country_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "orders_cleaned.ingested_ts",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "customer_profile.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "orders_cleaned.total_amount",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "customers_raw.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "customer_profile.total_orders",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "customers_raw.last_name",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "orders_raw.order_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "orders_cleaned.order_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "customer_ltv.last_event_ts",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "orders_raw._rescued_data",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "orders_raw.currency",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "customer_ltv.revenue_quartile",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "orders_cleaned.is_high_value",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "customer_profile.last_event_ts",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "customer_ltv.country_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "customer_profile.country_code",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "customer_ltv.customer_id",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "customers_raw.last_name",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "orders_raw.source_file",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "customer_profile.last_event_ts",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "orders_raw.quantity",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "customer_ltv.total_orders",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "orders_raw.total_amount",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "orders_cleaned.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "customer_profile.customer_id",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "orders_raw.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "customer_ltv.last_event_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "customers_raw.country_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "orders_cleaned.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "product_performance.order_date",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "customers_raw.last_name",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "orders_raw.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "orders_raw.quantity",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "orders_cleaned.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "orders_cleaned.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "customer_ltv.ltv_tier",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "orders_raw._rescued_data",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "orders_cleaned.order_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "orders_raw.quantity",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "customer_ltv.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "orders_cleaned.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "customers_raw.country_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "customer_ltv.days_since_last_order",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "customer_ltv.signup_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "revenue_forecast_features.avg_turnover",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "orders_cleaned.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "returns_raw.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "refunds_enriched.return_qty",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "refunds_enriched.return_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "inventory_turnover_daily.days_of_stock",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "customer_ltv.lifetime_revenue",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "refunds_enriched._rescued_data",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "refunds_enriched.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "inventory_turnover_daily.turnover_rate",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "customer_profile.total_orders",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "refunds_enriched.refund_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "inventory_snapshots_raw.source_file",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "product_performance.order_count",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "revenue_forecast_features.total_orders",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "inventory_snapshots_raw.snapshot_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "refunds_raw.refund_amount",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "marketing_touchpoints.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "orders_cleaned.order_id",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "customers_raw.marketing_opt_in",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "orders_cleaned.currency",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "customer_ltv.total_orders",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "customer_ltv.lifetime_revenue",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "inventory_turnover_daily.sales_count",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "customers_raw.first_name",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "refunds_enriched.refund_amount",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "returns_cleaned.order_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "shipments_timeline.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "customer_profile.email",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "orders_cleaned.currency",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "refunds_enriched.order_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "revenue_forecast_features.avg_turnover",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "inventory_daily.warehouse_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_features.days_since_creation",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_features.last_event",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_features.last_transaction",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_users.firstname",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_prediction.churn_prediction",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_orders.item_count",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_features.total_item",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_orders.order_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_orders.creation_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_features.order_count",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_features.days_since_creation",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_users.churn",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_orders.order_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_orders.creation_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_features.total_amount",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_prediction.churn_prediction",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_features.days_since_last_activity",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_orders.item_count",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_users.email",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_features.session_count",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_orders.order_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_users.churn",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_users.user_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_features.total_amount",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_users.lastname",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_orders.creation_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_features.days_since_creation",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_users.gender",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_features.total_item",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_users.firstname",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_features.session_count",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_orders.item_count",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_users.creation_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_features.days_since_creation",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_orders.amount",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "openai/gpt-4o",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_prediction.churn_prediction",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_ltv.revenue_quartile",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "orders_cleaned.is_high_value",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_ltv.signup_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "orders_cleaned.total_amount",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_ltv.avg_country_ltv",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_ltv.ltv_vs_country_avg",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "product_performance.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "orders_cleaned.order_year",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_ltv.ltv_tier",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "orders_raw.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_ltv.lifetime_revenue",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "orders_raw.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "orders_raw.quantity",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_profile.lifetime_revenue",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "orders_cleaned.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.total_amount",
+    "candidate": "customer_profile.total_orders",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.order_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "customer_profile.last_order_ts",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.is_high_value",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "product_performance.order_date",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.quantity",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.order_month",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "customer_ltv.days_since_last_order",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.order_ts",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.status",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "customer_ltv.last_order_ts",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.order_year",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "customers_raw.source_file",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "customer_profile.signup_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "orders_cleaned.order_date",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "customers_raw.country_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_ts",
+    "candidate": "events_raw.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "customer_ltv.ltv_vs_country_avg",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "customer_profile.last_event_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "orders_raw.source_file",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "orders_cleaned.unit_price",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "orders_cleaned.order_month",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "customer_ltv.country_code",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "orders_cleaned.is_high_value",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "customer_ltv.avg_country_ltv",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "customers_raw._rescued_data",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "customers_raw.source_file",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "orders_raw.status",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.country_code",
+    "candidate": "customer_profile.country_code",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "customer_profile.email",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "customer_profile.last_event_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "customer_profile.signup_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "customer_ltv.country_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "customer_ltv.ltv_tier",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "orders_raw.currency",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "orders_cleaned.order_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "orders_cleaned.order_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "customer_ltv.email",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.email",
+    "candidate": "customer_ltv.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.claim_id_occ",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.claim_outcome",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.occurrence_codes",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.processing_status",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.claim_categories",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.total_interest_amount",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.pp.claim_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.coverage_plans",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.pp.specialty_code_reg",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.claim_status_hdr",
+    "candidate": "clinical_claims.member_uid",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.processing_status",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.claim_outcome",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.claim_id_proc",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.plan_id",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.pp.is_pcp_eligible_reg",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.product_code",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.occurrence_codes",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.other_amounts",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.extension_source_values",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.payer_id",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.pp.rendering_specialty",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.coverage_plans",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "silver_clinical_claims",
+    "change": "claim_header.product_code_hdr",
+    "candidate": "clinical_claims.claim_category",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "shipments_raw.shipment_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "customer_ltv.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "returns_cleaned.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "customers_raw.source_file",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "inventory_turnover_daily.days_of_stock",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "customers_raw.last_name",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "orders_cleaned.quantity",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "refunds_enriched.payment_method",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "returns_cleaned.warehouse_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "inventory_daily.utilization_pct",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "revenue_forecast_features.avg_turnover",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "inventory_turnover_daily.turnover_rate",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.quantity",
+    "candidate": "inventory_turnover_daily.sold_qty",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "returns_raw.reason_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "customer_profile.last_order_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "inventory_snapshots_raw.snapshot_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "shipments_raw.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "promotions_raw.ends_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "orders_cleaned.order_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "attribution_funnel_daily.utm_campaign",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "orders_cleaned.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "inventory_daily.on_hand_units",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "marketing_attribution_raw.utm_campaign",
+    "candidate": "marketing_touchpoints.utm_campaign",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "orders_raw.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "orders_cleaned.order_year",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "customer_ltv.days_since_last_order",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "orders_cleaned.status",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "orders_raw.order_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "orders_raw.currency",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "orders_cleaned.order_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "customer_ltv.country_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.status",
+    "candidate": "customer_ltv.signup_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "customer_profile.distinct_products_ordered",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "customers_raw.first_name",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "orders_raw.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "customer_ltv.total_orders",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "product_performance.order_count",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "orders_cleaned.order_id",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "customers_raw.country_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "orders_cleaned.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "customer_profile.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "orders_cleaned.total_amount",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "customers_raw.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_raw.order_id",
+    "candidate": "customer_profile.total_orders",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "customers_raw.last_name",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "orders_raw.order_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "orders_cleaned.order_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "customer_ltv.last_event_ts",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "orders_raw._rescued_data",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "orders_raw.currency",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "customer_ltv.revenue_quartile",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "orders_cleaned.is_high_value",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "customer_profile.last_event_ts",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "events_raw.event_ts",
+    "candidate": "customer_ltv.country_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "customer_profile.country_code",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "customer_ltv.customer_id",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "customers_raw.last_name",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "orders_raw.source_file",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "customer_profile.last_event_ts",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "orders_raw.quantity",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "customer_ltv.total_orders",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "orders_raw.total_amount",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "orders_cleaned.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customers_raw.customer_id",
+    "candidate": "customer_profile.customer_id",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "orders_raw.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "customer_ltv.last_event_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "customers_raw.country_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "orders_cleaned.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "product_performance.order_date",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "customers_raw.last_name",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "orders_raw.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "orders_raw.quantity",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "orders_cleaned.order_date",
+    "candidate": "orders_cleaned.ingested_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "orders_cleaned.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "customer_ltv.ltv_tier",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "orders_raw._rescued_data",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "orders_cleaned.order_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "orders_raw.quantity",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "customer_ltv.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "orders_cleaned.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "customers_raw.country_code",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_small",
+    "change": "customer_ltv.revenue_quartile",
+    "candidate": "customer_ltv.days_since_last_order",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "customer_ltv.signup_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "revenue_forecast_features.avg_turnover",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "orders_cleaned.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "returns_raw.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "refunds_enriched.return_qty",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "refunds_enriched.return_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "inventory_turnover_daily.days_of_stock",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "customer_ltv.lifetime_revenue",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "refunds_enriched._rescued_data",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "refunds_enriched.product_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_daily.on_hand_units",
+    "candidate": "inventory_turnover_daily.turnover_rate",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "customer_profile.total_orders",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "refunds_enriched.refund_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "inventory_snapshots_raw.source_file",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "product_performance.order_count",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "revenue_forecast_features.total_orders",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "inventory_snapshots_raw.snapshot_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "refunds_raw.refund_amount",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "marketing_touchpoints.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "orders_cleaned.order_id",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "customers_raw.marketing_opt_in",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "orders_cleaned.currency",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "customer_ltv.total_orders",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "customer_ltv.lifetime_revenue",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "orders_raw.order_id",
+    "candidate": "inventory_turnover_daily.sales_count",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "customers_raw.first_name",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "refunds_enriched.refund_amount",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "returns_cleaned.order_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "shipments_timeline.customer_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "customer_profile.email",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "orders_cleaned.currency",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "refunds_enriched.order_ts",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "revenue_forecast_features.avg_turnover",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "repo_synthetic_medium",
+    "change": "inventory_turnover_daily.turnover_rate",
+    "candidate": "inventory_daily.warehouse_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_features.days_since_creation",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_features.last_event",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_features.last_transaction",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_users.firstname",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_prediction.churn_prediction",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_orders.item_count",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_features.total_item",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_orders.order_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.creation_date",
+    "candidate": "churn_orders.creation_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_features.order_count",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_features.days_since_creation",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_users.churn",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_orders.order_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_orders.creation_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_features.total_amount",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_prediction.churn_prediction",
+    "author": 0,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_features.days_since_last_activity",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_users.last_activity_date",
+    "candidate": "churn_orders.item_count",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_users.email",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_features.session_count",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_orders.order_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_users.churn",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_users.user_id",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_features.total_amount",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_users.lastname",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_orders.creation_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_orders.amount",
+    "candidate": "churn_features.days_since_creation",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_users.gender",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_features.total_item",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_users.firstname",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_features.session_count",
+    "author": 1,
+    "judge_label": 1
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_orders.item_count",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_users.creation_date",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_features.days_since_creation",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_orders.amount",
+    "author": 0,
+    "judge_label": 0
+  },
+  {
+    "judge": "google/gemini-2.5-flash",
+    "bench": "dbdemos_retail_sdp",
+    "change": "churn_app_events.session_id",
+    "candidate": "churn_prediction.churn_prediction",
+    "author": 0,
+    "judge_label": 1
+  }
+]

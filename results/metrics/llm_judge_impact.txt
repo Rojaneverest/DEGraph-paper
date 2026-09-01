@@ -1,0 +1,52 @@
+
+=== JUDGE: openai/gpt-4o ===
+  small     orders_raw.total_amount       judge picked 6/8 GT  (14/16 items agree)
+  small     orders_raw.order_ts           judge picked 7/8 GT  (15/16 items agree)
+  small     customers_raw.country_code       judge picked 4/4 GT  (12/12 items agree)
+  small     customers_raw.email              judge picked 2/2 GT  (10/10 items agree)
+  claims    claim_header.claim_status_hdr   judge picked 2/2 GT  (10/10 items agree)
+  claims    claim_header.product_code_hdr   judge picked 5/5 GT  (13/13 items agree)
+  medium    orders_raw.quantity           judge picked 5/5 GT  (13/13 items agree)
+  medium    marketing_attribution_raw.utm_campaign       judge picked 2/2 GT  (10/10 items agree)
+  small     orders_raw.status             judge picked 1/1 GT  (9/9 items agree)
+  small     orders_raw.order_id           judge picked 6/4 GT  (10/12 items agree)
+  small     events_raw.event_ts           judge picked 2/2 GT  (10/10 items agree)
+  small     customers_raw.customer_id        judge picked 5/2 GT  (7/10 items agree)
+  small     orders_cleaned.order_date         judge picked 1/1 GT  (9/9 items agree)
+  small     customer_ltv.revenue_quartile   judge picked 1/1 GT  (9/9 items agree)
+  medium    inventory_daily.on_hand_units      judge picked 3/3 GT  (11/11 items agree)
+  medium    orders_raw.order_id           judge picked 7/6 GT  (13/14 items agree)
+  medium    inventory_turnover_daily.turnover_rate      judge picked 1/1 GT  (9/9 items agree)
+  sdp       churn_users.creation_date      judge picked 3/1 GT  (7/9 items agree)
+  sdp       churn_users.last_activity_date judge picked 2/1 GT  (8/9 items agree)
+  sdp       churn_orders.amount             judge picked 1/1 GT  (9/9 items agree)
+  sdp       churn_app_events.session_id         judge picked 2/1 GT  (8/9 items agree)
+  -> 21 scenarios, 229 items | Cohen's kappa = 0.86 | raw agreement 94% | judge-vs-author P85/R95/F190
+     confusion (author/judge): yy=58 yn=3 ny=10 nn=158
+
+=== JUDGE: google/gemini-2.5-flash ===
+  small     orders_raw.total_amount       judge picked 8/8 GT  (16/16 items agree)
+  small     orders_raw.order_ts           judge picked 9/8 GT  (15/16 items agree)
+  small     customers_raw.country_code       judge picked 4/4 GT  (12/12 items agree)
+  small     customers_raw.email              judge picked 2/2 GT  (10/10 items agree)
+  claims    claim_header.claim_status_hdr   judge picked 2/2 GT  (10/10 items agree)
+  claims    claim_header.product_code_hdr   judge picked 6/5 GT  (12/13 items agree)
+  medium    orders_raw.quantity           judge picked 5/5 GT  (13/13 items agree)
+  medium    marketing_attribution_raw.utm_campaign       judge picked 2/2 GT  (10/10 items agree)
+  small     orders_raw.status             judge picked 1/1 GT  (9/9 items agree)
+  small     orders_raw.order_id           judge picked 4/4 GT  (12/12 items agree)
+  small     events_raw.event_ts           judge picked 2/2 GT  (10/10 items agree)
+  small     customers_raw.customer_id        judge picked 5/2 GT  (7/10 items agree)
+  small     orders_cleaned.order_date         judge picked 1/1 GT  (9/9 items agree)
+  small     customer_ltv.revenue_quartile   judge picked 1/1 GT  (9/9 items agree)
+  medium    inventory_daily.on_hand_units      judge picked 3/3 GT  (11/11 items agree)
+  medium    orders_raw.order_id           judge picked 6/6 GT  (14/14 items agree)
+  medium    inventory_turnover_daily.turnover_rate      judge picked 1/1 GT  (9/9 items agree)
+  sdp       churn_users.creation_date      judge picked 2/1 GT  (8/9 items agree)
+  sdp       churn_users.last_activity_date judge picked 2/1 GT  (8/9 items agree)
+  sdp       churn_orders.amount             judge picked 1/1 GT  (9/9 items agree)
+  sdp       churn_app_events.session_id         judge picked 2/1 GT  (8/9 items agree)
+  -> 21 scenarios, 229 items | Cohen's kappa = 0.91 | raw agreement 97% | judge-vs-author P88/R100/F194
+     confusion (author/judge): yy=61 yn=0 ny=8 nn=160
+
+saved per-item judgments: C:\Users\thapa\Desktop\Research\DEGraph\.claude\worktrees\objective-booth-809645\results\metrics\llm_judge_impact.json

@@ -1,0 +1,67 @@
+
+[RESUME] qwen-qwen3.5-9b_20260518_100013.json -- 1 mode(s) found
+
+=================================================================
+  Backend:  ollama / qwen/qwen3.5-9b
+  Mode:     raw_source  (~10,226 tokens)
+  Questions: 10
+  Context limit: 35,000 tokens  (over-budget -> SKIPPED)
+=================================================================
+
+[1/10] Q1 (medium) -- If the column `customer_id` in `main.dbdemos_ecom.orders_raw...
+         ERROR: timed out
+[2/10] Q2 (easy) -- Which file in this repo produces `main.dbdemos_ecom.orders_c...
+         answered in 80.7s
+[3/10] Q3 (medium) -- If the column `last_event_ts` is dropped from `main.dbdemos_...
+         answered in 128.9s
+[4/10] Q4 (hard) -- Which bronze-layer columns contribute, directly or transitiv...
+         answered in 136.2s
+[5/10] Q5 (hard) -- If the `trim_string_columns(orders)` call at line 56 of `sil...
+         answered in 129.5s
+[6/10] Q6 (easy) -- Which file consumes `main.dbdemos_ecom.events_raw`, and what...
+         answered in 92.4s
+[7/10] Q7 (hard) -- What columns from `silver.orders_cleaned` are aggregated int...
+         answered in 147.7s
+[8/10] Q8 (medium) -- The latest-event window in `silver/customer_profile.py` part...
+         answered in 148.1s
+[9/10] Q9 (easy) -- What table receives the writes from `gold/product_performanc...
+         answered in 77.9s
+[10/10] Q10 (medium) -- What lineage gaps or unknowns does the graph itself report f...
+         answered in 142.2s
+
+Report: results\metrics\qwen-qwen3.5-9b_20260518_100013_raw.txt
+
+=================================================================
+  Backend:  ollama / qwen/qwen3.5-9b
+  Mode:     compact_graph  (~5,034 tokens)
+  Questions: 10
+  Context limit: 35,000 tokens  (over-budget -> SKIPPED)
+  Resume:   1 answers already complete in source JSON
+=================================================================
+
+[1/10] Q1 (medium) -- If the column `customer_id` in `main.dbdemos_ecom.orders_raw...
+         answered in 135.4s
+[2/10] Q2 (easy) -- reused from existing JSON
+[3/10] Q3 (medium) -- If the column `last_event_ts` is dropped from `main.dbdemos_...
+         answered in 129.5s
+[4/10] Q4 (hard) -- Which bronze-layer columns contribute, directly or transitiv...
+         answered in 124.4s
+[5/10] Q5 (hard) -- If the `trim_string_columns(orders)` call at line 56 of `sil...
+         answered in 124.9s
+[6/10] Q6 (easy) -- Which file consumes `main.dbdemos_ecom.events_raw`, and what...
+         answered in 46.4s
+[7/10] Q7 (hard) -- What columns from `silver.orders_cleaned` are aggregated int...
+         answered in 119.7s
+[8/10] Q8 (medium) -- The latest-event window in `silver/customer_profile.py` part...
+         answered in 124.9s
+[9/10] Q9 (easy) -- What table receives the writes from `gold/product_performanc...
+         answered in 51.7s
+[10/10] Q10 (medium) -- What lineage gaps or unknowns does the graph itself report f...
+         answered in 90.8s
+
+Report: results\metrics\qwen-qwen3.5-9b_20260518_100013_graph.txt
+
+Results JSON: results\metrics\qwen-qwen3.5-9b_20260518_100013.json
+
+Next step: open the JSON, set 'score' for each answer (2/1/0),
+then re-run:  python experiments/run_qa_experiment.py --score results\metrics\qwen-qwen3.5-9b_20260518_100013.json

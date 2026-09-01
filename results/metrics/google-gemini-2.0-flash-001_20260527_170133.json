@@ -1,0 +1,159 @@
+{
+  "runs": [
+    {
+      "meta": {
+        "backend": "openrouter",
+        "model": "google/gemini-2.0-flash-001",
+        "context_mode": "raw_source",
+        "context_tokens": 11405,
+        "timestamp": "20260527_170133",
+        "context_limit": null
+      },
+      "scores": {
+        "message": "No scores yet \u2014 grade results manually then re-run with --score"
+      },
+      "results": [
+        {
+          "id": "Q1",
+          "category": "struct-array-shape",
+          "difficulty": "medium",
+          "question": "How is the `coverage_plans` column populated? List which struct fields are sourced from real columns or expressions versus which are `lit(None)` placeholders.",
+          "context_mode": "raw_source",
+          "context_tokens": 11405,
+          "prompt_tokens": 11516,
+          "reference_answer": "`coverage_plans` is built via `final_df.withColumn('coverage_plans', array(struct(...)))` \u2014 a one-element array containing a single struct with 33 fields. Only 4 fields carry real data: (1) `policy_id` \u2014 a `concat_ws('_', coalesce(member_uid, 'UNKNOWN'), coalesce(when(product_code_hdr \u2192 plan-code), 'UNKNOWN'))` expression that encodes the member and their insurance product; (2) `product_code` \u2014 `coalesce(product_code_hdr, 'UNKNOWN')` passed through directly; (3) `status` \u2014 the string literal `'active'` (a constant, not from any column); (4) `payer_id` \u2014 `coalesce(payer_id, 'UNKNOWN')`. The remaining 29 fields \u2014 `reference_id`, `policy_name`, `policy_holder_id`, `policy_type_code`, `policy_type_display`, `policy_type_system`, `policy_order`, `coverage_start_date`, `coverage_end_date`, `group_id`, `group_name`, `sub_group_id`, `sub_group_name`, `plan_name`, `subrogation_flag`, the full `cost_sharing_*` block (9 fields), and `cost_sharing_exc_*` fields (3 fields + 2 dates) \u2014 are all `lit(None).cast(<type>)` FHIR Coverage placeholders populated by a separate enrichment job.",
+          "model_answer": "The `coverage_plans` column is an array of structs. Here's a breakdown of how each field in the struct is populated:\n\n**Sourced from real columns or expressions:**\n\n*   `policy_id`: Concatenation of `member_uid` and a `plan_id` derived from `product_code_hdr`.\n*   `product_code`: `product_code_hdr`\n*   `payer_id`: `payer_id`\n\n**`lit(None)` placeholders:**\n\n*   `reference_id`\n*   `policy_name`\n*   `policy_holder_id`\n*   `policy_type_code`\n*   `policy_type_display`\n*   `policy_type_system`\n*   `policy_order`\n*   `coverage_start_date`\n*   `coverage_end_date`\n*   `group_id`\n*   `group_name`\n*   `sub_group_id`\n*   `sub_group_name`\n*   `plan_name`\n*   `status`\n*   `subrogation_flag`\n*   `cost_sharing_type_system`\n*   `cost_sharing_type_code`\n*   `cost_sharing_type_display`\n*   `cost_sharing_qty_system`\n*   `cost_sharing_qty_value`\n*   `cost_sharing_qty_unit`\n*   `cost_sharing_qty_code`\n*   `cost_sharing_qty_comparator`\n*   `cost_sharing_amount`\n*   `cost_sharing_exc_type_system`\n*   `cost_sharing_exc_type_code`\n*   `cost_sharing_exc_type_display`\n*   `cost_sharing_exc_start_date`\n*   `cost_sharing_exc_end_date`",
+          "elapsed_s": 5.97,
+          "score": 1,
+          "notes": "Misclassifies status=lit(active) as lit(None) placeholder; gets policy_id, product_code, payer_id correct"
+        },
+        {
+          "id": "Q2",
+          "category": "rule-logic",
+          "difficulty": "hard",
+          "question": "What exact condition must be true for a claim to be classified as `'Behavioral Health'` in the `claim_category` column? Be specific about which column is tested and what code range is checked.",
+          "context_mode": "raw_source",
+          "context_tokens": 11405,
+          "prompt_tokens": 11526,
+          "reference_answer": "A claim is classified as `'Behavioral Health'` iff ALL four sub-conditions on `primary_diag_code_hdr` are satisfied: (a) `primary_diag_code_hdr IS NOT NULL`; (b) `trim(primary_diag_code_hdr) != ''` (not blank/whitespace-only); (c) `upper(trim(primary_diag_code_hdr)) >= 'F01'`; AND (d) `upper(trim(primary_diag_code_hdr)) <= 'F99.9999'`. In plain terms: the primary diagnosis code must be a non-null, non-blank ICD-10 code in the F-chapter range F01 through F99.9999 (mental, behavioral, and neurodevelopmental disorders). This is the FIRST branch of `claim_category_expr`, so Behavioral Health takes priority over all other categories. A claim whose primary diagnosis code is in the F-chapter AND also satisfies the Maternity predicate (e.g. a comorbid obstetric claim) will still be classified as 'Behavioral Health', not 'Maternity'.",
+          "model_answer": "A claim is classified as `'Behavioral Health'` in the `claim_category` column if the `primary_diag_code_hdr` column is not null, not an empty string, and its trimmed and uppercased value is between \"F01\" and \"F99.9999\" (inclusive).\n",
+          "elapsed_s": 1.92,
+          "score": 2,
+          "notes": ""
+        },
+        {
+          "id": "Q3",
+          "category": "rule-logic",
+          "difficulty": "medium",
+          "question": "What is the relationship between `claim_category` and `claim_categories`? Can a claim have `claim_category = NULL` but `claim_categories` non-empty, or vice versa? Explain why.",
+          "context_mode": "raw_source",
+          "context_tokens": 11405,
+          "prompt_tokens": 11525,
+          "reference_answer": "Both columns are driven by the SAME 8 predicates from `build_claim_criteria()` (stored in the `conds` dict): Behavioral Health, Maternity, Skilled Nursing Facility, Inpatient Rehabilitation, Hospice, Emergency/Observation, Durable Medical Equipment, Home Health. They differ only in how matches are combined: `claim_category` is a `when(...).when(...).otherwise(None)` first-match chain returning the FIRST firing category in declaration order (BH wins over Maternity, etc.); `claim_categories` is an `array(when(conds[k], lit(k)).otherwise(None) for k in conds)` accumulator filtered for non-nulls and sorted, returning ALL matching categories. Consequence: it is IMPOSSIBLE for one to be NULL/empty while the other is non-empty. If any predicate fires, `claim_category` = the first match AND `claim_categories` contains at least that match. If no predicate fires, `claim_category = NULL` AND `claim_categories = []` (empty array \u2014 not NULL, because `filter()` on a non-null array returns `[]`).",
+          "model_answer": "`claim_category` and `claim_categories` are both derived from the same underlying conditions defined in `build_claim_criteria()`.\n\n- `claim_category` is a single string representing the highest-priority category that a claim belongs to, based on the order of `when` conditions. If none of the conditions are met, `claim_category` will be `NULL`.\n- `claim_categories` is an array of strings, containing all categories that a claim belongs to. It is derived by evaluating the same conditions as `claim_category`, but instead of stopping at the first match, it accumulates all matching categories into an array. If none of the conditions are met, `claim_categories` will be an empty array.\n\nTherefore, it is impossible for `claim_category` to be non-`NULL` while `claim_categories` is empty. If `claim_category` has a value, it means at least one condition was met, and that category will also be present in the `claim_categories` array.\n\nIt is possible for `claim_category` to be `NULL` while `claim_categories` is non-empty. This would happen if none of the defined categories are matched.\n",
+          "elapsed_s": 3.23,
+          "score": 1,
+          "notes": "Incorrectly states claim_category=NULL while claim_categories non-empty is possible; misses the shared-predicate consistency guarantee"
+        },
+        {
+          "id": "Q4",
+          "category": "join-condition",
+          "difficulty": "medium",
+          "question": "Inside the `aggregated_cob_df` SQL block, how is `bronze.claim_header` joined to `cob_line_agg` and to `payable_agg`? Are these one-key or multi-key joins, and what join type?",
+          "context_mode": "raw_source",
+          "context_tokens": 11405,
+          "prompt_tokens": 11535,
+          "reference_answer": "Both joins are **two-key LEFT JOINs**. `bronze.claim_header` (aliased `h`) is LEFT JOINed to `cob_line_agg` (aliased `c`) on the composite condition `h.claim_id = c.claim_id AND h.claim_line_id = c.claim_line_id`. Immediately after, `bronze.claim_header` is also LEFT JOINed to `payable_agg` (aliased `p`) on the identical composite: `h.claim_id = p.claim_id AND h.claim_line_id = p.claim_line_id`. Both CTEs (`cob_line_agg` from `bronze.claim_cob_payment`, `payable_agg` from `bronze.claim_payable`) are pre-aggregated to claim+line grain before the join so the join is always 1:1. The LEFT join type preserves every `claim_header` row even when no COB or payable record exists for that line, producing `COALESCE(..., 0)` amounts.",
+          "model_answer": "`bronze.claim_header` is LEFT JOINed to `cob_line_agg` and `payable_agg` using a multi-key join on `claim_id` and `claim_line_id`.\n",
+          "elapsed_s": 1.81,
+          "score": 2,
+          "notes": ""
+        },
+        {
+          "id": "Q5",
+          "category": "column-derive",
+          "difficulty": "easy",
+          "question": "How is `processing_status` derived from `claim_status_hdr`? Give the complete mapping including the default/otherwise value. Does `claim_outcome` (derived from the same source) use the same mapping?",
+          "context_mode": "raw_source",
+          "context_tokens": 11405,
+          "prompt_tokens": 11528,
+          "reference_answer": "`processing_status` is a `when(...).otherwise(...)` chain on `claim_status_hdr`: `'Adjudicated' \u2192 'active'`; `'Denied' \u2192 'active'`; `'Pended' \u2192 'draft'`; `'Suspended' \u2192 'draft'`; `'Voided' \u2192 'cancelled'`; `'Adjusted' \u2192 'active'`; **otherwise \u2192 `'active'`** (the default is non-null `'active'`, not NULL). `claim_outcome` uses a DIFFERENT mapping on the same source column: `'Adjudicated' \u2192 'complete'`; `'Denied' \u2192 'complete'`; `'Pended' \u2192 'queued'`; `'Suspended' \u2192 'error'`; `'Voided' \u2192 'complete'`; `'Adjusted' \u2192 'partial'`; **otherwise \u2192 NULL** (the default is NULL, not a string). The two columns should not be conflated \u2014 `processing_status` always has a non-null value; `claim_outcome` is nullable.",
+          "model_answer": "The `processing_status` column is derived from `claim_status_hdr` using the following mapping:\n\n- \"Adjudicated\" -> \"active\"\n- \"Denied\" -> \"active\"\n- \"Pended\" -> \"draft\"\n- \"Suspended\" -> \"draft\"\n- \"Voided\" -> \"cancelled\"\n- \"Adjusted\" -> \"active\"\n- otherwise -> \"active\" (default)\n\n`claim_outcome` is derived from `claim_status_hdr`, but it uses a different mapping:\n\n- \"Adjudicated\" -> \"complete\"\n- \"Denied\" -> \"complete\"\n- \"Pended\" -> \"queued\"\n- \"Suspended\" -> \"error\"\n- \"Voided\" -> \"complete\"\n- \"Adjusted\" -> \"partial\"\n- otherwise -> None (default)\n",
+          "elapsed_s": 2.21,
+          "score": 2,
+          "notes": ""
+        },
+        {
+          "id": "Q6",
+          "category": "window-tiebreak",
+          "difficulty": "medium",
+          "question": "When a claim has multiple diagnosis codes, how are they ranked to determine which code lands in `diagnosis_1_code`? What is the Window partition key and the full tie-breaking sort order?",
+          "context_mode": "raw_source",
+          "context_tokens": 11405,
+          "prompt_tokens": 11525,
+          "reference_answer": "Diagnosis codes are ranked using `row_number()` over a `Window.partitionBy('claim_id_hdr').orderBy(F.col('diag_priority').asc_nulls_last(), F.col('icd10_code').asc_nulls_last())`. The partition key is `claim_id_hdr` (one ranking sequence per claim). The sort is: (1) `diag_priority` ascending, nulls pushed to last \u2014 the clinically most significant code (lowest priority number) ranks first; (2) `icd10_code` ascending, nulls last \u2014 when two codes share the same priority, the alphabetically earlier ICD-10 code wins. The row numbered 1 becomes `diagnosis_1_code`; rows 2\u20135 become `diagnosis_2_code` through `diagnosis_5_code`; all codes are also collected into the `other_diagnoses` array<struct>. A sibling procedure-ranking window uses the same pattern with `proc_priority` / `hcpcs_code` and `MAX_PROC=4`.",
+          "model_answer": "Diagnosis codes are ranked within each claim by `diag_priority ASC` and `icd10_code ASC` using a Window function. The window is partitioned by `claim_id_hdr`. The full tie-breaking sort order is `diag_priority ASC NULLS LAST` and `icd10_code ASC NULLS LAST`.\n",
+          "elapsed_s": 2.57,
+          "score": 2,
+          "notes": ""
+        },
+        {
+          "id": "Q7",
+          "category": "struct-array-shape",
+          "difficulty": "hard",
+          "question": "Inside the `coverage_plans` struct, how exactly is the `policy_id` field computed? Describe the full expression including what happens when `member_uid` is NULL or when `product_code_hdr` does not match any known plan code.",
+          "context_mode": "raw_source",
+          "context_tokens": 11405,
+          "prompt_tokens": 11534,
+          "reference_answer": "`policy_id` is computed as: `concat_ws('_', coalesce(col('member_uid'), lit('UNKNOWN')), coalesce(when(col('product_code_hdr') == 'MERIDIAN_PPO', lit('MRD-PPO-001')).when(col('product_code_hdr') == 'MERIDIAN_HMO', lit('MRD-HMO-001')).when(col('product_code_hdr') == 'MERIDIAN_EPO', lit('MRD-EPO-001')).when(col('product_code_hdr') == 'MERIDIAN_DSNP', lit('MRD-DSNP-001')).otherwise(lit('UNKNOWN')), lit('UNKNOWN')))`. In plain terms: it joins two parts with an underscore. The left part is `member_uid` or `'UNKNOWN'` if the member uid is null. The right part resolves the product code to an internal plan identifier: PPO\u2192`MRD-PPO-001`, HMO\u2192`MRD-HMO-001`, EPO\u2192`MRD-EPO-001`, DSNP\u2192`MRD-DSNP-001`, or `'UNKNOWN'` for any unrecognized product code (the outer `coalesce` also catches the case where the `when()` returns null). The result is always non-null (e.g. `'UNKNOWN_UNKNOWN'` in the worst case).",
+          "model_answer": "The `policy_id` field inside the `coverage_plans` struct is computed by concatenating the `member_uid` and a plan ID, separated by an underscore.\n\nSpecifically, the expression is:\n\n```\nconcat_ws(\n    \"_\",\n    coalesce(col(\"member_uid\"), lit(\"UNKNOWN\")),\n    coalesce(\n        when(col(\"product_code_hdr\") == \"MERIDIAN_PPO\",  lit(\"MRD-PPO-001\"))\n        .when(col(\"product_code_hdr\") == \"MERIDIAN_HMO\",  lit(\"MRD-HMO-001\"))\n        .when(col(\"product_code_hdr\") == \"MERIDIAN_EPO\",  lit(\"MRD-EPO-001\"))\n        .when(col(\"product_code_hdr\") == \"MERIDIAN_DSNP\", lit(\"MRD-DSNP-001\"))\n        .otherwise(lit(\"UNKNOWN\")),\n        lit(\"UNKNOWN\"),\n    ),\n)\n```\n\nThis means:\n\n1.  **`member_uid` Handling:** If `member_uid` is NULL, it's replaced with the string \"UNKNOWN\" using `coalesce(col(\"member_uid\"), lit(\"UNKNOWN\"))`.\n2.  **`product_code_hdr` to Plan ID Mapping:** A `when` chain maps `product_code_hdr` to a specific plan ID:\n    *   \"MERIDIAN\\_PPO\" -> \"MRD-PPO-001\"\n    *   \"MERIDIAN\\_HMO\" -> \"MRD-HMO-001\"\n    *   \"MERIDIAN\\_EPO\" -> \"MRD-EPO-001\"\n    *   \"MERIDIAN\\_DSNP\" -> \"MRD-DSNP-001\"\n3.  **Unknown `product_code_hdr`:** If `product_code_hdr` doesn't match any of the above, the `otherwise` clause sets the plan ID to \"UNKNOWN\".\n4.  **Plan ID Coalesce:** The outer `coalesce` isn't strictly necessary because the `otherwise` clause already handles the NULL case, but it ensures that if the entire `when` expression evaluates to NULL for some reason, it defaults to \"UNKNOWN\".\n5.  **Concatenation:** Finally, `concat_ws(\"_\", ...)` concatenates the (potentially \"UNKNOWN\") `member_uid` and the (potentially \"UNKNOWN\") plan ID, separated by an underscore.\n",
+          "elapsed_s": 4.58,
+          "score": 2,
+          "notes": ""
+        },
+        {
+          "id": "Q8",
+          "category": "join-condition",
+          "difficulty": "easy",
+          "question": "On what key column(s) is `bronze.member_eligibility` joined to the claim pipeline? What is the join type?",
+          "context_mode": "raw_source",
+          "context_tokens": 11405,
+          "prompt_tokens": 11512,
+          "reference_answer": "`bronze.member_eligibility` is LEFT JOINed to the claim pipeline on a single key: `claim_hdr_df['member_id_hdr'] == member_df['member_id_mbr']`. The suffixes (`_hdr` on the header side, `_mbr` on the member side) were applied by the `suffix_rename()` helper before the join cascade so every column origin is unambiguous. The join is LEFT \u2014 every claim_header row is preserved even if no matching member eligibility record exists, in which case all `_mbr`-suffixed columns are NULL.",
+          "model_answer": "The `bronze.member_eligibility` table (aliased as `member_df`) is joined to the claim pipeline on the `member_id_hdr` column from `claim_hdr_df` and the `member_id_mbr` column from `member_df`. The join type is left.\n",
+          "elapsed_s": 1.64,
+          "score": 2,
+          "notes": ""
+        },
+        {
+          "id": "Q9",
+          "category": "fallback-chain",
+          "difficulty": "medium",
+          "question": "How is `provider_specialty_code` derived? Describe the full signal-precedence fallback chain from highest to lowest priority, and state what the column value is when no signal fires.",
+          "context_mode": "raw_source",
+          "context_tokens": 11405,
+          "prompt_tokens": 11522,
+          "reference_answer": "`provider_specialty_code` is a four-level fallback `when().otherwise()` chain: **(1)** If `coalesce(is_pcp_eligible_reg.cast('boolean'), False) == True` \u2192 `'PCP'` (primary rendering NPI is registry-confirmed PCP-eligible); **(2)** Else if `coalesce(any_pcp_flag, 0) == 1` \u2192 `'PCP'` (any rendering NPI on the claim is PCP-eligible, broadening the PCP signal beyond the top-ranked provider); **(3)** Else if `specialty_code_reg IS NOT NULL` \u2192 `specialty_code_reg` (the NPI+taxonomy-matched specialty code from the provider registry, reflecting the provider's enrolled specialty); **(4)** Else if `rendering_specialty IS NOT NULL` \u2192 `rendering_specialty` (the specialty code submitted on the claim by the billing provider \u2014 fallback when the registry has no match); **(5)** Otherwise \u2192 `NULL`. The two-column LEFT JOIN in the `provider_specialty_df` SQL CTE (joining `ranked_providers` to `bronze.provider_registry` on `rendering_npi = npi AND taxonomy_code = taxonomy_code`) ensures the registry lookup is exact \u2014 a provider with multiple taxonomy codes maps to exactly the right specialty row.",
+          "model_answer": "The `provider_specialty_code` is derived using a signal precedence fallback chain:\n\n1.  If `is_pcp_eligible_reg` is true (or if `any_pcp_flag` is 1), the specialty is \"PCP\".\n2.  If `specialty_code_reg` is not null, the specialty is the value of `specialty_code_reg`.\n3.  If `rendering_specialty` is not null, the specialty is the value of `rendering_specialty`.\n\nIf none of these signals fire, the `provider_specialty_code` is set to null.\n",
+          "elapsed_s": 2.19,
+          "score": 2,
+          "notes": "Conflates signals 1+2 into one OR condition rather than noting they are separate WHEN branches"
+        },
+        {
+          "id": "Q10",
+          "category": "write-sink",
+          "difficulty": "easy",
+          "question": "Where (which table) and how is the final silver DataFrame written? Describe the write format, mode, any special options, and partition key.",
+          "context_mode": "raw_source",
+          "context_tokens": 11405,
+          "prompt_tokens": 11514,
+          "reference_answer": "The pipeline writes `dq_passed_df` (the data-quality-filtered silver DataFrame) to `meridian.silver.clinical_claims` using the standard PySpark Delta write API \u2014 no custom sink class. The write call is: `.write.format('delta').mode('overwrite').option('overwriteSchema', 'true').partitionBy('service_from_date').saveAsTable('meridian.silver.clinical_claims')`. Key details: format is **Delta Lake** (not Parquet or CSV); mode is **overwrite** (full-refresh on each pipeline run, not an append or merge); `overwriteSchema=true` means schema changes are allowed without manual DDL; the table is **partitioned by `service_from_date`** to enable partition-pruning in downstream incremental reads. Before the write, two data-quality filters are applied: `claim_id IS NOT NULL`, `member_id IS NOT NULL`, and `service_from_date IS NOT NULL`.",
+          "model_answer": "The final silver DataFrame (`dq_passed_df`) is written to the `meridian.silver.clinical_claims` table. It is written in Delta Lake format, using overwrite mode with the `overwriteSchema` option set to true. The table is partitioned by `service_from_date`.\n",
+          "elapsed_s": 1.88,
+          "score": 2,
+          "notes": ""
+        }
+      ]
+    }
+  ]
+}

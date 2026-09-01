@@ -1,0 +1,47 @@
+{
+  "runs": [
+    {
+      "meta": {
+        "backend": "openrouter",
+        "model": "google/gemini-2.0-flash-001",
+        "context_mode": "compact_graph",
+        "context_tokens": 23761,
+        "timestamp": "20260519_205954",
+        "context_limit": null
+      },
+      "scores": {
+        "message": "No scores yet \u2014 grade results manually then re-run with --score"
+      },
+      "results": [
+        {
+          "id": "Q14",
+          "category": "join-chain",
+          "difficulty": "hard",
+          "question": "In `silver/shipments_timeline.py`, the file joins shipments_raw with orders_raw. What is the join key, and what columns from orders_raw propagate into the silver output?",
+          "context_mode": "compact_graph",
+          "context_tokens": 23761,
+          "prompt_tokens": 23877,
+          "reference_answer": "Join key: `order_id` (inner join). The orders side is narrowed via `.select('order_id', 'customer_id')` before the join, so only `customer_id` propagates into `silver.shipments_timeline` from `orders_raw` (in addition to the join key `order_id`). The other orders columns (quantity, total_amount, currency, etc.) do not appear in the silver output because of that projection. The aggregated shipment columns (shipment_count, first_ship_ts, last_delivered_ts, carriers_used) come from the shipments aggregate, not from orders_raw.",
+          "model_answer": "[ERROR: OpenRouter HTTP 429: {\"error\":{\"message\":\"Provider returned error\",\"code\":429,\"metadata\":{\"raw\":\"google/gemini-2.0-flash-001 is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations\",\"provider_name\":\"Google\",\"is_byok\":false}},\"user_id\":\"user_3Dvo2YHDAb4tPJNAOQQexAgULqX\"}]",
+          "elapsed_s": 0.0,
+          "score": null,
+          "notes": ""
+        },
+        {
+          "id": "Q25",
+          "category": "coverage-of-unknowns",
+          "difficulty": "medium",
+          "question": "How many `<unresolved>` markers does the compact graph contain for this repo, and what does each one mean? Group them by category.",
+          "context_mode": "compact_graph",
+          "context_tokens": 23761,
+          "prompt_tokens": 23869,
+          "reference_answer": "Three `<unresolved>` markers: (a) Table node `<unresolved>` read by `bronze/04_ingest_products.py` \u2014 the JDBC source URL `jdbc:postgresql://catalog/products` cannot be resolved to a Table FQN in the catalog; the extractor records the read but the source is opaque. (b) AggregatesEdge in `gold/product_performance.py` has `<unresolved>` entries in agg_ops and output_cols representing the runtime-loop-built aggregation list from `$METRIC_CONFIG_PATH`. (c) AggregatesEdge in `gold/revenue_forecast_features.py` has the same pattern from `$FORECAST_CONFIG_PATH`. Each `<unresolved>` is the extractor faithfully signalling 'I do not know' rather than guessing. The first is a source-side unknown (external system); the latter two are runtime-config unknowns flagged via the dynamic-aggregation GraphWarnings.",
+          "model_answer": "The compact graph contains two `<unresolved>` markers.\n\n*   **Table:** One `<unresolved>` marker represents a table that is read by `bronze/04_ingest_products.py`. The table's FQN could not be resolved.\n*   **Aggregation Output Column:** One `<unresolved>` marker appears as an aggregation output column in `gold/product_performance.py`. The name and operation of the column could not be resolved.",
+          "elapsed_s": 8.05,
+          "score": null,
+          "notes": ""
+        }
+      ]
+    }
+  ]
+}

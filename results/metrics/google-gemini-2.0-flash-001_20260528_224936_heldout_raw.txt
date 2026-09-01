@@ -1,0 +1,348 @@
+DEGraph Q&A Experiment Report
+=================================================================
+Backend:   openrouter / google/gemini-2.0-flash-001
+Mode:      raw_source
+Tokens:    ~23,683
+Timestamp: 20260528_224936
+
+AGGREGATE SCORES
+----------------------------------------
+  Not graded yet. Edit the JSON file and set 'score' for each answer.
+
+INDIVIDUAL ANSWERS
+=================================================================
+
+[HQ1] direct-cross-file-impact / medium
+Q: If the column `session_id` is renamed in BOTH `bronze.events_raw` AND `bronze.marketing_attribution_raw`, which silver and gold files require code changes? Be specific about what breaks in each.
+Score: None
+
+REFERENCE:
+`session_id` is the join key between marketing attribution and event tracking, and it shows up in three specific places. Two files break directly:
+
+(1) `silver/marketing_touchpoints.py` — three independent uses of session_id ALL break: (a) the inner join `attribution_df.join(events_df, on='session_id', how='inner')`; (b) the window `Window.partitionBy('session_id').orderBy(F.col('visit_ts').asc())` that picks first-touch per session; (c) the aggregate `F.countDistinct('session_id').alias('session_count')` inside the final groupBy. Renaming would require updating all three. The produced silver table `silver.marketing_touchpoints` carries forward a derived `session_count` column (the countDistinct result), not `session_id` itself, so the silver schema does not need to expose the renamed name.
+
+(2) `gold/attribution_funnel_daily.py` — two CTEs reference `ev.session_id` in `COUNT(DISTINCT ev.session_id)` aggregates: the `cart_events` CTE and the `checkout_events` CTE. Both filter `events_raw` and use session_id as the distinct-counted column. Note that the `visits` CTE counts `session_count` from `marketing_touchpoints` (not `session_id` directly), so renaming bronze session_id does NOT directly break the `visits` CTE — only the two event-driven CTEs.
+
+No other file in the repo references `session_id` by name. `silver.customer_profile`, `silver.shipments_timeline`, `silver.refunds_enriched`, all bronze ingest files, and gold/{customer_ltv, customer_return_rate, product_performance, inventory_turnover_daily, revenue_forecast_features} are unaffected. Total: 2 files, 1 silver table indirectly affected (marketing_touchpoints derives session_count from session_id), and 1 gold table affected (attribution_funnel_daily).
+
+MODEL (google/gemini-2.0-flash-001):
+Based on the provided code:
+
+*   **silver/marketing\_touchpoints.py**: This file joins `marketing_attribution_raw` and `events_raw` on `session_id`. Renaming `session_id` in both bronze tables would break this join, as the join condition `on="session_id"` would no longer be valid.
+*   **gold/attribution\_funnel\_daily.py**: This file reads from `events_raw` and joins with `marketing_touchpoints` using `session_id`. If `session_id` is renamed in `events_raw`, the CTEs `cart_events` and `checkout_events` will break.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ2] producer-consumer / easy
+Q: Which file writes `main.dbdemos_ecom.customer_profile`, and which files consume it as a source?
+Score: None
+
+REFERENCE:
+Producer: `silver/customer_profile.py` is the sole writer of `main.dbdemos_ecom.customer_profile` via `.saveAsTable(f'{database}.customer_profile')` with `mode=overwrite` and `format=delta`.
+
+Consumers: two files read `customer_profile`. (1) `gold/customer_ltv.py` reads it inside its `spark.sql` `base` CTE — `FROM {database}.customer_profile` — to source `lifetime_revenue`, `total_orders`, and other per-customer aggregates. (2) `gold/customer_return_rate.py` reads it inside its `customer_base` CTE — `FROM {database}.customer_profile` — to source `customer_id`, `email`, `country_code`, `total_orders`, and `lifetime_revenue` for the return-rate join.
+
+Note: `gold.revenue_forecast_features.py` does NOT read `customer_profile` directly — it reads `gold.customer_ltv`, which is the gold-tier descendant of customer_profile. So the customer_profile→revenue_forecast_features relationship is two-hop, not direct.
+
+MODEL (google/gemini-2.0-flash-001):
+*   **Writes:** `silver/customer_profile.py` writes to `main.dbdemos_ecom.customer_profile`.
+*   **Reads:**
+    *   `gold/customer_ltv.py` reads from `main.dbdemos_ecom.customer_profile`.
+    *   `gold/customer_return_rate.py` reads from `main.dbdemos_ecom.customer_profile`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ3] transitive-multi-hop-impact / hard
+Q: If `return_qty` in `bronze.returns_raw` becomes nullable, which downstream silver and gold columns become unreliable or are silently dropped? Trace the full impact.
+Score: None
+
+REFERENCE:
+Three downstream effects, two of which are silent row-loss rather than null-propagation.
+
+(1) `silver/returns_cleaned.py` — applies the filter `.filter(F.col('return_qty') > 0)` immediately before writing. A NULL return_qty fails the `> 0` predicate (PySpark treats `NULL > 0` as UNKNOWN, which is filtered out by `.filter`) — so EVERY null-return_qty row is SILENTLY DROPPED from `silver.returns_cleaned`. Additionally, the derived `is_high_qty = return_qty > F.lit(5)` column becomes NULL for those rows (but they would also be filtered, so unobservable). Result: silver.returns_cleaned silently under-reports returns, biasing downstream counts.
+
+(2) `gold/customer_return_rate.py` — the `returns_agg` CTE computes `SUM(return_qty) AS total_return_qty` from `returns_cleaned`. Because returns_cleaned has already filtered out null-return_qty rows in (1), the SUM is over only non-null rows — the sum value itself is mathematically correct on the surviving rows, but the AGGREGATE IS BIASED LOW because real returns were dropped. `COUNT(return_id) AS total_returns` is similarly biased low. The derived `return_rate = total_returns / total_orders` becomes biased low for every customer who had returns with null qty.
+
+(3) `gold.revenue_forecast_features` — does NOT consume return_qty directly; it inherits from `gold.customer_ltv` which does not use returns data. So no transitive impact through that path.
+
+NOT directly affected: `silver.refunds_enriched` reads `refunds_raw` (refund_amount) and `returns_raw` but uses `return_id` as the join key only — it does NOT reference `return_qty`. So refunds_enriched and `gold.refund_ratio`-equivalent downstream columns are unaffected by return_qty nullability. The marketing/inventory/funnel subgraphs do not touch returns and are unaffected.
+
+MODEL (google/gemini-2.0-flash-001):
+Here's the impact analysis of `return_qty` becoming nullable in `bronze.returns_raw`:
+
+1.  **silver.returns\_cleaned.return\_qty**: This column is directly read from `bronze.returns_raw`. If `return_qty` becomes nullable, `silver.returns_cleaned.return_qty` will also become nullable.
+
+2.  **silver.returns\_cleaned.is\_high\_qty**: This column is derived from `silver.returns_cleaned.return_qty`. If `return_qty` is null, then `is_high_qty` will also be null.
+
+3.  **silver.returns\_cleaned**: The filter `returns.filter(F.col("return_qty") > 0)` will now drop rows where `return_qty` is null.
+
+4.  **gold.customer\_return\_rate.total\_return\_qty**: This column is derived from `silver.returns_cleaned` by summing `return_qty`. If `silver.returns_cleaned.return_qty` is null, then the sum will be affected.
+
+5.  **gold.customer\_return\_rate.return\_rate**: This column is derived from `gold.customer_return_rate.total_return_qty`. If `gold.customer_return_rate.total_return_qty` is affected, then `return_rate` will also be affected.
+
+6.  **silver.refunds\_enriched**: This table joins with `silver.returns_cleaned`. Since rows with null `return_qty` are dropped in `silver.returns_cleaned`, the join will not include these rows.
+
+In summary, the following columns are directly or indirectly affected:
+
+*   `silver.returns_cleaned.return_qty`
+*   `silver.returns_cleaned.is_high_qty`
+*   `gold.customer_return_rate.total_return_qty`
+*   `gold.customer_return_rate.return_rate`
+
+Additionally, rows with null `return_qty` will be dropped from `silver.returns_cleaned`, which will affect any downstream tables that join with it.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ4] reverse-lineage / medium
+Q: Which bronze-layer tables and columns contribute, directly or transitively, to `gold.customer_return_rate.return_rate`? Trace the full chain.
+Score: None
+
+REFERENCE:
+The `return_rate` column is computed in `gold/customer_return_rate.py` as `COALESCE(ra.total_returns, 0) / NULLIF(cb.total_orders, 0)` inside the final SELECT — a numerator and denominator from two separate CTEs sourced from two separate silver tables, each of which traces back to a different bronze table.
+
+Numerator chain: `total_returns = COUNT(return_id)` in the `returns_agg` CTE — `bronze.returns_raw.return_id` flows through `silver.returns_cleaned` (which propagates return_id unchanged; it does not derive a new return_id, only filters rows on return_qty > 0 and trims string columns) → `gold.customer_return_rate.total_returns`. So the numerator depends on `bronze.returns_raw.return_id` plus the `return_qty` filter (return_qty doesn't flow into return_rate as a value but determines which rows survive to be counted).
+
+Denominator chain: `total_orders` in the `customer_base` CTE comes from `silver.customer_profile.total_orders` (via `FROM customer_profile` projection) ← `F.count('order_id').alias('total_orders')` aggregate in `silver/customer_profile.py` ← `bronze.orders_raw.order_id` (joined with customers_raw on customer_id and events_raw on customer_id; only the orders side contributes the order count).
+
+Group key: `customer_id` is used to JOIN the two CTEs (`LEFT JOIN returns_agg ra USING (customer_id)`). It traces to BOTH `bronze.returns_raw.customer_id` (in returns_cleaned) and `bronze.customers_raw.customer_id` (in customer_profile; customer_profile's groupBy keys are customer_id, email, country_code, signup_ts which all originate from customers_raw).
+
+Summary of bronze contributors: (a) `bronze.returns_raw.return_id` (numerator count); (b) `bronze.returns_raw.return_qty` (silent filter gate); (c) `bronze.returns_raw.customer_id` (join key); (d) `bronze.orders_raw.order_id` (denominator count); (e) `bronze.customers_raw.customer_id` (join key on the customer_profile side). No events_raw, inventory, marketing, refunds, or provider tables contribute.
+
+MODEL (google/gemini-2.0-flash-001):
+Here's the lineage trace for `gold.customer_return_rate.return_rate`:
+
+1.  `gold.customer_return_rate.return_rate` is derived from `customer_base.total_orders` and `returns_agg.total_returns` within the `gold/customer_return_rate.py` script. The calculation is `COALESCE(ra.total_returns, 0) / NULLIF(cb.total_orders, 0)`.
+2.  `customer_base.total_orders` comes from `silver.customer_profile.total_orders` (read by `gold/customer_return_rate.py`).
+3.  `returns_agg.total_returns` comes from `silver.returns_cleaned.return_id` (read by `gold/customer_return_rate.py`).
+4.  `silver.customer_profile.total_orders` is derived from `bronze.orders_raw.order_id` (read by `silver/customer_profile.py`).
+5.  `silver.returns_cleaned.return_id` is derived from `bronze.returns_raw.return_id` (read by `silver/returns_cleaned.py`).
+
+Therefore, the bronze-layer tables and columns that contribute to `gold.customer_return_rate.return_rate` are:
+
+*   `bronze.orders_raw.order_id`
+*   `bronze.returns_raw.return_id`
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ5] join-chain / hard
+Q: Inside `silver/customer_profile.py`, describe the full 3-way join chain: which DataFrames are joined, on what keys, with what join types, and what role does the `rename_columns_with_suffix` helper play in keeping the joined columns unambiguous?
+Score: None
+
+REFERENCE:
+Two sequential PySpark joins build a 3-way result.
+
+Join 1: `co = customers_df.join(orders_df, on='customer_id', how='inner')` — INNER join of `customers_raw` and `orders_raw` on the natural key `customer_id`. The `on='customer_id'` shorthand means the join key appears ONCE in the result (PySpark deduplicates). This is the orders-grain intermediate: one row per (customer, order).
+
+Join 2: `profile = co.join(events_suffixed, co['customer_id'] == events_suffixed['customer_id_last_event'], how='left')` — LEFT join. KEY DIFFERENCE: the right side is `events_suffixed`, NOT the plain `events_latest`. Before the join, `events_latest = events_ranked.filter(F.col('rn') == 1).drop('rn')` was passed through `events_suffixed = rename_columns_with_suffix(events_latest, '_last_event')`. The helper appends `_last_event` to EVERY column name in events_latest, so `customer_id` becomes `customer_id_last_event`, `event_ts` becomes `event_ts_last_event`, etc.
+
+Why the suffix matters: WITHOUT the suffix, the events DataFrame would have `customer_id` as a column — identical name to the column already in `co` from the customers/orders side. The 3-way join result would have TWO `customer_id` columns: an ambiguous-reference bug. Worse, the JOIN CONDITION itself would need disambiguation; PySpark would not know which `customer_id` to use on which side. The suffix renames every column on the events side, so the join condition `co['customer_id'] == events_suffixed['customer_id_last_event']` is unambiguous and the result has `customer_id` (from customers/orders), `customer_id_last_event` (from events), `event_ts_last_event`, and so on. Downstream, the aggregate references `F.max('event_ts_last_event')` — the suffix is what makes that column name reachable.
+
+The helper is registered in `.degraph/helpers.json` as `"kind": "suffix_rename"`, so the extractor emits one explicit Derives edge per renamed column (mapping `name → name + '_last_event'`).
+
+MODEL (google/gemini-2.0-flash-001):
+The 3-way join chain in `silver/customer_profile.py` is as follows:
+
+1.  `customers_df` is joined with `orders_df` on the `customer_id` key using an inner join. The result is assigned to `co`.
+2.  `co` is then joined with `events_suffixed` using a left join. The join condition is `co["customer_id"] == events_suffixed["customer_id_last_event"]`.
+
+The `rename_columns_with_suffix` helper renames all columns from `events_latest` by appending the suffix `_last_event`. This ensures that the column names from the `events_latest` DataFrame do not conflict with the column names from the `customers_df` and `orders_df` DataFrames during the join operation. The join key on the events side becomes `customer_id_last_event`.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ6] aggregate-semantics / medium
+Q: What is the full aggregate specification at the end of `silver/customer_profile.py`? List the group keys, every output column with its aggregation function and source column, and identify which output requires multi-source reasoning (i.e. its source column originated from a DataFrame other than the leftmost in the join chain).
+Score: None
+
+REFERENCE:
+Group keys: `(customer_id, email, country_code, signup_ts)` — four keys. All four originate from `customers_raw` (the leftmost DataFrame in the 3-way join chain customers ⨝ orders ⨝ events).
+
+Five aggregate outputs:
+(1) `total_orders = F.count('order_id')` — count of order_ids per customer group. Source: `bronze.orders_raw.order_id`. Cross-source: NO (orders_raw is in the join chain).
+(2) `lifetime_revenue = F.sum('total_amount')` — sum of order amounts per customer. Source: `bronze.orders_raw.total_amount`. Cross-source: NO.
+(3) `last_order_ts = F.max('order_ts')` — most recent order timestamp per customer. Source: `bronze.orders_raw.order_ts`. Cross-source: NO.
+(4) `last_event_ts = F.max('event_ts_last_event')` — most recent event timestamp per customer. Source: `bronze.events_raw.event_ts` (renamed by suffix_rename to `event_ts_last_event`). Cross-source: YES — this is the ONLY aggregate output sourced from the events side of the join, not the customers/orders side. Note also that `events_raw` was first window-deduped to keep only the latest event per customer, so `last_event_ts` is `max(event_ts_last_event)` over the per-customer single-row events; the max is over a single value, so it equals that value.
+(5) `distinct_products_ordered = F.countDistinct('product_id')` — distinct product count per customer. Source: `bronze.orders_raw.product_id`. Cross-source: NO.
+
+The aggregate is static (no dynamic env-var-driven loop), so the DEGraph extraction is fully resolvable — no dynamic-aggregation warning is emitted for this aggregate.
+
+MODEL (google/gemini-2.0-flash-001):
+Here's the breakdown of the aggregate specification in `silver/customer_profile.py`:
+
+**Group Keys:**
+
+*   customer\_id
+*   email
+*   country\_code
+*   signup\_ts
+
+**Aggregates:**
+
+| Output Column            | Aggregation Function | Source Column           | Multi-Source Reasoning Required? |
+| ------------------------ | -------------------- | ------------------------- | -------------------------------- |
+| total\_orders            | `count`              | `order_id`                | No                               |
+| lifetime\_revenue        | `sum`                | `total_amount`            | No                               |
+| last\_order\_ts           | `max`                | `order_ts`                | No                               |
+| last\_event\_ts          | `max`                | `event_ts_last_event`     | Yes                              |
+| distinct\_products\_ordered | `countDistinct`      | `product_id`              | No                               |
+
+**Explanation of Multi-Source Reasoning:**
+
+*   `last_event_ts`: This column originates from the `events_suffixed` DataFrame, which is joined to the `co` DataFrame (customers joined with orders). Therefore, reasoning about the source of `event_ts_last_event` requires understanding the join relationship and the suffixing applied to the events columns.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ7] window-function-impact / medium
+Q: In `silver/shipments_timeline.py`, the window `Window.partitionBy('order_id').orderBy(F.col('ship_ts').asc())` ranks parcels within an order to produce `shipment_seq`. If the partition key were changed from `order_id` to `customer_id`, what would the new semantic meaning of `shipment_seq` be, and what bug would that introduce in the downstream join with `orders_raw`?
+Score: None
+
+REFERENCE:
+Current semantics with `partitionBy('order_id')`: `shipment_seq` is the within-order parcel sequence number ordered by ship timestamp ascending. For an order shipped as 3 parcels at times t1 < t2 < t3, shipment_seq is 1, 2, 3 respectively. The downstream aggregate then computes per-order summaries (shipment_count, first_ship_ts, last_delivered_ts, carriers_used), and the inner join with `orders_raw.select('order_id', 'customer_id')` attaches `customer_id` per order. shipment_seq itself is NOT in the final write (the aggregate produces shipment_count instead) — it is a within-order helper rank.
+
+If the partition were changed to `partitionBy('customer_id')`: shipment_seq would become the per-CUSTOMER parcel sequence number — i.e. the Nth parcel ever shipped to that customer across ALL their orders. A customer with 3 orders of 2 parcels each would see shipment_seq running 1..6 across all six parcels in ship_ts order, regardless of order boundaries.
+
+The downstream bug: the `.groupBy('order_id')` aggregate would still produce per-order aggregates (shipment_count, first_ship_ts, etc.) correctly — the aggregate doesn't depend on shipment_seq because shipment_seq is dropped at the aggregate (only count, min, max, collect_set are computed). So the WRITTEN silver columns would be unchanged. The functional impact is that any DOWNSTREAM file that referenced `shipment_seq` would now see customer-level ranks instead of order-level ranks; but in this benchmark NO downstream file references shipment_seq (it does not appear in any other file). Therefore the change would be silently incorrect for any analyst reading `shipments_seq` as an intermediate, but invisible to the current silver/gold pipeline.
+
+A second, less obvious bug: customer_id is not present on shipments_raw directly (the file does NOT have customer_id on shipments_seq); the join with orders_raw to bring in customer_id happens AFTER the window. So `partitionBy('customer_id')` would fail at extraction time with a 'column not found' error on `shipments_seq.customer_id`. To actually make that change work, you would also have to move the orders_raw join BEFORE the window — restructuring the file.
+
+MODEL (google/gemini-2.0-flash-001):
+If the partition key in `silver/shipments_timeline.py` were changed from `order_id` to `customer_id`, `shipment_seq` would represent the sequence of shipments for a given customer across all their orders, rather than within a single order.
+
+This change would introduce a bug in the downstream join with `orders_raw`. The join is currently performed on `order_id`. With the modified window, the `timeline` DataFrame would no longer have a one-to-one correspondence between `order_id` and shipment sequence. The aggregation would be incorrect, potentially leading to inaccurate counts and timestamps related to shipments for each order. The `customer_id` brought in from the join would also be misleading, as it would be associated with aggregated shipment data across multiple orders for that customer.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ8] custom-sink / medium
+Q: Describe the `DeltaMergeSink` class in `utils/sinks.py`: what constructor kwargs does it take, what does its `run(df)` method do, how does DEGraph recognize call sites that use it (registered vs heuristic-fallback), and what would happen if the class were NOT registered?
+Score: None
+
+REFERENCE:
+Class definition (`utils/sinks.py`): `class DeltaMergeSink` with `__init__(self, target_table: str, merge_keys: List[str], mode: str = 'merge', update_condition: Optional[str] = None)` — four constructor parameters: target_table (the FQN string), merge_keys (the list of columns to merge on), mode (default 'merge'), and update_condition (optional SQL fragment for `whenMatchedUpdate`'s condition).
+
+`run(df)` method behavior: (1) Get the active Spark session. (2) If the target table does NOT exist, fall back to `df.write.format('delta').saveAsTable(target_table)` and return — the first-write path is a plain CREATE. (3) Otherwise, get the Delta target via `DeltaTable.forName(spark, target_table)`, build a merge condition as `' AND '.join(f't.{k} = s.{k}' for k in merge_keys)`, alias target as `t` and source df as `s`, call `whenMatchedUpdateAll(...)` (with the optional update_condition if provided), then `whenNotMatchedInsertAll().execute()`. Net effect: SCD-Type-1 upsert.
+
+DEGraph recognition (per `dev/methodology.md` Decision 3.8): two-tier mechanism. Tier 1 (preferred, used here): the class is REGISTERED in `.degraph/sinks.json` which maps `DeltaMergeSink` to `target_table` kwarg → table FQN and `mode` kwarg → write mode (default 'merge'). Because it is registered, the extractor recognizes a bare `DeltaMergeSink(target_table=..., merge_keys=[...]).run(df)` call site (no `.write`, no `saveAsTable`) as a proper WritesEdge with `sink_class='DeltaMergeSink'`, `mode='merge'`, and the merge_keys captured.
+
+If NOT registered (tier 2 heuristic fallback): the extractor would still detect it because the class name matches the `*Sink`/`*Writer` heuristic AND has a kwarg in `{target_table, target, sink_table}`. A WritesEdge would still be emitted but with `mode='<unresolved>'` AND a `GraphWarning` of kind `unregistered-custom-sink` would be added. This benchmark exercises path 1 (registered) — no such warning is in the graph. If the registration were removed AND the heuristic didn't fire (e.g. the class were named without the Sink/Writer suffix), the write would be SILENTLY DROPPED — which is the single worst failure mode for a lineage tool and the reason the heuristic exists as a backstop.
+
+MODEL (google/gemini-2.0-flash-001):
+The `DeltaMergeSink` class in `utils/sinks.py` is a custom sink class that encapsulates the logic for upserting a source DataFrame into a Delta target table using a MERGE operation (SCD-Type-1).
+
+**Constructor Kwargs:**
+
+*   `target_table` (str): The name of the target Delta table.
+*   `merge_keys` (List\[str]): A list of column names used to determine matching rows between the source and target tables.
+*   `mode` (str, optional): The write mode, defaulting to "merge".
+*   `update_condition` (Optional\[str], optional): An optional condition to apply during the update operation.
+
+**`run(df)` Method:**
+
+The `run(df)` method takes a DataFrame `df` as input and performs the following steps:
+
+1.  Gets the active SparkSession.
+2.  Checks if the target table exists. If not, it creates the table by writing the DataFrame to the specified `target_table` in Delta format.
+3.  If the table exists, it retrieves the DeltaTable object.
+4.  Constructs a merge condition based on the `merge_keys`.
+5.  Builds a MERGE operation using the DeltaTable API, specifying the merge condition.
+6.  If an `update_condition` is provided, it applies the condition during the update. Otherwise, it updates all matched rows.
+7.  Inserts non-matching rows from the source DataFrame into the target table.
+8.  Executes the MERGE operation.
+
+**DEGraph Recognition:**
+
+DEGraph recognizes call sites that use `DeltaMergeSink` in two ways:
+
+1.  **Registered (Preferred):** The `.degraph/sinks.json` file maps `DeltaMergeSink` to its semantics, specifying which kwarg holds the target table FQN (`target_table`) and which holds the write mode (`mode`, default `merge`). The extractor emits a proper `Writes` edge with `sink_class="DeltaMergeSink"` and `mode="merge"`.
+2.  **Heuristic Fallback:** If the class were *not* registered but matched the `*Sink` / `*Writer` name pattern AND had a kwarg in `{target_table, target, sink_table}`, the extractor would still emit a `Writes` edge (with `<unresolved>` mode) plus a `GraphWarning`.
+
+**If the Class Were NOT Registered:**
+
+If the `DeltaMergeSink` class were NOT registered in `.degraph/sinks.json`, DEGraph would fall back to its heuristic approach. It would check if the class name matches the `*Sink` or `*Writer` pattern and if it has a kwarg in `{target_table, target, sink_table}`. If these conditions are met, the extractor would emit a `Writes` edge with an `<unresolved>` mode and a `GraphWarning`.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ9] counterfactual / hard
+Q: If `silver/orders_cleaned.py` were deleted from the repo, what specifically changes in the DEGraph output (edges, tables, warnings), and which gold tables become unbuildable?
+Score: None
+
+REFERENCE:
+Structural changes in the graph (everything contributed by this file disappears): (a) the single ReadsEdge from `bronze.orders_raw` originating in this file is removed; (b) the OpaqueTransform edge for `utils.column_transformations.trim_string_columns` (with `is_passthrough=true`) is removed; (c) all 8 DerivesEdges (one per `withColumn`: upper(currency), lower(status), greatest(quantity, 0), round(total_amount, 2), to_date(order_ts) → order_date, year(order_ts) → order_year, month(order_ts) → order_month, total_amount > 1000 → is_high_value) are removed; (d) the ProjectsEdge for `.drop('_rescued_data', 'source_file')` is removed; (e) the FilterEdge for `status != 'cancelled' AND quantity > 0` is removed; (f) the WritesEdge to `silver.orders_cleaned` is removed; (g) the Table node `silver.orders_cleaned` loses its only writer; (h) every intermediate DataFrame node inside the file disappears.
+
+Downstream gold tables that become unbuildable (gold files that read `silver.orders_cleaned`): per the existing tuning-split Q17, three consumers — `gold/attribution_funnel_daily.py`, `gold/inventory_turnover_daily.py`, `gold/product_performance.py`. Each fails differently:
+(1) `gold/attribution_funnel_daily.py`: the `purchases` CTE — `FROM {database}.orders_cleaned oc JOIN ... USING (customer_id)` — has no source table. Its `purchase_count` becomes undefined; `conversion_rate = purchase_count / NULLIF(visit_count, 0)` becomes undefined.
+(2) `gold/inventory_turnover_daily.py`: relies on orders_cleaned for the sold-quantity side of the turnover calculation; the merge into the partitioned turnover table fails.
+(3) `gold/product_performance.py`: groupBy(product_id, order_date) where product_id and order_date both come from orders_cleaned; with no source, the entire gold output is undefined including the static count(order_id) → order_count and the dynamic-config aggregates.
+
+NEW WARNINGS expected: (i) an `orphan-table` GraphWarning for `silver.orders_cleaned` because the Table node exists in the DDL/schema layer but has no producer; (ii) potentially THREE additional `unbuildable-downstream` warnings (one per gold consumer) depending on the extractor's downstream-coverage logic — but at minimum, the three gold files would each have a ReadsEdge into a no-writer Table node, which the warnings layer typically surfaces as 'reads-without-producer'. `bronze.orders_raw` retains its other reader files (silver/customer_profile.py, silver/refunds_enriched.py, silver/shipments_timeline.py) so it does NOT become orphan. The `trim_string_columns` helper retains its registration in `.degraph/helpers.json` but is no longer referenced by any remaining file (`silver/returns_cleaned.py` also uses it, so the helper is still in use).
+
+MODEL (google/gemini-2.0-flash-001):
+Here's the impact analysis of deleting `silver/orders_cleaned.py`:
+
+**Changes in DEGraph Output:**
+
+*   **Deletion of Nodes and Edges:**
+    *   The file node for `silver/orders_cleaned.py` would be removed.
+    *   The `Writes` edge from `silver/orders_cleaned.py` to the `orders_cleaned` table would be removed.
+    *   The `Reads` edge to `bronze.ecom.orders_raw` would be removed.
+    *   The `OpaqueTransform`, `Derives`, `Projects`, and `Filters` edges within `silver/orders_cleaned.py` would be removed.
+
+**Gold Tables Impacted:**
+
+*   `gold/attribution_funnel_daily.py`: This table reads from `orders_cleaned`. Deleting `silver/orders_cleaned.py` would make this gold table unbuildable.
+*   `gold/inventory_turnover_daily.py`: This table reads from `orders_cleaned`. Deleting `silver/orders_cleaned.py` would make this gold table unbuildable.
+*   `gold/product_performance.py`: This table reads from `orders_cleaned`. Deleting `silver/orders_cleaned.py` would make this gold table unbuildable.
+
+**Summary:**
+
+Deleting `silver/orders_cleaned.py` removes its corresponding file node and all edges associated with it. This action directly impacts the buildability of `gold/attribution_funnel_daily.py`, `gold/inventory_turnover_daily.py`, and `gold/product_performance.py` because they depend on the `orders_cleaned` table that `silver/orders_cleaned.py` creates.
+
+
+Notes: 
+-----------------------------------------------------------------
+
+[HQ10] coverage-of-unknowns / medium
+Q: How does DEGraph distinguish a *registered-passthrough* opaque call (like `trim_string_columns`) from an *unregistered-opaque* call (like `utils.event_parsers.parse_event_payload`)? Where does the registration live, what does it mean for the emitted edge, and what is the impact-analysis consequence of the distinction?
+Score: None
+
+REFERENCE:
+Both kinds of calls — wrappers like `trim_string_columns(df)` and `parse_event_payload(df)` — are AST-level opaque to the extractor: the function body is in another file and the extractor does not inline-execute Python. DEGraph distinguishes them via a registry file: `.degraph/helpers.json`. Each entry maps a fully qualified helper name to a `kind` field. The two relevant kinds here:
+
+(1) `"kind": "passthrough"` — declares that the helper preserves the input DataFrame's column set (values may change, schema does not). Example: `trim_string_columns` in `utils.column_transformations`, used in both `silver/orders_cleaned.py` and `silver/returns_cleaned.py`. The extractor emits an `OpaqueTransform` edge with `is_passthrough=true` and `opaque_kind='passthrough'`. The DataFrame node produced by the call has the SAME column set as the input. Downstream column-set reasoning treats the call as transparent — column-level impact analysis traces THROUGH the passthrough as if it were an identity transformation.
+
+(2) `"kind": "suffix_rename"` — declares that the helper renames every column by appending a suffix; the extractor emits one DerivesEdge per renamed column (mapping `name → name + suffix`). Example: `rename_columns_with_suffix` in `utils.column_transformations`, used in `silver/customer_profile.py`. Different from passthrough because the column set CHANGES (columns are renamed, not preserved).
+
+Unregistered: if a helper is NOT in `.degraph/helpers.json` (or `.degraph/helpers.json` doesn't exist or doesn't contain that name), the extractor falls back to emitting an `OpaqueTransform` edge with `is_passthrough=false` and `opaque_kind='unknown'`. Example: `utils.event_parsers.parse_event_payload` in `bronze/03_ingest_events.py` — the function strips `payload` and adds `page_url`, `referrer`, `user_agent`, `cart_total`, but DEGraph cannot know that statically because the helper is not registered. The extractor emits a `GraphWarning` of category `opaque-call-fallback` (per tuning-Q10) AND the OpaqueTransform edge marks the column-set change as opaque — downstream column-level impact analysis CANNOT trace through this call.
+
+Impact-analysis consequence: a registered passthrough means a question like 'if column X is renamed, which downstream tables are affected?' can correctly count the downstream silver tables; an unregistered opaque means the analysis stops at the opaque boundary — downstream effects are reported as 'unknown'. The cost of unregistered helpers is reduced column-level resolution at exactly the file boundaries where domain logic lives.
+
+MODEL (google/gemini-2.0-flash-001):
+DEGraph distinguishes between registered-passthrough and unregistered-opaque calls based on the presence and content of entries in the `.degraph/helpers.json` file.
+
+1.  **Registration Location:** The registration lives in the `.degraph/helpers.json` file. This file maps helper function names to their semantics.
+
+2.  **Meaning for Emitted Edge:**
+
+    *   **Registered-Passthrough (e.g., `trim_string_columns`):** If a function is registered with `"kind": "passthrough"`, the extractor emits an `OpaqueTransform` edge with `is_passthrough=true`. This indicates that the function preserves the column set; only the values within the columns are modified.
+    *   **Unregistered-Opaque (e.g., `parse_event_payload`):** If a function is not registered, the extractor emits an `OpaqueTransform` edge with `is_passthrough=false`. This indicates that the column set may have changed, but the extractor cannot determine how. Additionally, a `GraphWarning` is generated, noting the unregistered helper and its location.
+
+3.  **Impact-Analysis Consequence:**
+
+    *   **Registered-Passthrough:** Because the column set is preserved, impact analysis can trace lineage through the call as if it were a direct transformation of the column values.
+    *   **Unregistered-Opaque:** The lack of column-set information creates a gap in the lineage. Impact analysis cannot determine which columns are affected by the call, potentially leading to incomplete or inaccurate results. The `GraphWarning` signals that manual inspection or further analysis may be needed to fully understand the transformation.
+
+
+Notes: 
+-----------------------------------------------------------------

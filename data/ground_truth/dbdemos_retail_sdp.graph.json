@@ -1,0 +1,53 @@
+{
+  "_comment": "Hand-labeled lineage ground truth for a REAL third-party Databricks slice: databricks-demos/dbdemos-notebooks demo-retail/lakehouse-retail-c360/01-Data-ingestion/01.2-SDP-python/transformations (01-bronze.py, 02-silver.py, 03-gold.py). Labeled by reading the SOURCE ONLY (not the extractor output) to keep the comparison non-circular: every select/withColumn alias is a derives edge (output_col <- source_col(s)); bare passthrough columns are NOT labeled as edges (matching the synthetic-benchmark convention so the two accuracy numbers are comparable); each groupBy().agg() is one aggregates edge; each .join(on=k) is one joins edge; each @dp.table/@dp.materialized_view function writes to its function-name table; each Auto Loader .load(path) / spark.read.table(x) is a reads edge. Single-annotator (paper author); see paper §6.2. Exercises the DLT/SDP idiom (Fixes #10/#12) and the gold aggregate+join path.",
+  "tables": [
+    {"fqn": "churn_app_events"},
+    {"fqn": "churn_orders_bronze"},
+    {"fqn": "churn_users_bronze"},
+    {"fqn": "churn_users"},
+    {"fqn": "churn_orders"},
+    {"fqn": "churn_features"},
+    {"fqn": "churn_prediction"}
+  ],
+  "edges": [
+    {"kind": "reads", "file": "01-bronze.py", "source": "ext:/Volumes/main__build/dbdemos_retail_c360/c360/events", "target": "df"},
+    {"kind": "reads", "file": "01-bronze.py", "source": "ext:/Volumes/main__build/dbdemos_retail_c360/c360/orders", "target": "df"},
+    {"kind": "reads", "file": "01-bronze.py", "source": "ext:/Volumes/main__build/dbdemos_retail_c360/c360/users", "target": "df"},
+    {"kind": "writes", "file": "01-bronze.py", "source": "df", "target": "table:churn_app_events"},
+    {"kind": "writes", "file": "01-bronze.py", "source": "df", "target": "table:churn_orders_bronze"},
+    {"kind": "writes", "file": "01-bronze.py", "source": "df", "target": "table:churn_users_bronze"},
+
+    {"kind": "reads", "file": "02-silver.py", "source": "table:churn_users_bronze", "target": "df"},
+    {"kind": "reads", "file": "02-silver.py", "source": "table:churn_orders_bronze", "target": "df"},
+    {"kind": "writes", "file": "02-silver.py", "source": "df", "target": "table:churn_users"},
+    {"kind": "writes", "file": "02-silver.py", "source": "df", "target": "table:churn_orders"},
+    {"kind": "derives", "file": "02-silver.py", "output_col": "user_id", "source_cols": ["id"]},
+    {"kind": "derives", "file": "02-silver.py", "output_col": "email", "source_cols": ["email"]},
+    {"kind": "derives", "file": "02-silver.py", "output_col": "creation_date", "source_cols": ["creation_date"]},
+    {"kind": "derives", "file": "02-silver.py", "output_col": "last_activity_date", "source_cols": ["last_activity_date"]},
+    {"kind": "derives", "file": "02-silver.py", "output_col": "firstname", "source_cols": ["firstname"]},
+    {"kind": "derives", "file": "02-silver.py", "output_col": "lastname", "source_cols": ["lastname"]},
+    {"kind": "derives", "file": "02-silver.py", "output_col": "gender", "source_cols": ["gender"]},
+    {"kind": "derives", "file": "02-silver.py", "output_col": "age_group", "source_cols": ["age_group"]},
+    {"kind": "derives", "file": "02-silver.py", "output_col": "churn", "source_cols": ["churn"]},
+    {"kind": "derives", "file": "02-silver.py", "output_col": "amount", "source_cols": ["amount"]},
+    {"kind": "derives", "file": "02-silver.py", "output_col": "order_id", "source_cols": ["id"]},
+    {"kind": "derives", "file": "02-silver.py", "output_col": "item_count", "source_cols": ["item_count"]},
+    {"kind": "derives", "file": "02-silver.py", "output_col": "creation_date", "source_cols": ["transaction_date"]},
+
+    {"kind": "reads", "file": "03-gold.py", "source": "table:churn_app_events", "target": "df"},
+    {"kind": "reads", "file": "03-gold.py", "source": "table:churn_orders", "target": "df"},
+    {"kind": "reads", "file": "03-gold.py", "source": "table:churn_users", "target": "df"},
+    {"kind": "reads", "file": "03-gold.py", "source": "table:churn_features", "target": "df"},
+    {"kind": "writes", "file": "03-gold.py", "source": "df", "target": "table:churn_features"},
+    {"kind": "writes", "file": "03-gold.py", "source": "df", "target": "table:churn_prediction"},
+    {"kind": "aggregates", "file": "03-gold.py", "group_keys": ["user_id"], "output_cols": ["platform", "event_count", "session_count", "last_event"]},
+    {"kind": "aggregates", "file": "03-gold.py", "group_keys": ["user_id"], "output_cols": ["order_count", "total_amount", "total_item", "last_transaction"]},
+    {"kind": "joins", "file": "03-gold.py", "join_keys": [["user_id", "user_id"]]},
+    {"kind": "joins", "file": "03-gold.py", "join_keys": [["user_id", "user_id"]]},
+    {"kind": "derives", "file": "03-gold.py", "output_col": "days_since_creation", "source_cols": ["creation_date"]},
+    {"kind": "derives", "file": "03-gold.py", "output_col": "days_since_last_activity", "source_cols": ["last_activity_date"]},
+    {"kind": "derives", "file": "03-gold.py", "output_col": "days_last_event", "source_cols": ["last_event"]},
+    {"kind": "derives", "file": "03-gold.py", "output_col": "churn_prediction", "source_cols": []}
+  ]
+}

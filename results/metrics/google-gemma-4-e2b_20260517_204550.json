@@ -1,0 +1,272 @@
+{
+  "runs": [
+    {
+      "meta": {
+        "backend": "ollama",
+        "model": "google/gemma-4-e2b",
+        "context_mode": "raw_source",
+        "context_tokens": 10226,
+        "timestamp": "20260517_204550"
+      },
+      "scores": {
+        "message": "No scores yet \u2014 grade results manually then re-run with --score"
+      },
+      "results": [
+        {
+          "id": "Q1",
+          "category": "direct-cross-file-impact",
+          "difficulty": "medium",
+          "question": "If the column `customer_id` in `main.dbdemos_ecom.orders_raw` is renamed to `cust_id`, which silver and gold tables need updating? List the affected tables and briefly explain why.",
+          "context_mode": "raw_source",
+          "reference_answer": "Two silver tables and one gold table are affected. (1) `silver.orders_cleaned` \u2014 `orders_raw` is read by `silver/orders_cleaned.py`, where `customer_id` passes through the trim \u2192 withColumn \u2192 drop \u2192 filter chain unchanged into the silver output (column-set propagation; not derived from). (2) `silver.customer_profile` \u2014 `silver/customer_profile.py` reads `orders_raw` and uses `customer_id` as the join key with `customers_raw` (line 78) and as a `groupBy` key (line 97); the renamed column would break both the join and the group key. (3) `gold.customer_ltv` \u2014 inherits `customer_id` from `silver.customer_profile` via the SQL `base` CTE in `gold/customer_ltv.py`. `gold.product_performance` is NOT affected: it reads `orders_cleaned` but groups by `product_id, order_date` only.",
+          "model_answer": "The following tables need updating due to the renaming of `customer_id` in `main.dbdemos_ecom.orders_raw`:\n\n1.  **Bronze Table:**\n    *   `main.dbdemos_ecom.orders_raw` (The source table itself).\n\n2.  **Silver Tables:**\n    *   `main.dbdemos_ecom.orders_cleaned` (Reads `orders_raw`).\n    *   `main.dbdemos_ecom.customer_profile` (This table performs an inner join between `orders_raw` and `customers_raw` using the `customer_id` column).\n\n3.  **Gold Tables:**\n    *   `main.dbdemos_ecom.customer_ltv` (Reads `customer_profile`).\n    *   `main.dbdemos_ecom.product_performance` (Reads `orders_cleaned`).",
+          "elapsed_s": 74.71,
+          "score": 1,
+          "notes": "Lists silver tables correctly; wrongly includes product_performance as affected gold; also includes bronze (out of scope)"
+        },
+        {
+          "id": "Q2",
+          "category": "producer-consumer",
+          "difficulty": "easy",
+          "question": "Which file in this repo produces `main.dbdemos_ecom.orders_cleaned`?",
+          "context_mode": "raw_source",
+          "reference_answer": "`silver/orders_cleaned.py` produces `main.dbdemos_ecom.orders_cleaned`. It writes the table via `saveAsTable` on line 104 with `mode=overwrite` and `format=delta`.",
+          "model_answer": "The file that produces `main.dbdemos_ecom.orders_cleaned` is `silver/orders_cleaned.py`.",
+          "elapsed_s": 24.17,
+          "score": 2,
+          "notes": "Exact match"
+        },
+        {
+          "id": "Q3",
+          "category": "transitive-multi-hop-impact",
+          "difficulty": "medium",
+          "question": "If the column `last_event_ts` is dropped from `main.dbdemos_ecom.customer_profile`, which downstream gold-tier columns become undefined?",
+          "context_mode": "raw_source",
+          "reference_answer": "Only `gold.customer_ltv.last_event_ts` becomes undefined. The column originates as `max(event_ts_last_event)` aggregated in `silver/customer_profile.py` (line 102), then passes through the `base` CTE in `gold/customer_ltv.py` (line 54), through the join and Projects edges unchanged, and is emitted as a column on `gold.customer_ltv`. It is NOT used in any derived expression (`days_since_last_order`, `ltv_vs_country_avg`, `revenue_quartile`, or `ltv_tier` reference `last_order_ts`, `lifetime_revenue`, or `revenue_quartile` \u2014 never `last_event_ts`). `gold.product_performance` does not consume `customer_profile` at all.",
+          "model_answer": "Based on the provided context, if the column `last_event_ts` is dropped from `main.dbdemos_ecom.customer_profile`, the downstream gold-tier table `main.dbdemos_ecom.customer_ltv` will become undefined because it selects this column in its base CTE:\n\nIn `gold/customer_ltv.py`:\n```sql\nWITH base AS (\n    SELECT customer_id,\n           ",
+          "elapsed_s": 40.51,
+          "score": 1,
+          "notes": "Answer truncated mid-CTE block; identifies customer_ltv but does not complete the explanation"
+        },
+        {
+          "id": "Q4",
+          "category": "reverse-lineage",
+          "difficulty": "hard",
+          "question": "Which bronze-layer columns contribute, directly or transitively, to `gold.customer_ltv.lifetime_revenue`? List the source table and column for each.",
+          "context_mode": "raw_source",
+          "reference_answer": "A single bronze column: `main.dbdemos_ecom.orders_raw.total_amount`. The reverse trace is: `gold.customer_ltv.lifetime_revenue` \u2190 (Python passthrough through Projects edge e:p:g01) \u2190 `df:45:ltv_df.lifetime_revenue` \u2190 (selected in SQL `base` CTE) \u2190 `silver.customer_profile.lifetime_revenue` \u2190 AggregatesEdge e:a:s02 with `agg_ops=[count, sum, max, max, countDistinct]` and `output_cols=[total_orders, lifetime_revenue, last_order_ts, last_event_ts, distinct_products_ordered]` \u2014 `lifetime_revenue` is the `sum` aggregate, of the `total_amount` column \u2190 passed through the customers\u2a1dorders\u2a1devents joins from `df:43:orders_df.total_amount` \u2190 ReadsEdge e:r:s02:orders \u2190 `main.dbdemos_ecom.orders_raw.total_amount`.",
+          "model_answer": "",
+          "elapsed_s": 40.86,
+          "score": 0,
+          "notes": "Empty answer"
+        },
+        {
+          "id": "Q5",
+          "category": "counterfactual",
+          "difficulty": "hard",
+          "question": "If the `trim_string_columns(orders)` call at line 56 of `silver/orders_cleaned.py` is removed, what specifically changes in the lineage graph, and does it affect the column set of `main.dbdemos_ecom.orders_cleaned`?",
+          "context_mode": "raw_source",
+          "reference_answer": "The graph changes structurally but the output column set does not. Structural changes: (a) the OpaqueTransform edge `e:o:s01` (`utils.column_transformations.trim_string_columns`, `is_passthrough=true`) disappears; (b) the DataFrame node `df:56:orders_trimmed` disappears; (c) the 8 Derives edges that currently source from `df:56:orders_trimmed` would re-source from `df:44:orders` directly. The output column set of `silver.orders_cleaned` is UNCHANGED because the trim helper is registered as `\"kind\": \"passthrough\"` in `.degraph/helpers.json` \u2014 it preserves the column set, only mutating string values. Functionally, runtime data quality may differ (whitespace not stripped), but lineage-as-information is identical.",
+          "model_answer": "If the `trim_string_columns(orders)` call is removed from `silver/orders_cleaned.py`:\n\n**Lineage Graph Change:**\nThe specific transformation step corresponding to this function will be removed from the lineage graph. Since `trim_string_columns` is registered in `.degraph/helpers.json` as `\"kind\": \"passthrough\"`, its removal means that the associated semantically-rich edge\u2014an **`OpaqueTransform` edge with `is_passthrough=true`**\u2014will no longer be emitted by the DEGraph extractor for this step.\n\n**Column Set Impact:**\nThe column set of `main.dbdemos_ecom.orders_cleaned` will change. The resulting table will contain the raw string values from the bronze layer, including any leading or trailing whitespace that was previously stripped by the `trim_string_columns` function.",
+          "elapsed_s": 35.15,
+          "score": 1,
+          "notes": "Correctly identifies opaque_transform edge removal; wrongly claims column set will change (misses passthrough semantics)"
+        },
+        {
+          "id": "Q6",
+          "category": "producer-consumer",
+          "difficulty": "easy",
+          "question": "Which file consumes `main.dbdemos_ecom.events_raw`, and what table does that file produce?",
+          "context_mode": "raw_source",
+          "reference_answer": "`silver/customer_profile.py` is the only consumer of `main.dbdemos_ecom.events_raw`. It reads the table on line 45, applies a window function with `row_number()` to keep the latest event per customer, suffix-renames the columns with `_last_event`, joins with `orders` and `customers`, and aggregates the result. The file produces `main.dbdemos_ecom.customer_profile`.",
+          "model_answer": "The file that consumes `main.dbdemos_ecom.events_raw` is `silver/customer_profile.py`. This file produces the table `main.dbdemos_ecom.customer_profile`.",
+          "elapsed_s": 23.54,
+          "score": 2,
+          "notes": "Exact match"
+        },
+        {
+          "id": "Q7",
+          "category": "aggregate-semantics",
+          "difficulty": "hard",
+          "question": "What columns from `silver.orders_cleaned` are aggregated into `gold.product_performance`, and what aggregation functions are applied? Be precise about what the graph can and cannot tell you.",
+          "context_mode": "raw_source",
+          "reference_answer": "The graph reports only partial information here, by design. STATICALLY KNOWN: `gold.product_performance` is grouped by `product_id` and `order_date` from `silver.orders_cleaned`; the only fully-resolved aggregation is `count(order_id) AS order_count`. STATICALLY UNKNOWN: the Aggregates edge `e:a:g02` has `dynamic=true` with `agg_ops=[\"count\", \"<unresolved>\"]` and `output_cols=[\"order_count\", \"<unresolved>\"]`. Per the edge's `dynamic_note` and the corresponding GraphWarning (`dynamic-aggregation` category), the rest of the agg list is built at runtime by looping over `metric_columns`, which is loaded from a JSON file at `$METRIC_CONFIG_PATH` (default `/dbfs/configs/metrics.json`). The loop applies `sum`, `avg`, and `max` to each metric column, but the specific columns are runtime-determined and not enumerable from the code alone.",
+          "model_answer": "The aggregation details are dynamic and depend on an external configuration file (`metrics.json`).\n\n**Aggregated Columns and Functions:**\n\n1.  **Grouping Keys:** The data is grouped by `product_id` and `order_date`.\n2.  **Dynamic Metrics:** For every column listed in the external `metrics.json` file (stored under `\"product_performance\"`), three aggregation functions are applied:\n    *   `F.sum(column)` (aliased as `sum_<column>`)\n    *   `F.avg(column)` (aliased as `avg_<column>`)\n    *   `F.max(column)` (aliased as `max_<column>`)\n3.  **Static Metric:** The total count of orders is calculated using `F.count(\"order_id\")`, aliased as `order_count`.\n\n**Graph Lineage Information (What the Graph Can and Cannot Tell You):**\n\n*   **Known Edges:** The graph will show a `Reads` edge from `silver.ecom.orders_cleaned` to the aggregation step, and a `Writes` edge to `gold.ecom.product_performance`.\n*   **Dynamic Aggregation (Opaque):** Because the list of metric columns (`metric_columns`) is loaded from an external JSON file",
+          "elapsed_s": 40.48,
+          "score": 1,
+          "notes": "Full dynamic-aggregation answer with sum/avg/max per metric; answer truncated mid-final-paragraph"
+        },
+        {
+          "id": "Q8",
+          "category": "window-function-impact",
+          "difficulty": "medium",
+          "question": "The latest-event window in `silver/customer_profile.py` partitions on `customer_id` and orders by `event_ts` descending. If `event_ts` becomes nullable in `bronze.events_raw`, which downstream silver and gold columns are at risk of becoming unstable or unreliable?",
+          "context_mode": "raw_source",
+          "reference_answer": "Two downstream columns are at risk. (1) `silver.customer_profile.last_event_ts` \u2014 the window's `row_number() == 1` filter (line 57) determines \"latest event per customer\"; with a nullable order key, Spark's null-handling makes that selection ambiguous, so the `max(event_ts_last_event)` aggregate (which becomes `last_event_ts`) is unreliable. (2) `gold.customer_ltv.last_event_ts` \u2014 inherits the value via the `base` CTE in `gold/customer_ltv.py`; it is not used in any derived expression in that file, so the only risk is the value itself being unreliable, not derived computations. No other downstream column references the windowed selection.",
+          "model_answer": "If `event_ts` becomes nullable in `bronze.events_raw`, the following downstream columns in `silver/customer_profile.py` are at risk of becoming unstable or unreliable:\n\n1.  **`last_event_ts`**: This column is derived from `F.max(\"event_ts_last_event\")`. If the latest event for a customer has a null `event_ts`, the resulting `last_event_ts` will be null, making recency metrics unreliable or incomplete.\n\nThe window function relies on ordering by `event_ts` descending to correctly identify the \"latest\" event; null values in this column can alter the ranking order and potentially lead to incorrect identification of the true latest event if not handled explicitly.",
+          "elapsed_s": 34.52,
+          "score": 1,
+          "notes": "Identifies last_event_ts risk and window null-handling; does not explicitly trace to gold.customer_ltv.last_event_ts"
+        },
+        {
+          "id": "Q9",
+          "category": "custom-sink",
+          "difficulty": "easy",
+          "question": "What table receives the writes from `gold/product_performance.py`, what write mode is used, and what merge keys does the sink apply?",
+          "context_mode": "raw_source",
+          "reference_answer": "The file writes to `main.dbdemos_ecom.product_performance` using `mode=merge` via the registered `DeltaMergeSink` custom sink class. The merge keys passed to the sink are `[product_id, order_date]` (SCD-Type-1 upsert pattern on the (product, day) grain). The sink class is registered in `.degraph/sinks.json` with `target_kwarg=target_table` and `mode_kwarg=mode`, which is how the extractor resolved the target FQN and mode.",
+          "model_answer": "The writes from `gold/product_performance.py` are directed to the table `main.dbdemos_ecom.product_performance`. The write mode used is `merge`, and the merge keys applied are `[\"product_id\", \"order_date\"]`.",
+          "elapsed_s": 19.04,
+          "score": 2,
+          "notes": "Table + mode + merge_keys all correct"
+        },
+        {
+          "id": "Q10",
+          "category": "coverage-of-unknowns",
+          "difficulty": "medium",
+          "question": "What lineage gaps or unknowns does the graph itself report for this repo? List each, the file/location it applies to, and what the gap means for downstream analysis.",
+          "context_mode": "raw_source",
+          "reference_answer": "The graph reports three gaps via GraphWarnings. (1) `orphan-table` \u2014 `main.dbdemos_ecom.products_raw` is declared in `ddl/bronze_tables.sql` but neither written nor read by any file in this repo; meaning the table exists in catalog state but plays no part in the pipeline (dead schema or future-planned ingestion). (2) `opaque-call-fallback` \u2014 at `bronze/03_ingest_events.py` line 53, the helper `utils.event_parsers.parse_event_payload` is not registered in `.degraph/helpers.json`; the extractor emitted an OpaqueTransform edge with `is_passthrough=false`, meaning the column-set change across that call (the helper actually drops `payload` and adds `page_url`, `referrer`, `user_agent`, `cart_total`) is unknown to DEGraph. (3) `dynamic-aggregation` \u2014 at `gold/product_performance.py` line 90, the `*aggregations` list star-unpacked into `.agg()` is built from a runtime JSON config at `$METRIC_CONFIG_PATH`; the specific sum/avg/max columns produced cannot be enumerated statically, so `gold.product_performance` has `<unresolved>` entries in its column list.",
+          "model_answer": "Based solely on the provided context, the DEGraph benchmark reports the following lineage gaps or unknowns:\n\n### 1. Unregistered Helper Function Call\n*   **File/Location:** `bronze/03",
+          "elapsed_s": 38.41,
+          "score": 0,
+          "notes": "Answer truncated after first warning header"
+        }
+      ]
+    },
+    {
+      "meta": {
+        "backend": "ollama",
+        "model": "google/gemma-4-e2b",
+        "context_mode": "compact_graph",
+        "context_tokens": 5034,
+        "timestamp": "20260517_204550"
+      },
+      "scores": {
+        "message": "No scores yet \u2014 grade results manually then re-run with --score"
+      },
+      "results": [
+        {
+          "id": "Q1",
+          "category": "direct-cross-file-impact",
+          "difficulty": "medium",
+          "question": "If the column `customer_id` in `main.dbdemos_ecom.orders_raw` is renamed to `cust_id`, which silver and gold tables need updating? List the affected tables and briefly explain why.",
+          "context_mode": "compact_graph",
+          "reference_answer": "Two silver tables and one gold table are affected. (1) `silver.orders_cleaned` \u2014 `orders_raw` is read by `silver/orders_cleaned.py`, where `customer_id` passes through the trim \u2192 withColumn \u2192 drop \u2192 filter chain unchanged into the silver output (column-set propagation; not derived from). (2) `silver.customer_profile` \u2014 `silver/customer_profile.py` reads `orders_raw` and uses `customer_id` as the join key with `customers_raw` (line 78) and as a `groupBy` key (line 97); the renamed column would break both the join and the group key. (3) `gold.customer_ltv` \u2014 inherits `customer_id` from `silver.customer_profile` via the SQL `base` CTE in `gold/customer_ltv.py`. `gold.product_performance` is NOT affected: it reads `orders_cleaned` but groups by `product_id, order_date` only.",
+          "model_answer": "The following Silver and Gold tables need updating:\n\n1.  **Silver Table: `main.dbdemos_ecom.customer_profile`**\n    *   **Reason:** This table is written by `silver/customer_profile.py`, which reads `main.dbdemos_ecom.orders_raw`. Since `customer_id` is a key column used in the aggregation logic within `silver/customer_profile.py` (to calculate metrics like `total_orders` and `lifetime_revenue`), renaming this column will break the script.\n\n2.  **Silver Table: `main.dbdemos_ecom.orders_cleaned`**\n    *   **Reason:** This table is written by `silver/orders_cleaned.py`, which reads `main.dbdemos_ecom.orders_raw`. The cleaning and derivation logic in this script likely relies on the existing column names, including `customer_id`, for transformations (like filtering or deriving order details).\n\n3.  **Gold Table: `main.dbdemos_ecom.product_performance`**\n    *   **Reason:** This table is written by `gold/product_performance.py`, which reads `main.dbdemos_ecom.orders_cleaned`. Since `orders_cleaned` depends on `orders_raw",
+          "elapsed_s": 50.33,
+          "score": 1,
+          "notes": "Names silver tables correctly; wrongly includes product_performance; does not name gold.customer_ltv specifically"
+        },
+        {
+          "id": "Q2",
+          "category": "producer-consumer",
+          "difficulty": "easy",
+          "question": "Which file in this repo produces `main.dbdemos_ecom.orders_cleaned`?",
+          "context_mode": "compact_graph",
+          "reference_answer": "`silver/orders_cleaned.py` produces `main.dbdemos_ecom.orders_cleaned`. It writes the table via `saveAsTable` on line 104 with `mode=overwrite` and `format=delta`.",
+          "model_answer": "The file `silver/orders_cleaned.py` produces `main.dbdemos_ecom.orders_cleaned`.",
+          "elapsed_s": 9.61,
+          "score": 2,
+          "notes": "Exact match"
+        },
+        {
+          "id": "Q3",
+          "category": "transitive-multi-hop-impact",
+          "difficulty": "medium",
+          "question": "If the column `last_event_ts` is dropped from `main.dbdemos_ecom.customer_profile`, which downstream gold-tier columns become undefined?",
+          "context_mode": "compact_graph",
+          "reference_answer": "Only `gold.customer_ltv.last_event_ts` becomes undefined. The column originates as `max(event_ts_last_event)` aggregated in `silver/customer_profile.py` (line 102), then passes through the `base` CTE in `gold/customer_ltv.py` (line 54), through the join and Projects edges unchanged, and is emitted as a column on `gold.customer_ltv`. It is NOT used in any derived expression (`days_since_last_order`, `ltv_vs_country_avg`, `revenue_quartile`, or `ltv_tier` reference `last_order_ts`, `lifetime_revenue`, or `revenue_quartile` \u2014 never `last_event_ts`). `gold.product_performance` does not consume `customer_profile` at all.",
+          "model_answer": "The downstream gold-tier column that becomes undefined is `last_event_ts`, as it is an output column of the aggregate operation performed in `gold/customer_ltv.py`.",
+          "elapsed_s": 22.4,
+          "score": 2,
+          "notes": "Concise and exactly correct \u2014 names gold.customer_ltv.last_event_ts"
+        },
+        {
+          "id": "Q4",
+          "category": "reverse-lineage",
+          "difficulty": "hard",
+          "question": "Which bronze-layer columns contribute, directly or transitively, to `gold.customer_ltv.lifetime_revenue`? List the source table and column for each.",
+          "context_mode": "compact_graph",
+          "reference_answer": "A single bronze column: `main.dbdemos_ecom.orders_raw.total_amount`. The reverse trace is: `gold.customer_ltv.lifetime_revenue` \u2190 (Python passthrough through Projects edge e:p:g01) \u2190 `df:45:ltv_df.lifetime_revenue` \u2190 (selected in SQL `base` CTE) \u2190 `silver.customer_profile.lifetime_revenue` \u2190 AggregatesEdge e:a:s02 with `agg_ops=[count, sum, max, max, countDistinct]` and `output_cols=[total_orders, lifetime_revenue, last_order_ts, last_event_ts, distinct_products_ordered]` \u2014 `lifetime_revenue` is the `sum` aggregate, of the `total_amount` column \u2190 passed through the customers\u2a1dorders\u2a1devents joins from `df:43:orders_df.total_amount` \u2190 ReadsEdge e:r:s02:orders \u2190 `main.dbdemos_ecom.orders_raw.total_amount`.",
+          "model_answer": "The `gold.customer_ltv.lifetime_revenue` column is derived from aggregations performed on `main.dbdemos_ecom.customer_profile`. This profile table, in turn, is built by joining data from three bronze tables:\n\n1.  **Source Table:** `main.dbdemos_ecom.orders_raw`\n    *   **Contributing Columns:**",
+          "elapsed_s": 34.56,
+          "score": 1,
+          "notes": "Identifies orders_raw as source bronze table but answer truncated before listing columns"
+        },
+        {
+          "id": "Q5",
+          "category": "counterfactual",
+          "difficulty": "hard",
+          "question": "If the `trim_string_columns(orders)` call at line 56 of `silver/orders_cleaned.py` is removed, what specifically changes in the lineage graph, and does it affect the column set of `main.dbdemos_ecom.orders_cleaned`?",
+          "context_mode": "compact_graph",
+          "reference_answer": "The graph changes structurally but the output column set does not. Structural changes: (a) the OpaqueTransform edge `e:o:s01` (`utils.column_transformations.trim_string_columns`, `is_passthrough=true`) disappears; (b) the DataFrame node `df:56:orders_trimmed` disappears; (c) the 8 Derives edges that currently source from `df:56:orders_trimmed` would re-source from `df:44:orders` directly. The output column set of `silver.orders_cleaned` is UNCHANGED because the trim helper is registered as `\"kind\": \"passthrough\"` in `.degraph/helpers.json` \u2014 it preserves the column set, only mutating string values. Functionally, runtime data quality may differ (whitespace not stripped), but lineage-as-information is identical.",
+          "model_answer": "Removing the `trim_string_columns(orders)` call would result in the following changes:\n\n1.  **Lineage Graph Change:** The specific `opaque_transform` edge defined in `silver/orders_cleaned.py` that uses the operator `utils.column_transformations.trim_string_columns` would be removed from the lineage path leading into the intermediate DataFrame named `silver/orders_cleaned.py:orders`.\n\n2.  **Column Set Impact on `main.dbdemos_ecom.orders_cleaned`:** The final column set of `main.dbdemos_ecom.orders_cleaned` is determined by the subsequent `projects` step in `silver/orders_cleaned.py`, which explicitly removes `_rescued_data`",
+          "elapsed_s": 34.83,
+          "score": 1,
+          "notes": "Identifies OpaqueTransform removal correctly; truncated answer does not reach the passthrough conclusion"
+        },
+        {
+          "id": "Q6",
+          "category": "producer-consumer",
+          "difficulty": "easy",
+          "question": "Which file consumes `main.dbdemos_ecom.events_raw`, and what table does that file produce?",
+          "context_mode": "compact_graph",
+          "reference_answer": "`silver/customer_profile.py` is the only consumer of `main.dbdemos_ecom.events_raw`. It reads the table on line 45, applies a window function with `row_number()` to keep the latest event per customer, suffix-renames the columns with `_last_event`, joins with `orders` and `customers`, and aggregates the result. The file produces `main.dbdemos_ecom.customer_profile`.",
+          "model_answer": "Based on the provided DEGraph lineage graph, no file is shown consuming (`reading`) the table `main.dbdemos_ecom.events_raw`.\n\nHowever, the file that writes this table is `bronze/03_ingest_events.py`.",
+          "elapsed_s": 19.72,
+          "score": 0,
+          "notes": "REGRESSION vs E1: model incorrectly claims no file reads events_raw, despite a clear ReadsEdge in the graph. Sampling variance at temp 0.1 on 2B model."
+        },
+        {
+          "id": "Q7",
+          "category": "aggregate-semantics",
+          "difficulty": "hard",
+          "question": "What columns from `silver.orders_cleaned` are aggregated into `gold.product_performance`, and what aggregation functions are applied? Be precise about what the graph can and cannot tell you.",
+          "context_mode": "compact_graph",
+          "reference_answer": "The graph reports only partial information here, by design. STATICALLY KNOWN: `gold.product_performance` is grouped by `product_id` and `order_date` from `silver.orders_cleaned`; the only fully-resolved aggregation is `count(order_id) AS order_count`. STATICALLY UNKNOWN: the Aggregates edge `e:a:g02` has `dynamic=true` with `agg_ops=[\"count\", \"<unresolved>\"]` and `output_cols=[\"order_count\", \"<unresolved>\"]`. Per the edge's `dynamic_note` and the corresponding GraphWarning (`dynamic-aggregation` category), the rest of the agg list is built at runtime by looping over `metric_columns`, which is loaded from a JSON file at `$METRIC_CONFIG_PATH` (default `/dbfs/configs/metrics.json`). The loop applies `sum`, `avg`, and `max` to each metric column, but the specific columns are runtime-determined and not enumerable from the code alone.",
+          "model_answer": "Based on the DEGraph lineage:\n\n**Source Data:**\nThe aggregation in `gold/product_performance.py` reads data from the table `main.dbdemos_ecom.orders_cleaned`.\n\n**Aggregation Details:**\n1.  **Grouping Keys:** The data is grouped by `product_id` and `order_date`.\n2.  **Aggregated Columns/Functions:** The aggregation operation applies two functions:\n    *   `<unresolved>` (This indicates an unresolved or dynamic column list).\n    *   `count`\n\nThe resulting output column from this aggregation is `order_count`.\n\n**Limitation:**\nThe lineage notes that the aggregation uses a dynamic list of columns (`agg list contains star-unpacked runtime variable`), meaning the exact set of input columns being aggregated (beyond the grouping keys) cannot be statically enumerated in the provided graph.",
+          "elapsed_s": 30.86,
+          "score": 2,
+          "notes": "Reads <unresolved> notation from graph correctly; cites grouping keys, count, dynamic warning"
+        },
+        {
+          "id": "Q8",
+          "category": "window-function-impact",
+          "difficulty": "medium",
+          "question": "The latest-event window in `silver/customer_profile.py` partitions on `customer_id` and orders by `event_ts` descending. If `event_ts` becomes nullable in `bronze.events_raw`, which downstream silver and gold columns are at risk of becoming unstable or unreliable?",
+          "context_mode": "compact_graph",
+          "reference_answer": "Two downstream columns are at risk. (1) `silver.customer_profile.last_event_ts` \u2014 the window's `row_number() == 1` filter (line 57) determines \"latest event per customer\"; with a nullable order key, Spark's null-handling makes that selection ambiguous, so the `max(event_ts_last_event)` aggregate (which becomes `last_event_ts`) is unreliable. (2) `gold.customer_ltv.last_event_ts` \u2014 inherits the value via the `base` CTE in `gold/customer_ltv.py`; it is not used in any derived expression in that file, so the only risk is the value itself being unreliable, not derived computations. No other downstream column references the windowed selection.",
+          "model_answer": "If `event_ts` becomes nullable in `bronze.events_raw`, the following downstream columns derived within `silver/customer_profile.py` are at risk of becoming unstable or unreliable:\n\n1.  **`event_ts_last_event`**: This column is directly derived from `event_ts` via the transformation chain (`events_latest` -> `events_suffixed`).\n2.  **`customer_id_last_event`**: Derived from `customer_id`, which is used in conjunction with the event data.\n3.  **`event_type_last_event`**: Derived from `event_type`.\n4.  **`product_id_last_event`**: Derived from `product_id`.\n5.  **`session_id_last_event`**: Derived from `session_id`.\n6.  **`payload_last_event`**: Derived from `payload`.\n7.  **`_rescued_data_last_event`**: Derived from `_rescued_data`.\n\nSince `main.dbdemos_ecom.customer_profile` is written by `silver/customer_profile.py`, any instability in these derived columns will propagate to the final `customer_profile` table, which is subsequently read by `gold/customer_ltv.py`.",
+          "elapsed_s": 31.26,
+          "score": 1,
+          "notes": "Lists 7 _last_event suffixed columns (overly broad); does not isolate last_event_ts as the specific risk column"
+        },
+        {
+          "id": "Q9",
+          "category": "custom-sink",
+          "difficulty": "easy",
+          "question": "What table receives the writes from `gold/product_performance.py`, what write mode is used, and what merge keys does the sink apply?",
+          "context_mode": "compact_graph",
+          "reference_answer": "The file writes to `main.dbdemos_ecom.product_performance` using `mode=merge` via the registered `DeltaMergeSink` custom sink class. The merge keys passed to the sink are `[product_id, order_date]` (SCD-Type-1 upsert pattern on the (product, day) grain). The sink class is registered in `.degraph/sinks.json` with `target_kwarg=target_table` and `mode_kwarg=mode`, which is how the extractor resolved the target FQN and mode.",
+          "model_answer": "The table that receives the writes from `gold/product_performance.py` is `main.dbdemos_ecom.product_performance`. The write mode used is `merge`, and the sink applies the following merge keys: `product_id` and `order_date`.",
+          "elapsed_s": 13.51,
+          "score": 2,
+          "notes": "GAINED vs E1: Table + mode + merge_keys ALL CORRECT \u2014 the merge_keys fix in the compact graph worked as predicted"
+        },
+        {
+          "id": "Q10",
+          "category": "coverage-of-unknowns",
+          "difficulty": "medium",
+          "question": "What lineage gaps or unknowns does the graph itself report for this repo? List each, the file/location it applies to, and what the gap means for downstream analysis.",
+          "context_mode": "compact_graph",
+          "reference_answer": "The graph reports three gaps via GraphWarnings. (1) `orphan-table` \u2014 `main.dbdemos_ecom.products_raw` is declared in `ddl/bronze_tables.sql` but neither written nor read by any file in this repo; meaning the table exists in catalog state but plays no part in the pipeline (dead schema or future-planned ingestion). (2) `opaque-call-fallback` \u2014 at `bronze/03_ingest_events.py` line 53, the helper `utils.event_parsers.parse_event_payload` is not registered in `.degraph/helpers.json`; the extractor emitted an OpaqueTransform edge with `is_passthrough=false`, meaning the column-set change across that call (the helper actually drops `payload` and adds `page_url`, `referrer`, `user_agent`, `cart_total`) is unknown to DEGraph. (3) `dynamic-aggregation` \u2014 at `gold/product_performance.py` line 90, the `*aggregations` list star-unpacked into `.agg()` is built from a runtime JSON config at `$METRIC_CONFIG_PATH`; the specific sum/avg/max columns produced cannot be enumerated statically, so `gold.product_performance` has `<unresolved>` entries in its column list.",
+          "model_answer": "Based on the provided DEGraph lineage graph warnings, here are the reported lineage gaps or unknowns:\n\n1.  **Gap:** Unregistered function call/Unknown column set change\n    *   **File/Location:** `bronze/03_ingest_events.py`\n    *   **Meaning for Downstream Analysis:** The opaque transformation function `utils.event_parsers.parse_event_payload` is called, and the lineage system cannot determine the exact column set change across this operation. This makes the precise data transformation applied to the raw events (`events_raw`) less transparent.\n\n2.  **Gap:** Dynamic Aggregation\n    *   **File/Location:** `gold/product_performance.py` (specifically line 81)\n    *   **Meaning for Downstream Analysis:** The aggregation list contains a star-unpacked runtime variable. This means the exact columns being aggregated are not statically known, making it difficult to predict or validate the output schema of the `product_performance` table without executing the code.\n\n3.  **Gap:** Orphan Table\n    *   **File/Location:** `main.dbdemos_ecom.products_raw` (reported by \"(assembler)\")\n    *   **Meaning for Downstream Analysis:** This table is defined in the schema but is never read or written by any file within this repository. It suggests that this data source is currently unused or orphaned within the scope of this codebase.",
+          "elapsed_s": 34.36,
+          "score": 2,
+          "notes": "All 3 warnings correctly identified with file locations and meanings"
+        }
+      ]
+    }
+  ]
+}

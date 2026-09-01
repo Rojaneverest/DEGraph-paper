@@ -1,0 +1,3367 @@
+{
+  "legend": {
+    "schema_role": "DEGraph compact data-lineage graph. Each table lists its output columns; edges describe how a DataFrame was built.",
+    "edge_semantics": {
+      "reads": "table -> dataframe; projected_cols = columns selected at read",
+      "writes": "dataframe -> table; mode/format/merge_keys describe sink",
+      "derives": "computes ONE new column (output_col) from source_cols; window_spec for window funcs; rule_logic=[{cond,value},...] lists the ordered when()/otherwise() branches for conditional expressions; struct_fields=[{field,kind,value,source_cols,rule_logic},...] enumerates per-field provenance for array(struct(...))/struct(...) outputs (kind='lit'|'col'|'expr'); lit_null_fields lists field names that are simple lit(None) placeholders (collapsed for brevity)",
+      "filters": "row restriction; referenced_cols = which columns the predicate touches (DOES NOT contribute values)",
+      "projects": "pure column-set restriction; kept_cols / removed_cols",
+      "joins": "two dataframes -> one; join_keys are MATCHING columns, NOT value contributors to the output. If right_projected_cols is present, ONLY those columns from right_src propagate into target (e.g. df.join(other.select('a','b'), ...)).",
+      "aggregates": "groupBy + agg; agg_outputs reads positionally as 'output_col = op(input_col)'; group_keys are output dimensions, not value contributors",
+      "opaque_transform": "imported helper call; is_passthrough=true means column set unchanged"
+    },
+    "named_column_logic_hint": "named_column_logic contains Python variables that hold PySpark when()/otherwise() classification chains but are NOT directly assigned via withColumn(). Read these to understand conditional business rules (e.g. claim subtype buckets, TOB code ranges). Each entry is an ordered list of {cond, value} pairs; the last entry with cond='otherwise' is the fallback branch.",
+    "predicate_dicts_hint": "predicate_dicts maps Python dict-variable names (e.g. 'conds') to {label: predicate_text}. When the SAME dict is referenced by multiple derives edges via subscript (e.g. when(conds['BH'], 'BH').when(...) and array(when(conds[n], n) for n in conds)), both columns share the same predicate set. Cond text in rule_logic is auto-resolved from this dict, so 'conds[\"BH\"]' appears as the actual predicate expression. Use this to answer 'do columns X and Y share classification logic?' questions: if both rule_logic chains cite the same predicate texts, the answer is yes.",
+    "reverse_lineage_hint": "To trace 'which input columns contribute VALUES to output column X of table T': look up T.column_provenance[X] FIRST. The 'from' field lists the exact upstream column(s) and 'role' tells you the relationship (passthrough/derived/aggregate/group_key/opaque/unknown). Recurse on those upstream columns via their own table's column_provenance. Only fall back to edge topology if provenance is empty. IGNORE join_keys and group_keys when answering value-contribution questions \u2014 they describe how rows are matched, not where values come from.",
+    "table_entry_fields": "Each table entry has: fqn, written_by, read_by, columns (the output schema), column_provenance (per-column role + upstream sources). column_provenance is the AUTHORITATIVE source for reverse-lineage questions."
+  },
+  "tables": [
+    {
+      "fqn": "main.dbdemos_ecom.orders_raw",
+      "written_by": [
+        "bronze/01_ingest_orders.py"
+      ],
+      "read_by": [
+        "silver/customer_profile.py",
+        "silver/orders_cleaned.py",
+        "silver/refunds_enriched.py",
+        "silver/shipments_timeline.py"
+      ],
+      "columns": [
+        "order_id",
+        "customer_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "total_amount",
+        "currency",
+        "status",
+        "order_ts",
+        "ingested_ts",
+        "source_file",
+        "_rescued_data"
+      ],
+      "column_provenance": {
+        "order_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/orders.order_id"
+          ]
+        },
+        "customer_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/orders.customer_id"
+          ]
+        },
+        "product_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/orders.product_id"
+          ]
+        },
+        "quantity": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/orders.quantity"
+          ]
+        },
+        "unit_price": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/orders.unit_price"
+          ]
+        },
+        "total_amount": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/orders.total_amount"
+          ]
+        },
+        "currency": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/orders.currency"
+          ]
+        },
+        "status": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/orders.status"
+          ]
+        },
+        "order_ts": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/orders.order_ts"
+          ]
+        },
+        "ingested_ts": {
+          "role": "derived",
+          "from": []
+        },
+        "source_file": {
+          "role": "derived",
+          "from": [
+            "_metadata.file_path"
+          ]
+        },
+        "_rescued_data": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/orders._rescued_data"
+          ]
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.customers_raw",
+      "written_by": [
+        "bronze/02_ingest_customers.ipynb"
+      ],
+      "read_by": [
+        "silver/customer_profile.py"
+      ],
+      "columns": [
+        "customer_id",
+        "email",
+        "first_name",
+        "last_name",
+        "country_code",
+        "signup_ts",
+        "marketing_opt_in",
+        "ingested_ts",
+        "source_file",
+        "_rescued_data"
+      ],
+      "column_provenance": {
+        "customer_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/customers.customer_id"
+          ]
+        },
+        "email": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/customers.email"
+          ]
+        },
+        "first_name": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/customers.first_name"
+          ]
+        },
+        "last_name": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/customers.last_name"
+          ]
+        },
+        "country_code": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/customers.country_code"
+          ]
+        },
+        "signup_ts": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/customers.signup_ts"
+          ]
+        },
+        "marketing_opt_in": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/customers.marketing_opt_in"
+          ]
+        },
+        "ingested_ts": {
+          "role": "derived",
+          "from": []
+        },
+        "source_file": {
+          "role": "derived",
+          "from": [
+            "_metadata.file_path"
+          ]
+        },
+        "_rescued_data": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/customers._rescued_data"
+          ]
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.products_raw",
+      "written_by": [
+        "bronze/04_ingest_products.py"
+      ],
+      "read_by": [],
+      "columns": [
+        "product_id",
+        "name",
+        "category",
+        "list_price",
+        "active",
+        "ingested_ts",
+        "source_file"
+      ],
+      "column_provenance": {
+        "product_id": {
+          "role": "passthrough",
+          "from": [
+            "<unresolved>.product_id"
+          ]
+        },
+        "name": {
+          "role": "passthrough",
+          "from": [
+            "<unresolved>.name"
+          ]
+        },
+        "category": {
+          "role": "passthrough",
+          "from": [
+            "<unresolved>.category"
+          ]
+        },
+        "list_price": {
+          "role": "passthrough",
+          "from": [
+            "<unresolved>.list_price"
+          ]
+        },
+        "active": {
+          "role": "passthrough",
+          "from": [
+            "<unresolved>.active"
+          ]
+        },
+        "ingested_ts": {
+          "role": "derived",
+          "from": []
+        },
+        "source_file": {
+          "role": "derived",
+          "from": []
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.events_raw",
+      "written_by": [
+        "bronze/03_ingest_events.py"
+      ],
+      "read_by": [
+        "gold/attribution_funnel_daily.py",
+        "silver/customer_profile.py",
+        "silver/marketing_touchpoints.py"
+      ],
+      "columns": [
+        "event_id",
+        "customer_id",
+        "event_type",
+        "product_id",
+        "session_id",
+        "event_ts",
+        "ingested_ts",
+        "payload",
+        "_rescued_data"
+      ],
+      "column_provenance": {
+        "ingested_ts": {
+          "role": "derived",
+          "from": []
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.returns_raw",
+      "written_by": [
+        "bronze/05_ingest_returns.py"
+      ],
+      "read_by": [
+        "silver/refunds_enriched.py",
+        "silver/returns_cleaned.py"
+      ],
+      "columns": [
+        "return_id",
+        "order_id",
+        "customer_id",
+        "product_id",
+        "return_qty",
+        "reason_code",
+        "return_ts",
+        "warehouse_id",
+        "ingested_ts",
+        "source_file",
+        "_rescued_data"
+      ],
+      "column_provenance": {
+        "return_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/returns.return_id"
+          ]
+        },
+        "order_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/returns.order_id"
+          ]
+        },
+        "customer_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/returns.customer_id"
+          ]
+        },
+        "product_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/returns.product_id"
+          ]
+        },
+        "return_qty": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/returns.return_qty"
+          ]
+        },
+        "reason_code": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/returns.reason_code"
+          ]
+        },
+        "return_ts": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/returns.return_ts"
+          ]
+        },
+        "warehouse_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/returns.warehouse_id"
+          ]
+        },
+        "ingested_ts": {
+          "role": "derived",
+          "from": []
+        },
+        "source_file": {
+          "role": "derived",
+          "from": [
+            "_metadata.file_path"
+          ]
+        },
+        "_rescued_data": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/returns._rescued_data"
+          ]
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.refunds_raw",
+      "written_by": [
+        "bronze/06_ingest_refunds.py"
+      ],
+      "read_by": [
+        "silver/refunds_enriched.py"
+      ],
+      "columns": [
+        "refund_id",
+        "return_id",
+        "order_id",
+        "refund_amount",
+        "currency",
+        "payment_method",
+        "processed_ts",
+        "ingested_ts",
+        "source_file"
+      ],
+      "column_provenance": {
+        "refund_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/refunds/*.json.refund_id"
+          ]
+        },
+        "return_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/refunds/*.json.return_id"
+          ]
+        },
+        "order_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/refunds/*.json.order_id"
+          ]
+        },
+        "refund_amount": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/refunds/*.json.refund_amount"
+          ]
+        },
+        "currency": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/refunds/*.json.currency"
+          ]
+        },
+        "payment_method": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/refunds/*.json.payment_method"
+          ]
+        },
+        "processed_ts": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/refunds/*.json.processed_ts"
+          ]
+        },
+        "ingested_ts": {
+          "role": "derived",
+          "from": []
+        },
+        "source_file": {
+          "role": "derived",
+          "from": []
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.inventory_snapshots_raw",
+      "written_by": [
+        "bronze/07_ingest_inventory.py"
+      ],
+      "read_by": [
+        "silver/inventory_daily.py"
+      ],
+      "columns": [
+        "snapshot_id",
+        "warehouse_id",
+        "product_id",
+        "on_hand_units",
+        "reserved_units",
+        "available_units",
+        "snapshot_ts",
+        "ingested_ts",
+        "source_file"
+      ],
+      "column_provenance": {
+        "snapshot_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/inventory_snapshots/dt=*.snapshot_id"
+          ]
+        },
+        "warehouse_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/inventory_snapshots/dt=*.warehouse_id"
+          ]
+        },
+        "product_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/inventory_snapshots/dt=*.product_id"
+          ]
+        },
+        "on_hand_units": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/inventory_snapshots/dt=*.on_hand_units"
+          ]
+        },
+        "reserved_units": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/inventory_snapshots/dt=*.reserved_units"
+          ]
+        },
+        "available_units": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/inventory_snapshots/dt=*.available_units"
+          ]
+        },
+        "snapshot_ts": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/inventory_snapshots/dt=*.snapshot_ts"
+          ]
+        },
+        "ingested_ts": {
+          "role": "derived",
+          "from": []
+        },
+        "source_file": {
+          "role": "derived",
+          "from": []
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.marketing_attribution_raw",
+      "written_by": [
+        "bronze/08_ingest_marketing.py"
+      ],
+      "read_by": [
+        "silver/marketing_touchpoints.py"
+      ],
+      "columns": [
+        "visit_id",
+        "session_id",
+        "customer_id",
+        "utm_source",
+        "utm_medium",
+        "utm_campaign",
+        "landing_url",
+        "visit_ts",
+        "ingested_ts",
+        "source_file"
+      ],
+      "column_provenance": {
+        "visit_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/marketing_attribution.visit_id"
+          ]
+        },
+        "session_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/marketing_attribution.session_id"
+          ]
+        },
+        "customer_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/marketing_attribution.customer_id"
+          ]
+        },
+        "utm_source": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/marketing_attribution.utm_source"
+          ]
+        },
+        "utm_medium": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/marketing_attribution.utm_medium"
+          ]
+        },
+        "utm_campaign": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/marketing_attribution.utm_campaign"
+          ]
+        },
+        "landing_url": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/marketing_attribution.landing_url"
+          ]
+        },
+        "visit_ts": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/marketing_attribution.visit_ts"
+          ]
+        },
+        "ingested_ts": {
+          "role": "derived",
+          "from": []
+        },
+        "source_file": {
+          "role": "derived",
+          "from": [
+            "_metadata.file_path"
+          ]
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.promotions_raw",
+      "written_by": [
+        "bronze/09_ingest_promotions.py"
+      ],
+      "read_by": [],
+      "columns": [
+        "promo_code",
+        "promo_type",
+        "discount_value",
+        "min_order_amount",
+        "starts_ts",
+        "ends_ts",
+        "active",
+        "ingested_ts",
+        "source_file"
+      ],
+      "column_provenance": {
+        "promo_code": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/promotions/latest.json.promo_code"
+          ]
+        },
+        "promo_type": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/promotions/latest.json.promo_type"
+          ]
+        },
+        "discount_value": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/promotions/latest.json.discount_value"
+          ]
+        },
+        "min_order_amount": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/promotions/latest.json.min_order_amount"
+          ]
+        },
+        "starts_ts": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/promotions/latest.json.starts_ts"
+          ]
+        },
+        "ends_ts": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/promotions/latest.json.ends_ts"
+          ]
+        },
+        "active": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/promotions/latest.json.active"
+          ]
+        },
+        "ingested_ts": {
+          "role": "derived",
+          "from": []
+        },
+        "source_file": {
+          "role": "derived",
+          "from": []
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.shipments_raw",
+      "written_by": [
+        "bronze/10_ingest_shipments.py"
+      ],
+      "read_by": [
+        "silver/shipments_timeline.py"
+      ],
+      "columns": [
+        "shipment_id",
+        "order_id",
+        "carrier",
+        "tracking_number",
+        "warehouse_id",
+        "ship_ts",
+        "delivered_ts",
+        "status",
+        "ingested_ts",
+        "source_file",
+        "_rescued_data"
+      ],
+      "column_provenance": {
+        "shipment_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/shipments.shipment_id"
+          ]
+        },
+        "order_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/shipments.order_id"
+          ]
+        },
+        "carrier": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/shipments.carrier"
+          ]
+        },
+        "tracking_number": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/shipments.tracking_number"
+          ]
+        },
+        "warehouse_id": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/shipments.warehouse_id"
+          ]
+        },
+        "ship_ts": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/shipments.ship_ts"
+          ]
+        },
+        "delivered_ts": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/shipments.delivered_ts"
+          ]
+        },
+        "status": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/shipments.status"
+          ]
+        },
+        "ingested_ts": {
+          "role": "derived",
+          "from": []
+        },
+        "source_file": {
+          "role": "derived",
+          "from": [
+            "_metadata.file_path"
+          ]
+        },
+        "_rescued_data": {
+          "role": "passthrough",
+          "from": [
+            "ext:/Volumes/main/dbdemos_ecom/landing/shipments._rescued_data"
+          ]
+        }
+      }
+    },
+    {
+      "fqn": "<unresolved>",
+      "written_by": [],
+      "read_by": [
+        "bronze/04_ingest_products.py"
+      ]
+    },
+    {
+      "fqn": "main.dbdemos_ecom.marketing_touchpoints",
+      "written_by": [
+        "silver/marketing_touchpoints.py"
+      ],
+      "read_by": [
+        "gold/attribution_funnel_daily.py"
+      ],
+      "columns": [
+        "customer_id",
+        "utm_campaign",
+        "event_count",
+        "last_seen_ts",
+        "session_count"
+      ],
+      "column_provenance": {
+        "customer_id": {
+          "role": "group_key",
+          "from": [
+            "main.dbdemos_ecom.marketing_attribution_raw.customer_id"
+          ]
+        },
+        "utm_campaign": {
+          "role": "group_key",
+          "from": [
+            "main.dbdemos_ecom.marketing_attribution_raw.utm_campaign"
+          ]
+        },
+        "event_count": {
+          "role": "aggregate",
+          "op": "count",
+          "from": [
+            "main.dbdemos_ecom.events_raw.event_id"
+          ]
+        },
+        "last_seen_ts": {
+          "role": "aggregate",
+          "op": "max",
+          "from": [
+            "main.dbdemos_ecom.marketing_attribution_raw.visit_ts"
+          ]
+        },
+        "session_count": {
+          "role": "aggregate",
+          "op": "countDistinct",
+          "from": [
+            "main.dbdemos_ecom.marketing_attribution_raw.session_id"
+          ]
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.orders_cleaned",
+      "written_by": [
+        "silver/orders_cleaned.py"
+      ],
+      "read_by": [
+        "gold/attribution_funnel_daily.py",
+        "gold/inventory_turnover_daily.py",
+        "gold/product_performance.py"
+      ],
+      "columns": [
+        "order_id",
+        "customer_id",
+        "product_id",
+        "quantity",
+        "unit_price",
+        "total_amount",
+        "currency",
+        "status",
+        "order_ts",
+        "ingested_ts",
+        "order_date",
+        "order_year",
+        "order_month",
+        "is_high_value"
+      ],
+      "column_provenance": {
+        "order_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.order_id"
+          ]
+        },
+        "customer_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.customer_id"
+          ]
+        },
+        "product_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.product_id"
+          ]
+        },
+        "quantity": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.quantity"
+          ]
+        },
+        "unit_price": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.unit_price"
+          ]
+        },
+        "total_amount": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.total_amount"
+          ]
+        },
+        "currency": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.currency"
+          ]
+        },
+        "status": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.status"
+          ]
+        },
+        "order_ts": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.order_ts"
+          ]
+        },
+        "ingested_ts": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.ingested_ts"
+          ]
+        },
+        "order_date": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.order_ts"
+          ]
+        },
+        "order_year": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.order_ts"
+          ]
+        },
+        "order_month": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.order_ts"
+          ]
+        },
+        "is_high_value": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.total_amount"
+          ]
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.attribution_funnel_daily",
+      "written_by": [
+        "gold/attribution_funnel_daily.py"
+      ],
+      "read_by": [],
+      "columns": [
+        "v.utm_campaign",
+        "v.funnel_date",
+        "v.visit_count",
+        "cart_count",
+        "checkout_count",
+        "purchase_count",
+        "conversion_rate"
+      ]
+    },
+    {
+      "fqn": "main.dbdemos_ecom.customer_profile",
+      "written_by": [
+        "silver/customer_profile.py"
+      ],
+      "read_by": [
+        "gold/customer_ltv.py",
+        "gold/customer_return_rate.py"
+      ],
+      "columns": [
+        "customer_id",
+        "email",
+        "country_code",
+        "signup_ts",
+        "total_orders",
+        "lifetime_revenue",
+        "last_order_ts",
+        "last_event_ts",
+        "distinct_products_ordered"
+      ],
+      "column_provenance": {
+        "customer_id": {
+          "role": "group_key",
+          "from": [
+            "main.dbdemos_ecom.customers_raw.customer_id"
+          ]
+        },
+        "email": {
+          "role": "group_key",
+          "from": [
+            "main.dbdemos_ecom.customers_raw.email"
+          ]
+        },
+        "country_code": {
+          "role": "group_key",
+          "from": [
+            "main.dbdemos_ecom.customers_raw.country_code"
+          ]
+        },
+        "signup_ts": {
+          "role": "group_key",
+          "from": [
+            "main.dbdemos_ecom.customers_raw.signup_ts"
+          ]
+        },
+        "total_orders": {
+          "role": "aggregate",
+          "op": "count",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.order_id"
+          ]
+        },
+        "lifetime_revenue": {
+          "role": "aggregate",
+          "op": "sum",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.total_amount"
+          ]
+        },
+        "last_order_ts": {
+          "role": "aggregate",
+          "op": "max",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.order_ts"
+          ]
+        },
+        "last_event_ts": {
+          "role": "aggregate",
+          "op": "max",
+          "from": [
+            "event_ts_last_event"
+          ]
+        },
+        "distinct_products_ordered": {
+          "role": "aggregate",
+          "op": "countDistinct",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.product_id"
+          ]
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.customer_ltv",
+      "written_by": [
+        "gold/customer_ltv.py"
+      ],
+      "read_by": [
+        "gold/revenue_forecast_features.py"
+      ],
+      "columns": [
+        "customer_id",
+        "email",
+        "country_code",
+        "signup_ts",
+        "total_orders",
+        "lifetime_revenue",
+        "last_order_ts",
+        "last_event_ts",
+        "days_since_last_order",
+        "ltv_vs_country_avg",
+        "revenue_quartile",
+        "ltv_tier"
+      ],
+      "column_provenance": {
+        "customer_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.customer_profile.customer_id"
+          ]
+        },
+        "email": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.customer_profile.email"
+          ]
+        },
+        "country_code": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.customer_profile.country_code"
+          ]
+        },
+        "signup_ts": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.customer_profile.signup_ts"
+          ]
+        },
+        "total_orders": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.customer_profile.total_orders"
+          ]
+        },
+        "lifetime_revenue": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.customer_profile.lifetime_revenue"
+          ]
+        },
+        "last_order_ts": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.customer_profile.last_order_ts"
+          ]
+        },
+        "last_event_ts": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.customer_profile.last_event_ts"
+          ]
+        },
+        "days_since_last_order": {
+          "role": "derived",
+          "from": []
+        },
+        "ltv_vs_country_avg": {
+          "role": "derived",
+          "from": []
+        },
+        "revenue_quartile": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.customer_profile.lifetime_revenue"
+          ],
+          "window": {
+            "partition_cols": [],
+            "order_cols": [
+              "lifetime_revenue desc"
+            ],
+            "frame": null
+          }
+        },
+        "ltv_tier": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.customer_profile.lifetime_revenue"
+          ]
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.returns_cleaned",
+      "written_by": [
+        "silver/returns_cleaned.py"
+      ],
+      "read_by": [
+        "gold/customer_return_rate.py"
+      ],
+      "columns": [
+        "return_id",
+        "order_id",
+        "customer_id",
+        "product_id",
+        "return_qty",
+        "reason_code",
+        "return_ts",
+        "warehouse_id",
+        "ingested_ts",
+        "return_date",
+        "is_high_qty"
+      ],
+      "column_provenance": {
+        "return_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.returns_raw.return_id"
+          ]
+        },
+        "order_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.returns_raw.order_id"
+          ]
+        },
+        "customer_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.returns_raw.customer_id"
+          ]
+        },
+        "product_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.returns_raw.product_id"
+          ]
+        },
+        "return_qty": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.returns_raw.return_qty"
+          ]
+        },
+        "reason_code": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.returns_raw.reason_code"
+          ]
+        },
+        "return_ts": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.returns_raw.return_ts"
+          ]
+        },
+        "warehouse_id": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.returns_raw.warehouse_id"
+          ]
+        },
+        "ingested_ts": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.returns_raw.ingested_ts"
+          ]
+        },
+        "return_date": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.returns_raw.return_ts"
+          ]
+        },
+        "is_high_qty": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.returns_raw.return_qty"
+          ]
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.customer_return_rate",
+      "written_by": [
+        "gold/customer_return_rate.py"
+      ],
+      "read_by": [],
+      "columns": [
+        "cb.customer_id",
+        "cb.email",
+        "cb.country_code",
+        "cb.total_orders",
+        "cb.lifetime_revenue",
+        "total_returns",
+        "total_return_qty",
+        "return_rate"
+      ]
+    },
+    {
+      "fqn": "main.dbdemos_ecom.inventory_daily",
+      "written_by": [
+        "silver/inventory_daily.py"
+      ],
+      "read_by": [
+        "gold/inventory_turnover_daily.py"
+      ],
+      "columns": [
+        "snapshot_id",
+        "warehouse_id",
+        "product_id",
+        "on_hand_units",
+        "reserved_units",
+        "available_units",
+        "snapshot_ts",
+        "ingested_ts",
+        "source_file",
+        "snapshot_date",
+        "utilization_pct"
+      ],
+      "column_provenance": {
+        "snapshot_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.inventory_snapshots_raw.snapshot_id"
+          ]
+        },
+        "warehouse_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.inventory_snapshots_raw.warehouse_id"
+          ]
+        },
+        "product_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.inventory_snapshots_raw.product_id"
+          ]
+        },
+        "on_hand_units": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.inventory_snapshots_raw.on_hand_units"
+          ]
+        },
+        "reserved_units": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.inventory_snapshots_raw.reserved_units"
+          ]
+        },
+        "available_units": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.inventory_snapshots_raw.available_units"
+          ]
+        },
+        "snapshot_ts": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.inventory_snapshots_raw.snapshot_ts"
+          ]
+        },
+        "ingested_ts": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.inventory_snapshots_raw.ingested_ts"
+          ]
+        },
+        "source_file": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.inventory_snapshots_raw.source_file"
+          ]
+        },
+        "snapshot_date": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.inventory_snapshots_raw.snapshot_ts"
+          ]
+        },
+        "utilization_pct": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.inventory_snapshots_raw.reserved_units",
+            "main.dbdemos_ecom.inventory_snapshots_raw.on_hand_units"
+          ]
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.inventory_turnover_daily",
+      "written_by": [
+        "gold/inventory_turnover_daily.py"
+      ],
+      "read_by": [
+        "gold/revenue_forecast_features.py"
+      ],
+      "columns": [
+        "inv.warehouse_id",
+        "inv.product_id",
+        "inv.snapshot_date",
+        "inv.on_hand_units",
+        "inv.reserved_units",
+        "inv.available_units",
+        "inv.utilization_pct",
+        "sold_qty",
+        "sales_count",
+        "turnover_rate",
+        "days_of_stock"
+      ]
+    },
+    {
+      "fqn": "main.dbdemos_ecom.product_performance",
+      "written_by": [
+        "gold/product_performance.py"
+      ],
+      "read_by": [
+        "gold/revenue_forecast_features.py"
+      ],
+      "columns": [
+        "product_id",
+        "order_date",
+        "order_count"
+      ],
+      "column_provenance": {
+        "product_id": {
+          "role": "group_key",
+          "from": [
+            "main.dbdemos_ecom.orders_cleaned.product_id"
+          ]
+        },
+        "order_date": {
+          "role": "group_key",
+          "from": [
+            "main.dbdemos_ecom.orders_cleaned.order_date"
+          ]
+        },
+        "order_count": {
+          "role": "aggregate",
+          "op": "count",
+          "from": [
+            "main.dbdemos_ecom.orders_cleaned.order_id"
+          ]
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.revenue_forecast_features",
+      "written_by": [
+        "gold/revenue_forecast_features.py"
+      ],
+      "read_by": [],
+      "columns": [
+        "customer_id",
+        "product_id",
+        "forecast_date",
+        "lifetime_revenue",
+        "total_orders",
+        "avg_turnover"
+      ],
+      "column_provenance": {
+        "customer_id": {
+          "role": "group_key",
+          "from": [
+            "main.dbdemos_ecom.customer_ltv.customer_id"
+          ]
+        },
+        "product_id": {
+          "role": "group_key",
+          "from": [
+            "main.dbdemos_ecom.product_performance.product_id"
+          ]
+        },
+        "forecast_date": {
+          "role": "group_key",
+          "from": []
+        },
+        "lifetime_revenue": {
+          "role": "aggregate",
+          "op": "first",
+          "from": [
+            "main.dbdemos_ecom.customer_ltv.lifetime_revenue"
+          ]
+        },
+        "total_orders": {
+          "role": "aggregate",
+          "op": "first",
+          "from": [
+            "main.dbdemos_ecom.customer_ltv.total_orders"
+          ]
+        },
+        "avg_turnover": {
+          "role": "aggregate",
+          "op": "avg",
+          "from": [
+            "main.dbdemos_ecom.inventory_turnover_daily.turnover_rate"
+          ]
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.refunds_enriched",
+      "written_by": [
+        "silver/refunds_enriched.py"
+      ],
+      "read_by": [],
+      "columns": [
+        "refund_id",
+        "return_id",
+        "order_id",
+        "refund_amount",
+        "currency",
+        "payment_method",
+        "processed_ts",
+        "ingested_ts",
+        "source_file",
+        "customer_id",
+        "product_id",
+        "return_qty",
+        "reason_code",
+        "return_ts",
+        "warehouse_id",
+        "_rescued_data",
+        "quantity",
+        "unit_price",
+        "total_amount",
+        "status",
+        "order_ts",
+        "refund_ratio",
+        "days_to_refund",
+        "refund_date"
+      ],
+      "column_provenance": {
+        "refund_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.refund_id"
+          ]
+        },
+        "return_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.return_id"
+          ]
+        },
+        "order_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.order_id"
+          ]
+        },
+        "refund_amount": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.refund_amount"
+          ]
+        },
+        "currency": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.currency"
+          ]
+        },
+        "payment_method": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.payment_method"
+          ]
+        },
+        "processed_ts": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.processed_ts"
+          ]
+        },
+        "ingested_ts": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.ingested_ts"
+          ]
+        },
+        "source_file": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.source_file"
+          ]
+        },
+        "customer_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.customer_id"
+          ]
+        },
+        "product_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.product_id"
+          ]
+        },
+        "return_qty": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.return_qty"
+          ]
+        },
+        "reason_code": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.reason_code"
+          ]
+        },
+        "return_ts": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.return_ts"
+          ]
+        },
+        "warehouse_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.warehouse_id"
+          ]
+        },
+        "_rescued_data": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw._rescued_data"
+          ]
+        },
+        "quantity": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.quantity"
+          ]
+        },
+        "unit_price": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.unit_price"
+          ]
+        },
+        "total_amount": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.total_amount"
+          ]
+        },
+        "status": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.status"
+          ]
+        },
+        "order_ts": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.order_ts"
+          ]
+        },
+        "refund_ratio": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.refund_amount",
+            "main.dbdemos_ecom.orders_raw.total_amount"
+          ]
+        },
+        "days_to_refund": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.processed_ts",
+            "main.dbdemos_ecom.returns_raw.return_ts"
+          ]
+        },
+        "refund_date": {
+          "role": "derived",
+          "from": [
+            "main.dbdemos_ecom.refunds_raw.processed_ts"
+          ]
+        }
+      }
+    },
+    {
+      "fqn": "main.dbdemos_ecom.shipments_timeline",
+      "written_by": [
+        "silver/shipments_timeline.py"
+      ],
+      "read_by": [],
+      "columns": [
+        "order_id",
+        "shipment_count",
+        "first_ship_ts",
+        "last_delivered_ts",
+        "carriers_used",
+        "customer_id"
+      ],
+      "column_provenance": {
+        "order_id": {
+          "role": "group_key",
+          "from": [
+            "main.dbdemos_ecom.shipments_raw.order_id"
+          ]
+        },
+        "shipment_count": {
+          "role": "aggregate",
+          "op": "count",
+          "from": [
+            "main.dbdemos_ecom.shipments_raw.shipment_id"
+          ]
+        },
+        "first_ship_ts": {
+          "role": "aggregate",
+          "op": "min",
+          "from": [
+            "main.dbdemos_ecom.shipments_raw.ship_ts"
+          ]
+        },
+        "last_delivered_ts": {
+          "role": "aggregate",
+          "op": "max",
+          "from": [
+            "main.dbdemos_ecom.shipments_raw.delivered_ts"
+          ]
+        },
+        "carriers_used": {
+          "role": "aggregate",
+          "op": "collect_set",
+          "from": [
+            "main.dbdemos_ecom.shipments_raw.carrier"
+          ]
+        },
+        "customer_id": {
+          "role": "passthrough",
+          "from": [
+            "main.dbdemos_ecom.orders_raw.customer_id"
+          ]
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "kind": "reads",
+      "file": "bronze/01_ingest_orders.py",
+      "src": "ext:/Volumes/main/dbdemos_ecom/landing/orders",
+      "tgt": "bronze/01_ingest_orders.py:orders_landing",
+      "streaming": false
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/01_ingest_orders.py",
+      "src": "bronze/01_ingest_orders.py:orders_landing",
+      "tgt": "bronze/01_ingest_orders.py:orders_with_meta",
+      "output_col": "ingested_ts"
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/01_ingest_orders.py",
+      "src": "bronze/01_ingest_orders.py:orders_landing",
+      "tgt": "bronze/01_ingest_orders.py:orders_with_meta",
+      "output_col": "source_file",
+      "source_cols": [
+        "_metadata.file_path"
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "bronze/01_ingest_orders.py",
+      "src": "bronze/01_ingest_orders.py:orders_with_meta",
+      "tgt": "table:main.dbdemos_ecom.orders_raw",
+      "mode": "append",
+      "format": "delta",
+      "streaming": true
+    },
+    {
+      "kind": "reads",
+      "file": "bronze/02_ingest_customers.ipynb",
+      "src": "ext:/Volumes/main/dbdemos_ecom/landing/customers",
+      "tgt": "bronze/02_ingest_customers.ipynb:cell5:customers_landing",
+      "streaming": false
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/02_ingest_customers.ipynb",
+      "src": "bronze/02_ingest_customers.ipynb:cell5:customers_landing",
+      "tgt": "bronze/02_ingest_customers.ipynb:cell7:customers_with_meta",
+      "output_col": "ingested_ts"
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/02_ingest_customers.ipynb",
+      "src": "bronze/02_ingest_customers.ipynb:cell5:customers_landing",
+      "tgt": "bronze/02_ingest_customers.ipynb:cell7:customers_with_meta",
+      "output_col": "source_file",
+      "source_cols": [
+        "_metadata.file_path"
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "bronze/02_ingest_customers.ipynb",
+      "src": "bronze/02_ingest_customers.ipynb:cell7:customers_with_meta",
+      "tgt": "table:main.dbdemos_ecom.customers_raw",
+      "mode": "append",
+      "format": "delta",
+      "streaming": true
+    },
+    {
+      "kind": "reads",
+      "file": "bronze/03_ingest_events.py",
+      "src": "ext:/Volumes/main/dbdemos_ecom/landing/events",
+      "tgt": "bronze/03_ingest_events.py:events_landing",
+      "streaming": false
+    },
+    {
+      "kind": "opaque_transform",
+      "file": "bronze/03_ingest_events.py",
+      "src": "bronze/03_ingest_events.py:events_landing",
+      "tgt": "bronze/03_ingest_events.py:events_parsed",
+      "operator": "utils.event_parsers.parse_event_payload",
+      "is_passthrough": false
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/03_ingest_events.py",
+      "src": "bronze/03_ingest_events.py:events_parsed",
+      "tgt": "bronze/03_ingest_events.py:events_final",
+      "output_col": "ingested_ts"
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/03_ingest_events.py",
+      "src": "bronze/03_ingest_events.py:events_parsed",
+      "tgt": "bronze/03_ingest_events.py:events_final",
+      "output_col": "source_file",
+      "source_cols": [
+        "_metadata.file_path"
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "bronze/03_ingest_events.py",
+      "src": "bronze/03_ingest_events.py:events_final",
+      "tgt": "table:main.dbdemos_ecom.events_raw",
+      "mode": "append",
+      "format": "delta",
+      "streaming": true
+    },
+    {
+      "kind": "reads",
+      "file": "bronze/04_ingest_products.py",
+      "src": "table:<unresolved>",
+      "tgt": "bronze/04_ingest_products.py:products_jdbc",
+      "streaming": false
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/04_ingest_products.py",
+      "src": "bronze/04_ingest_products.py:products_jdbc",
+      "tgt": "bronze/04_ingest_products.py:products_with_meta",
+      "output_col": "ingested_ts"
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/04_ingest_products.py",
+      "src": "bronze/04_ingest_products.py:products_jdbc",
+      "tgt": "bronze/04_ingest_products.py:products_with_meta",
+      "output_col": "source_file"
+    },
+    {
+      "kind": "writes",
+      "file": "bronze/04_ingest_products.py",
+      "src": "bronze/04_ingest_products.py:products_with_meta",
+      "tgt": "table:main.dbdemos_ecom.products_raw",
+      "mode": "overwrite",
+      "format": "delta",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "bronze/05_ingest_returns.py",
+      "src": "ext:/Volumes/main/dbdemos_ecom/landing/returns",
+      "tgt": "bronze/05_ingest_returns.py:returns_landing",
+      "streaming": false
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/05_ingest_returns.py",
+      "src": "bronze/05_ingest_returns.py:returns_landing",
+      "tgt": "bronze/05_ingest_returns.py:returns_with_meta",
+      "output_col": "ingested_ts"
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/05_ingest_returns.py",
+      "src": "bronze/05_ingest_returns.py:returns_landing",
+      "tgt": "bronze/05_ingest_returns.py:returns_with_meta",
+      "output_col": "source_file",
+      "source_cols": [
+        "_metadata.file_path"
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "bronze/05_ingest_returns.py",
+      "src": "bronze/05_ingest_returns.py:returns_with_meta",
+      "tgt": "table:main.dbdemos_ecom.returns_raw",
+      "mode": "append",
+      "format": "delta",
+      "streaming": true
+    },
+    {
+      "kind": "reads",
+      "file": "bronze/06_ingest_refunds.py",
+      "src": "ext:/Volumes/main/dbdemos_ecom/landing/refunds/*.json",
+      "tgt": "bronze/06_ingest_refunds.py:refunds_landing",
+      "streaming": false
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/06_ingest_refunds.py",
+      "src": "bronze/06_ingest_refunds.py:refunds_landing",
+      "tgt": "bronze/06_ingest_refunds.py:refunds_with_meta",
+      "output_col": "ingested_ts"
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/06_ingest_refunds.py",
+      "src": "bronze/06_ingest_refunds.py:refunds_landing",
+      "tgt": "bronze/06_ingest_refunds.py:refunds_with_meta",
+      "output_col": "source_file"
+    },
+    {
+      "kind": "writes",
+      "file": "bronze/06_ingest_refunds.py",
+      "src": "bronze/06_ingest_refunds.py:refunds_with_meta",
+      "tgt": "table:main.dbdemos_ecom.refunds_raw",
+      "mode": "append",
+      "format": "delta",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "bronze/07_ingest_inventory.py",
+      "src": "ext:/Volumes/main/dbdemos_ecom/landing/inventory_snapshots/dt=*",
+      "tgt": "bronze/07_ingest_inventory.py:inventory_landing",
+      "streaming": false
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/07_ingest_inventory.py",
+      "src": "bronze/07_ingest_inventory.py:inventory_landing",
+      "tgt": "bronze/07_ingest_inventory.py:inventory_with_meta",
+      "output_col": "ingested_ts"
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/07_ingest_inventory.py",
+      "src": "bronze/07_ingest_inventory.py:inventory_landing",
+      "tgt": "bronze/07_ingest_inventory.py:inventory_with_meta",
+      "output_col": "source_file"
+    },
+    {
+      "kind": "writes",
+      "file": "bronze/07_ingest_inventory.py",
+      "src": "bronze/07_ingest_inventory.py:inventory_with_meta",
+      "tgt": "table:main.dbdemos_ecom.inventory_snapshots_raw",
+      "mode": "append",
+      "format": "delta",
+      "streaming": false,
+      "partition_cols": [
+        "snapshot_ts"
+      ]
+    },
+    {
+      "kind": "reads",
+      "file": "bronze/08_ingest_marketing.py",
+      "src": "ext:/Volumes/main/dbdemos_ecom/landing/marketing_attribution",
+      "tgt": "bronze/08_ingest_marketing.py:attribution_landing",
+      "streaming": false
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/08_ingest_marketing.py",
+      "src": "bronze/08_ingest_marketing.py:attribution_landing",
+      "tgt": "bronze/08_ingest_marketing.py:attribution_with_meta",
+      "output_col": "ingested_ts"
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/08_ingest_marketing.py",
+      "src": "bronze/08_ingest_marketing.py:attribution_landing",
+      "tgt": "bronze/08_ingest_marketing.py:attribution_with_meta",
+      "output_col": "source_file",
+      "source_cols": [
+        "_metadata.file_path"
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "bronze/08_ingest_marketing.py",
+      "src": "bronze/08_ingest_marketing.py:attribution_with_meta",
+      "tgt": "table:main.dbdemos_ecom.marketing_attribution_raw",
+      "mode": "append",
+      "format": "delta",
+      "streaming": true
+    },
+    {
+      "kind": "reads",
+      "file": "bronze/09_ingest_promotions.py",
+      "src": "ext:/Volumes/main/dbdemos_ecom/landing/promotions/latest.json",
+      "tgt": "bronze/09_ingest_promotions.py:promotions_landing",
+      "streaming": false
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/09_ingest_promotions.py",
+      "src": "bronze/09_ingest_promotions.py:promotions_landing",
+      "tgt": "bronze/09_ingest_promotions.py:promotions_with_meta",
+      "output_col": "ingested_ts"
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/09_ingest_promotions.py",
+      "src": "bronze/09_ingest_promotions.py:promotions_landing",
+      "tgt": "bronze/09_ingest_promotions.py:promotions_with_meta",
+      "output_col": "source_file"
+    },
+    {
+      "kind": "writes",
+      "file": "bronze/09_ingest_promotions.py",
+      "src": "bronze/09_ingest_promotions.py:promotions_with_meta",
+      "tgt": "table:main.dbdemos_ecom.promotions_raw",
+      "mode": "overwrite",
+      "format": "delta",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "bronze/10_ingest_shipments.py",
+      "src": "ext:/Volumes/main/dbdemos_ecom/landing/shipments",
+      "tgt": "bronze/10_ingest_shipments.py:shipments_landing",
+      "streaming": false
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/10_ingest_shipments.py",
+      "src": "bronze/10_ingest_shipments.py:shipments_landing",
+      "tgt": "bronze/10_ingest_shipments.py:shipments_with_meta",
+      "output_col": "ingested_ts"
+    },
+    {
+      "kind": "derives",
+      "file": "bronze/10_ingest_shipments.py",
+      "src": "bronze/10_ingest_shipments.py:shipments_landing",
+      "tgt": "bronze/10_ingest_shipments.py:shipments_with_meta",
+      "output_col": "source_file",
+      "source_cols": [
+        "_metadata.file_path"
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "bronze/10_ingest_shipments.py",
+      "src": "bronze/10_ingest_shipments.py:shipments_with_meta",
+      "tgt": "table:main.dbdemos_ecom.shipments_raw",
+      "mode": "append",
+      "format": "delta",
+      "streaming": true
+    },
+    {
+      "kind": "reads",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "table:main.dbdemos_ecom.marketing_touchpoints",
+      "tgt": "gold/attribution_funnel_daily.py:visits_cte",
+      "streaming": false,
+      "projected_cols": [
+        "utm_campaign"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "gold/attribution_funnel_daily.py:visits_cte",
+      "tgt": "gold/attribution_funnel_daily.py:visits_cte",
+      "output_col": "funnel_date"
+    },
+    {
+      "kind": "derives",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "gold/attribution_funnel_daily.py:visits_cte",
+      "tgt": "gold/attribution_funnel_daily.py:visits_cte",
+      "output_col": "visit_count"
+    },
+    {
+      "kind": "reads",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "table:main.dbdemos_ecom.events_raw",
+      "tgt": "gold/attribution_funnel_daily.py:cart_events_cte",
+      "streaming": false,
+      "projected_cols": [
+        "utm_campaign"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "gold/attribution_funnel_daily.py:cart_events_cte",
+      "tgt": "gold/attribution_funnel_daily.py:cart_events_cte",
+      "output_col": "funnel_date"
+    },
+    {
+      "kind": "derives",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "gold/attribution_funnel_daily.py:cart_events_cte",
+      "tgt": "gold/attribution_funnel_daily.py:cart_events_cte",
+      "output_col": "cart_count"
+    },
+    {
+      "kind": "reads",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "table:main.dbdemos_ecom.events_raw",
+      "tgt": "gold/attribution_funnel_daily.py:checkout_events_cte",
+      "streaming": false,
+      "projected_cols": [
+        "utm_campaign"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "gold/attribution_funnel_daily.py:checkout_events_cte",
+      "tgt": "gold/attribution_funnel_daily.py:checkout_events_cte",
+      "output_col": "funnel_date"
+    },
+    {
+      "kind": "derives",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "gold/attribution_funnel_daily.py:checkout_events_cte",
+      "tgt": "gold/attribution_funnel_daily.py:checkout_events_cte",
+      "output_col": "checkout_count"
+    },
+    {
+      "kind": "reads",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "table:main.dbdemos_ecom.orders_cleaned",
+      "tgt": "gold/attribution_funnel_daily.py:purchases_cte",
+      "streaming": false,
+      "projected_cols": [
+        "utm_campaign",
+        "funnel_date"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "gold/attribution_funnel_daily.py:purchases_cte",
+      "tgt": "gold/attribution_funnel_daily.py:purchases_cte",
+      "output_col": "purchase_count"
+    },
+    {
+      "kind": "joins",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "gold/attribution_funnel_daily.py:visits_cte",
+      "tgt": "gold/attribution_funnel_daily.py:join_3",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "utm_campaign",
+          "utm_campaign"
+        ],
+        [
+          "funnel_date",
+          "funnel_date"
+        ]
+      ],
+      "right_src": "gold/attribution_funnel_daily.py:cart_events_cte"
+    },
+    {
+      "kind": "joins",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "gold/attribution_funnel_daily.py:join_3",
+      "tgt": "gold/attribution_funnel_daily.py:join_3",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "utm_campaign",
+          "utm_campaign"
+        ],
+        [
+          "funnel_date",
+          "funnel_date"
+        ]
+      ],
+      "right_src": "gold/attribution_funnel_daily.py:checkout_events_cte"
+    },
+    {
+      "kind": "joins",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "gold/attribution_funnel_daily.py:join_3",
+      "tgt": "gold/attribution_funnel_daily.py:join_3",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "utm_campaign",
+          "utm_campaign"
+        ],
+        [
+          "funnel_date",
+          "funnel_date"
+        ]
+      ],
+      "right_src": "gold/attribution_funnel_daily.py:purchases_cte"
+    },
+    {
+      "kind": "projects",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "gold/attribution_funnel_daily.py:visits_cte",
+      "tgt": "gold/attribution_funnel_daily.py:funnel_df",
+      "kept_cols": [
+        "v.utm_campaign",
+        "v.funnel_date",
+        "v.visit_count",
+        "cart_count",
+        "checkout_count",
+        "purchase_count",
+        "conversion_rate"
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "gold/attribution_funnel_daily.py",
+      "src": "gold/attribution_funnel_daily.py:funnel_df",
+      "tgt": "table:main.dbdemos_ecom.attribution_funnel_daily",
+      "mode": "overwrite",
+      "format": "delta",
+      "streaming": false,
+      "partition_cols": [
+        "funnel_date"
+      ]
+    },
+    {
+      "kind": "reads",
+      "file": "gold/customer_ltv.py",
+      "src": "table:main.dbdemos_ecom.customer_profile",
+      "tgt": "gold/customer_ltv.py:base_cte",
+      "streaming": false,
+      "projected_cols": [
+        "customer_id",
+        "email",
+        "country_code",
+        "signup_ts",
+        "total_orders",
+        "lifetime_revenue",
+        "last_order_ts",
+        "last_event_ts"
+      ]
+    },
+    {
+      "kind": "aggregates",
+      "file": "gold/customer_ltv.py",
+      "src": "gold/customer_ltv.py:base_cte",
+      "tgt": "gold/customer_ltv.py:country_avg_cte",
+      "group_keys": [
+        "country_code"
+      ],
+      "agg_outputs": {
+        "avg_country_ltv": "avg(lifetime_revenue)"
+      }
+    },
+    {
+      "kind": "joins",
+      "file": "gold/customer_ltv.py",
+      "src": "gold/customer_ltv.py:base_cte",
+      "tgt": "gold/customer_ltv.py:ranked_joined",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "country_code",
+          "country_code"
+        ]
+      ],
+      "right_src": "gold/customer_ltv.py:country_avg_cte"
+    },
+    {
+      "kind": "derives",
+      "file": "gold/customer_ltv.py",
+      "src": "gold/customer_ltv.py:ranked_joined",
+      "tgt": "gold/customer_ltv.py:ranked_cte",
+      "output_col": "days_since_last_order"
+    },
+    {
+      "kind": "derives",
+      "file": "gold/customer_ltv.py",
+      "src": "gold/customer_ltv.py:ranked_joined",
+      "tgt": "gold/customer_ltv.py:ranked_cte",
+      "output_col": "ltv_vs_country_avg"
+    },
+    {
+      "kind": "derives",
+      "file": "gold/customer_ltv.py",
+      "src": "gold/customer_ltv.py:ranked_joined",
+      "tgt": "gold/customer_ltv.py:ranked_cte",
+      "output_col": "revenue_quartile",
+      "source_cols": [
+        "lifetime_revenue"
+      ],
+      "window_spec": {
+        "partition_cols": [],
+        "order_cols": [
+          "lifetime_revenue desc"
+        ],
+        "frame": null
+      }
+    },
+    {
+      "kind": "projects",
+      "file": "gold/customer_ltv.py",
+      "src": "gold/customer_ltv.py:ranked_cte",
+      "tgt": "gold/customer_ltv.py:ltv_df",
+      "kept_cols": [
+        "customer_id",
+        "email",
+        "country_code",
+        "signup_ts",
+        "total_orders",
+        "lifetime_revenue",
+        "last_order_ts",
+        "last_event_ts",
+        "days_since_last_order",
+        "ltv_vs_country_avg",
+        "revenue_quartile"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "gold/customer_ltv.py",
+      "src": "gold/customer_ltv.py:ltv_df",
+      "tgt": "gold/customer_ltv.py:ltv_tiered",
+      "output_col": "ltv_tier",
+      "source_cols": [
+        "revenue_quartile"
+      ],
+      "rule_logic": [
+        {
+          "cond": "F.col('revenue_quartile') == 1",
+          "value": "F.lit('platinum')"
+        },
+        {
+          "cond": "F.col('revenue_quartile') == 2",
+          "value": "F.lit('gold')"
+        },
+        {
+          "cond": "F.col('revenue_quartile') == 3",
+          "value": "F.lit('silver')"
+        },
+        {
+          "cond": "otherwise",
+          "value": "F.lit('bronze')"
+        }
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "gold/customer_ltv.py",
+      "src": "gold/customer_ltv.py:ltv_tiered",
+      "tgt": "table:main.dbdemos_ecom.customer_ltv",
+      "mode": "overwrite",
+      "format": "delta",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "gold/customer_return_rate.py",
+      "src": "table:main.dbdemos_ecom.returns_cleaned",
+      "tgt": "gold/customer_return_rate.py:returns_agg_cte",
+      "streaming": false,
+      "projected_cols": [
+        "customer_id"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "gold/customer_return_rate.py",
+      "src": "gold/customer_return_rate.py:returns_agg_cte",
+      "tgt": "gold/customer_return_rate.py:returns_agg_cte",
+      "output_col": "total_returns"
+    },
+    {
+      "kind": "derives",
+      "file": "gold/customer_return_rate.py",
+      "src": "gold/customer_return_rate.py:returns_agg_cte",
+      "tgt": "gold/customer_return_rate.py:returns_agg_cte",
+      "output_col": "total_return_qty"
+    },
+    {
+      "kind": "reads",
+      "file": "gold/customer_return_rate.py",
+      "src": "table:main.dbdemos_ecom.customer_profile",
+      "tgt": "gold/customer_return_rate.py:customer_base_cte",
+      "streaming": false,
+      "projected_cols": [
+        "customer_id",
+        "email",
+        "country_code",
+        "total_orders",
+        "lifetime_revenue"
+      ]
+    },
+    {
+      "kind": "joins",
+      "file": "gold/customer_return_rate.py",
+      "src": "gold/customer_return_rate.py:customer_base_cte",
+      "tgt": "gold/customer_return_rate.py:join_1",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "customer_id",
+          "customer_id"
+        ]
+      ],
+      "right_src": "gold/customer_return_rate.py:returns_agg_cte"
+    },
+    {
+      "kind": "projects",
+      "file": "gold/customer_return_rate.py",
+      "src": "gold/customer_return_rate.py:customer_base_cte",
+      "tgt": "gold/customer_return_rate.py:return_rate_df",
+      "kept_cols": [
+        "cb.customer_id",
+        "cb.email",
+        "cb.country_code",
+        "cb.total_orders",
+        "cb.lifetime_revenue",
+        "total_returns",
+        "total_return_qty",
+        "return_rate"
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "gold/customer_return_rate.py",
+      "src": "gold/customer_return_rate.py:return_rate_df",
+      "tgt": "table:main.dbdemos_ecom.customer_return_rate",
+      "mode": "overwrite",
+      "format": "delta",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "gold/inventory_turnover_daily.py",
+      "src": "table:main.dbdemos_ecom.orders_cleaned",
+      "tgt": "gold/inventory_turnover_daily.py:daily_sales_cte",
+      "streaming": false,
+      "projected_cols": [
+        "product_id",
+        "snapshot_date"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "gold/inventory_turnover_daily.py",
+      "src": "gold/inventory_turnover_daily.py:daily_sales_cte",
+      "tgt": "gold/inventory_turnover_daily.py:daily_sales_cte",
+      "output_col": "sold_qty"
+    },
+    {
+      "kind": "derives",
+      "file": "gold/inventory_turnover_daily.py",
+      "src": "gold/inventory_turnover_daily.py:daily_sales_cte",
+      "tgt": "gold/inventory_turnover_daily.py:daily_sales_cte",
+      "output_col": "sales_count"
+    },
+    {
+      "kind": "reads",
+      "file": "gold/inventory_turnover_daily.py",
+      "src": "table:main.dbdemos_ecom.inventory_daily",
+      "tgt": "gold/inventory_turnover_daily.py:inventory_base_cte",
+      "streaming": false,
+      "projected_cols": [
+        "warehouse_id",
+        "product_id",
+        "snapshot_date",
+        "on_hand_units",
+        "reserved_units",
+        "available_units",
+        "utilization_pct"
+      ]
+    },
+    {
+      "kind": "joins",
+      "file": "gold/inventory_turnover_daily.py",
+      "src": "gold/inventory_turnover_daily.py:inventory_base_cte",
+      "tgt": "gold/inventory_turnover_daily.py:join_1",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "product_id",
+          "product_id"
+        ],
+        [
+          "snapshot_date",
+          "snapshot_date"
+        ]
+      ],
+      "right_src": "gold/inventory_turnover_daily.py:daily_sales_cte"
+    },
+    {
+      "kind": "projects",
+      "file": "gold/inventory_turnover_daily.py",
+      "src": "gold/inventory_turnover_daily.py:inventory_base_cte",
+      "tgt": "gold/inventory_turnover_daily.py:turnover_df",
+      "kept_cols": [
+        "inv.warehouse_id",
+        "inv.product_id",
+        "inv.snapshot_date",
+        "inv.on_hand_units",
+        "inv.reserved_units",
+        "inv.available_units",
+        "inv.utilization_pct",
+        "sold_qty",
+        "sales_count",
+        "turnover_rate",
+        "days_of_stock"
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "gold/inventory_turnover_daily.py",
+      "src": "gold/inventory_turnover_daily.py:turnover_df",
+      "tgt": "table:main.dbdemos_ecom.inventory_turnover_daily",
+      "mode": "merge",
+      "format": null,
+      "streaming": false,
+      "sink_class": "DeltaMergeSink",
+      "merge_keys": [
+        "product_id",
+        "warehouse_id",
+        "snapshot_date"
+      ]
+    },
+    {
+      "kind": "reads",
+      "file": "gold/product_performance.py",
+      "src": "table:main.dbdemos_ecom.orders_cleaned",
+      "tgt": "gold/product_performance.py:orders",
+      "streaming": false
+    },
+    {
+      "kind": "aggregates",
+      "file": "gold/product_performance.py",
+      "src": "gold/product_performance.py:orders",
+      "tgt": "gold/product_performance.py:daily_perf",
+      "group_keys": [
+        "product_id",
+        "order_date"
+      ],
+      "agg_outputs": {
+        "<unresolved>": "<unresolved>(<unresolved>)",
+        "order_count": "count(order_id)"
+      },
+      "dynamic": true,
+      "dynamic_note": "agg list star-unpacked from a runtime-built variable; column list cannot be enumerated statically; controlled by env-var(s): $METRIC_CONFIG_PATH"
+    },
+    {
+      "kind": "writes",
+      "file": "gold/product_performance.py",
+      "src": "gold/product_performance.py:daily_perf",
+      "tgt": "table:main.dbdemos_ecom.product_performance",
+      "mode": "merge",
+      "format": null,
+      "streaming": false,
+      "sink_class": "DeltaMergeSink",
+      "merge_keys": [
+        "product_id",
+        "order_date"
+      ]
+    },
+    {
+      "kind": "reads",
+      "file": "gold/revenue_forecast_features.py",
+      "src": "table:main.dbdemos_ecom.customer_ltv",
+      "tgt": "gold/revenue_forecast_features.py:ltv",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "gold/revenue_forecast_features.py",
+      "src": "table:main.dbdemos_ecom.product_performance",
+      "tgt": "gold/revenue_forecast_features.py:prod_perf",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "gold/revenue_forecast_features.py",
+      "src": "table:main.dbdemos_ecom.inventory_turnover_daily",
+      "tgt": "gold/revenue_forecast_features.py:turnover",
+      "streaming": false
+    },
+    {
+      "kind": "joins",
+      "file": "gold/revenue_forecast_features.py",
+      "src": "gold/revenue_forecast_features.py:ltv",
+      "tgt": "gold/revenue_forecast_features.py:ltv_x_perf",
+      "join_type": "inner",
+      "right_src": "gold/revenue_forecast_features.py:prod_perf"
+    },
+    {
+      "kind": "joins",
+      "file": "gold/revenue_forecast_features.py",
+      "src": "gold/revenue_forecast_features.py:ltv_x_perf",
+      "tgt": "gold/revenue_forecast_features.py:_anon1",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "product_id",
+          "product_id"
+        ]
+      ],
+      "right_src": "gold/revenue_forecast_features.py:turnover"
+    },
+    {
+      "kind": "derives",
+      "file": "gold/revenue_forecast_features.py",
+      "src": "gold/revenue_forecast_features.py:_anon1",
+      "tgt": "gold/revenue_forecast_features.py:joined",
+      "output_col": "forecast_date",
+      "source_cols": [
+        "snapshot_date"
+      ]
+    },
+    {
+      "kind": "aggregates",
+      "file": "gold/revenue_forecast_features.py",
+      "src": "gold/revenue_forecast_features.py:joined",
+      "tgt": "gold/revenue_forecast_features.py:features",
+      "group_keys": [
+        "customer_id",
+        "product_id",
+        "forecast_date"
+      ],
+      "agg_outputs": {
+        "<unresolved>": "<unresolved>(<unresolved>)",
+        "lifetime_revenue": "first(lifetime_revenue)",
+        "total_orders": "first(total_orders)",
+        "avg_turnover": "avg(turnover_rate)"
+      },
+      "dynamic": true,
+      "dynamic_note": "agg list star-unpacked from a runtime-built variable; column list cannot be enumerated statically; controlled by env-var(s): $FORECAST_CONFIG_PATH"
+    },
+    {
+      "kind": "writes",
+      "file": "gold/revenue_forecast_features.py",
+      "src": "gold/revenue_forecast_features.py:features",
+      "tgt": "table:main.dbdemos_ecom.revenue_forecast_features",
+      "mode": "overwrite",
+      "format": "delta",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "silver/customer_profile.py",
+      "src": "table:main.dbdemos_ecom.orders_raw",
+      "tgt": "silver/customer_profile.py:orders_df",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "silver/customer_profile.py",
+      "src": "table:main.dbdemos_ecom.customers_raw",
+      "tgt": "silver/customer_profile.py:customers_df",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "silver/customer_profile.py",
+      "src": "table:main.dbdemos_ecom.events_raw",
+      "tgt": "silver/customer_profile.py:events_df",
+      "streaming": false
+    },
+    {
+      "kind": "derives",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:events_df",
+      "tgt": "silver/customer_profile.py:events_ranked",
+      "output_col": "rn",
+      "source_cols": [
+        "customer_id",
+        "event_ts"
+      ],
+      "window_spec": {
+        "partition_cols": [
+          "customer_id"
+        ],
+        "order_cols": [
+          "event_ts desc"
+        ],
+        "frame": null
+      }
+    },
+    {
+      "kind": "filters",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:events_ranked",
+      "tgt": "silver/customer_profile.py:_anon1",
+      "referenced_cols": [
+        "rn"
+      ]
+    },
+    {
+      "kind": "projects",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:_anon1",
+      "tgt": "silver/customer_profile.py:events_latest",
+      "removed_cols": [
+        "rn"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:events_latest",
+      "tgt": "silver/customer_profile.py:events_suffixed",
+      "output_col": "event_id_last_event",
+      "source_cols": [
+        "event_id"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:events_latest",
+      "tgt": "silver/customer_profile.py:events_suffixed",
+      "output_col": "customer_id_last_event",
+      "source_cols": [
+        "customer_id"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:events_latest",
+      "tgt": "silver/customer_profile.py:events_suffixed",
+      "output_col": "event_type_last_event",
+      "source_cols": [
+        "event_type"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:events_latest",
+      "tgt": "silver/customer_profile.py:events_suffixed",
+      "output_col": "product_id_last_event",
+      "source_cols": [
+        "product_id"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:events_latest",
+      "tgt": "silver/customer_profile.py:events_suffixed",
+      "output_col": "session_id_last_event",
+      "source_cols": [
+        "session_id"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:events_latest",
+      "tgt": "silver/customer_profile.py:events_suffixed",
+      "output_col": "event_ts_last_event",
+      "source_cols": [
+        "event_ts"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:events_latest",
+      "tgt": "silver/customer_profile.py:events_suffixed",
+      "output_col": "ingested_ts_last_event",
+      "source_cols": [
+        "ingested_ts"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:events_latest",
+      "tgt": "silver/customer_profile.py:events_suffixed",
+      "output_col": "payload_last_event",
+      "source_cols": [
+        "payload"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:events_latest",
+      "tgt": "silver/customer_profile.py:events_suffixed",
+      "output_col": "_rescued_data_last_event",
+      "source_cols": [
+        "_rescued_data"
+      ]
+    },
+    {
+      "kind": "joins",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:customers_df",
+      "tgt": "silver/customer_profile.py:co",
+      "join_type": "inner",
+      "join_keys": [
+        [
+          "customer_id",
+          "customer_id"
+        ]
+      ],
+      "right_src": "silver/customer_profile.py:orders_df"
+    },
+    {
+      "kind": "joins",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:co",
+      "tgt": "silver/customer_profile.py:profile",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "customer_id",
+          "customer_id_last_event"
+        ]
+      ],
+      "right_src": "silver/customer_profile.py:events_suffixed"
+    },
+    {
+      "kind": "aggregates",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:profile",
+      "tgt": "silver/customer_profile.py:customer_profile",
+      "group_keys": [
+        "customer_id",
+        "email",
+        "country_code",
+        "signup_ts"
+      ],
+      "agg_outputs": {
+        "total_orders": "count(order_id)",
+        "lifetime_revenue": "sum(total_amount)",
+        "last_order_ts": "max(order_ts)",
+        "last_event_ts": "max(event_ts_last_event)",
+        "distinct_products_ordered": "countDistinct(product_id)"
+      }
+    },
+    {
+      "kind": "writes",
+      "file": "silver/customer_profile.py",
+      "src": "silver/customer_profile.py:customer_profile",
+      "tgt": "table:main.dbdemos_ecom.customer_profile",
+      "mode": "overwrite",
+      "format": "delta",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "silver/inventory_daily.py",
+      "src": "table:main.dbdemos_ecom.inventory_snapshots_raw",
+      "tgt": "silver/inventory_daily.py:snapshots",
+      "streaming": false
+    },
+    {
+      "kind": "derives",
+      "file": "silver/inventory_daily.py",
+      "src": "silver/inventory_daily.py:snapshots",
+      "tgt": "silver/inventory_daily.py:snapshots",
+      "output_col": "snapshot_date",
+      "source_cols": [
+        "snapshot_ts"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/inventory_daily.py",
+      "src": "silver/inventory_daily.py:snapshots",
+      "tgt": "silver/inventory_daily.py:snapshots_ranked",
+      "output_col": "rn",
+      "source_cols": [
+        "warehouse_id",
+        "product_id",
+        "snapshot_date",
+        "snapshot_ts"
+      ],
+      "window_spec": {
+        "partition_cols": [
+          "warehouse_id",
+          "product_id",
+          "snapshot_date"
+        ],
+        "order_cols": [
+          "snapshot_ts desc"
+        ],
+        "frame": null
+      }
+    },
+    {
+      "kind": "filters",
+      "file": "silver/inventory_daily.py",
+      "src": "silver/inventory_daily.py:snapshots_ranked",
+      "tgt": "silver/inventory_daily.py:_anon1",
+      "referenced_cols": [
+        "rn"
+      ]
+    },
+    {
+      "kind": "projects",
+      "file": "silver/inventory_daily.py",
+      "src": "silver/inventory_daily.py:_anon1",
+      "tgt": "silver/inventory_daily.py:snapshots_latest",
+      "removed_cols": [
+        "rn"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/inventory_daily.py",
+      "src": "silver/inventory_daily.py:snapshots_latest",
+      "tgt": "silver/inventory_daily.py:_anon2",
+      "output_col": "utilization_pct",
+      "source_cols": [
+        "reserved_units",
+        "on_hand_units"
+      ]
+    },
+    {
+      "kind": "filters",
+      "file": "silver/inventory_daily.py",
+      "src": "silver/inventory_daily.py:_anon2",
+      "tgt": "silver/inventory_daily.py:inventory_daily",
+      "referenced_cols": [
+        "on_hand_units"
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "silver/inventory_daily.py",
+      "src": "silver/inventory_daily.py:inventory_daily",
+      "tgt": "table:main.dbdemos_ecom.inventory_daily",
+      "mode": "overwrite",
+      "format": "delta",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "silver/marketing_touchpoints.py",
+      "src": "table:main.dbdemos_ecom.marketing_attribution_raw",
+      "tgt": "silver/marketing_touchpoints.py:attribution_df",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "silver/marketing_touchpoints.py",
+      "src": "table:main.dbdemos_ecom.events_raw",
+      "tgt": "silver/marketing_touchpoints.py:events_df",
+      "streaming": false
+    },
+    {
+      "kind": "joins",
+      "file": "silver/marketing_touchpoints.py",
+      "src": "silver/marketing_touchpoints.py:attribution_df",
+      "tgt": "silver/marketing_touchpoints.py:joined",
+      "join_type": "inner",
+      "join_keys": [
+        [
+          "session_id",
+          "session_id"
+        ]
+      ],
+      "right_src": "silver/marketing_touchpoints.py:events_df"
+    },
+    {
+      "kind": "derives",
+      "file": "silver/marketing_touchpoints.py",
+      "src": "silver/marketing_touchpoints.py:joined",
+      "tgt": "silver/marketing_touchpoints.py:joined_ranked",
+      "output_col": "rn",
+      "source_cols": [
+        "session_id",
+        "visit_ts"
+      ],
+      "window_spec": {
+        "partition_cols": [
+          "session_id"
+        ],
+        "order_cols": [
+          "visit_ts asc"
+        ],
+        "frame": null
+      }
+    },
+    {
+      "kind": "filters",
+      "file": "silver/marketing_touchpoints.py",
+      "src": "silver/marketing_touchpoints.py:joined_ranked",
+      "tgt": "silver/marketing_touchpoints.py:_anon1",
+      "referenced_cols": [
+        "rn"
+      ]
+    },
+    {
+      "kind": "projects",
+      "file": "silver/marketing_touchpoints.py",
+      "src": "silver/marketing_touchpoints.py:_anon1",
+      "tgt": "silver/marketing_touchpoints.py:first_touch",
+      "removed_cols": [
+        "rn"
+      ]
+    },
+    {
+      "kind": "aggregates",
+      "file": "silver/marketing_touchpoints.py",
+      "src": "silver/marketing_touchpoints.py:first_touch",
+      "tgt": "silver/marketing_touchpoints.py:touchpoints",
+      "group_keys": [
+        "customer_id",
+        "utm_campaign"
+      ],
+      "agg_outputs": {
+        "event_count": "count(event_id)",
+        "last_seen_ts": "max(visit_ts)",
+        "session_count": "countDistinct(session_id)"
+      }
+    },
+    {
+      "kind": "writes",
+      "file": "silver/marketing_touchpoints.py",
+      "src": "silver/marketing_touchpoints.py:touchpoints",
+      "tgt": "table:main.dbdemos_ecom.marketing_touchpoints",
+      "mode": "overwrite",
+      "format": "delta",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "silver/orders_cleaned.py",
+      "src": "table:main.dbdemos_ecom.orders_raw",
+      "tgt": "silver/orders_cleaned.py:orders",
+      "streaming": false
+    },
+    {
+      "kind": "opaque_transform",
+      "file": "silver/orders_cleaned.py",
+      "src": "silver/orders_cleaned.py:orders",
+      "tgt": "silver/orders_cleaned.py:orders",
+      "operator": "utils.column_transformations.trim_string_columns",
+      "is_passthrough": true,
+      "opaque_kind": "passthrough"
+    },
+    {
+      "kind": "derives",
+      "file": "silver/orders_cleaned.py",
+      "src": "silver/orders_cleaned.py:orders",
+      "tgt": "silver/orders_cleaned.py:orders",
+      "output_col": "currency",
+      "source_cols": [
+        "currency"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/orders_cleaned.py",
+      "src": "silver/orders_cleaned.py:orders",
+      "tgt": "silver/orders_cleaned.py:orders",
+      "output_col": "status",
+      "source_cols": [
+        "status"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/orders_cleaned.py",
+      "src": "silver/orders_cleaned.py:orders",
+      "tgt": "silver/orders_cleaned.py:orders",
+      "output_col": "quantity",
+      "source_cols": [
+        "quantity"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/orders_cleaned.py",
+      "src": "silver/orders_cleaned.py:orders",
+      "tgt": "silver/orders_cleaned.py:orders",
+      "output_col": "total_amount",
+      "source_cols": [
+        "total_amount"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/orders_cleaned.py",
+      "src": "silver/orders_cleaned.py:orders",
+      "tgt": "silver/orders_cleaned.py:orders",
+      "output_col": "order_date",
+      "source_cols": [
+        "order_ts"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/orders_cleaned.py",
+      "src": "silver/orders_cleaned.py:orders",
+      "tgt": "silver/orders_cleaned.py:orders",
+      "output_col": "order_year",
+      "source_cols": [
+        "order_ts"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/orders_cleaned.py",
+      "src": "silver/orders_cleaned.py:orders",
+      "tgt": "silver/orders_cleaned.py:orders",
+      "output_col": "order_month",
+      "source_cols": [
+        "order_ts"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/orders_cleaned.py",
+      "src": "silver/orders_cleaned.py:orders",
+      "tgt": "silver/orders_cleaned.py:orders",
+      "output_col": "is_high_value",
+      "source_cols": [
+        "total_amount"
+      ]
+    },
+    {
+      "kind": "projects",
+      "file": "silver/orders_cleaned.py",
+      "src": "silver/orders_cleaned.py:orders",
+      "tgt": "silver/orders_cleaned.py:orders",
+      "removed_cols": [
+        "_rescued_data",
+        "source_file"
+      ]
+    },
+    {
+      "kind": "filters",
+      "file": "silver/orders_cleaned.py",
+      "src": "silver/orders_cleaned.py:orders",
+      "tgt": "silver/orders_cleaned.py:orders",
+      "referenced_cols": [
+        "status",
+        "quantity"
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "silver/orders_cleaned.py",
+      "src": "silver/orders_cleaned.py:orders",
+      "tgt": "table:main.dbdemos_ecom.orders_cleaned",
+      "mode": "overwrite",
+      "format": "delta",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "silver/refunds_enriched.py",
+      "src": "table:main.dbdemos_ecom.refunds_raw",
+      "tgt": "silver/refunds_enriched.py:refunds_df",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "silver/refunds_enriched.py",
+      "src": "table:main.dbdemos_ecom.returns_raw",
+      "tgt": "silver/refunds_enriched.py:returns_df",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "silver/refunds_enriched.py",
+      "src": "table:main.dbdemos_ecom.orders_raw",
+      "tgt": "silver/refunds_enriched.py:orders_df",
+      "streaming": false
+    },
+    {
+      "kind": "joins",
+      "file": "silver/refunds_enriched.py",
+      "src": "silver/refunds_enriched.py:refunds_df",
+      "tgt": "silver/refunds_enriched.py:refunds_with_return",
+      "join_type": "inner",
+      "join_keys": [
+        [
+          "return_id",
+          "return_id"
+        ]
+      ],
+      "right_src": "silver/refunds_enriched.py:returns_df"
+    },
+    {
+      "kind": "joins",
+      "file": "silver/refunds_enriched.py",
+      "src": "silver/refunds_enriched.py:refunds_with_return",
+      "tgt": "silver/refunds_enriched.py:enriched",
+      "join_type": "left",
+      "join_keys": [
+        [
+          "order_id",
+          "order_id"
+        ]
+      ],
+      "right_src": "silver/refunds_enriched.py:orders_df"
+    },
+    {
+      "kind": "derives",
+      "file": "silver/refunds_enriched.py",
+      "src": "silver/refunds_enriched.py:enriched",
+      "tgt": "silver/refunds_enriched.py:enriched",
+      "output_col": "refund_ratio",
+      "source_cols": [
+        "refund_amount",
+        "total_amount"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/refunds_enriched.py",
+      "src": "silver/refunds_enriched.py:enriched",
+      "tgt": "silver/refunds_enriched.py:enriched",
+      "output_col": "days_to_refund",
+      "source_cols": [
+        "processed_ts",
+        "return_ts"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/refunds_enriched.py",
+      "src": "silver/refunds_enriched.py:enriched",
+      "tgt": "silver/refunds_enriched.py:enriched",
+      "output_col": "refund_date",
+      "source_cols": [
+        "processed_ts"
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "silver/refunds_enriched.py",
+      "src": "silver/refunds_enriched.py:enriched",
+      "tgt": "table:main.dbdemos_ecom.refunds_enriched",
+      "mode": "overwrite",
+      "format": "delta",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "silver/returns_cleaned.py",
+      "src": "table:main.dbdemos_ecom.returns_raw",
+      "tgt": "silver/returns_cleaned.py:returns",
+      "streaming": false
+    },
+    {
+      "kind": "opaque_transform",
+      "file": "silver/returns_cleaned.py",
+      "src": "silver/returns_cleaned.py:returns",
+      "tgt": "silver/returns_cleaned.py:returns",
+      "operator": "utils.column_transformations.trim_string_columns",
+      "is_passthrough": true,
+      "opaque_kind": "passthrough"
+    },
+    {
+      "kind": "derives",
+      "file": "silver/returns_cleaned.py",
+      "src": "silver/returns_cleaned.py:returns",
+      "tgt": "silver/returns_cleaned.py:returns",
+      "output_col": "reason_code",
+      "source_cols": [
+        "reason_code"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/returns_cleaned.py",
+      "src": "silver/returns_cleaned.py:returns",
+      "tgt": "silver/returns_cleaned.py:returns",
+      "output_col": "warehouse_id",
+      "source_cols": [
+        "warehouse_id"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/returns_cleaned.py",
+      "src": "silver/returns_cleaned.py:returns",
+      "tgt": "silver/returns_cleaned.py:returns",
+      "output_col": "return_date",
+      "source_cols": [
+        "return_ts"
+      ]
+    },
+    {
+      "kind": "derives",
+      "file": "silver/returns_cleaned.py",
+      "src": "silver/returns_cleaned.py:returns",
+      "tgt": "silver/returns_cleaned.py:returns",
+      "output_col": "is_high_qty",
+      "source_cols": [
+        "return_qty"
+      ]
+    },
+    {
+      "kind": "projects",
+      "file": "silver/returns_cleaned.py",
+      "src": "silver/returns_cleaned.py:returns",
+      "tgt": "silver/returns_cleaned.py:returns",
+      "removed_cols": [
+        "_rescued_data",
+        "source_file"
+      ]
+    },
+    {
+      "kind": "filters",
+      "file": "silver/returns_cleaned.py",
+      "src": "silver/returns_cleaned.py:returns",
+      "tgt": "silver/returns_cleaned.py:returns",
+      "referenced_cols": [
+        "return_qty"
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "silver/returns_cleaned.py",
+      "src": "silver/returns_cleaned.py:returns",
+      "tgt": "table:main.dbdemos_ecom.returns_cleaned",
+      "mode": "overwrite",
+      "format": "delta",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "silver/shipments_timeline.py",
+      "src": "table:main.dbdemos_ecom.shipments_raw",
+      "tgt": "silver/shipments_timeline.py:shipments_df",
+      "streaming": false
+    },
+    {
+      "kind": "reads",
+      "file": "silver/shipments_timeline.py",
+      "src": "table:main.dbdemos_ecom.orders_raw",
+      "tgt": "silver/shipments_timeline.py:orders_df",
+      "streaming": false
+    },
+    {
+      "kind": "derives",
+      "file": "silver/shipments_timeline.py",
+      "src": "silver/shipments_timeline.py:shipments_df",
+      "tgt": "silver/shipments_timeline.py:shipments_seq",
+      "output_col": "shipment_seq",
+      "source_cols": [
+        "order_id",
+        "ship_ts"
+      ],
+      "window_spec": {
+        "partition_cols": [
+          "order_id"
+        ],
+        "order_cols": [
+          "ship_ts asc"
+        ],
+        "frame": null
+      }
+    },
+    {
+      "kind": "aggregates",
+      "file": "silver/shipments_timeline.py",
+      "src": "silver/shipments_timeline.py:shipments_seq",
+      "tgt": "silver/shipments_timeline.py:timeline",
+      "group_keys": [
+        "order_id"
+      ],
+      "agg_outputs": {
+        "shipment_count": "count(shipment_id)",
+        "first_ship_ts": "min(ship_ts)",
+        "last_delivered_ts": "max(delivered_ts)",
+        "carriers_used": "collect_set(carrier)"
+      }
+    },
+    {
+      "kind": "joins",
+      "file": "silver/shipments_timeline.py",
+      "src": "silver/shipments_timeline.py:timeline",
+      "tgt": "silver/shipments_timeline.py:timeline_enriched",
+      "join_type": "inner",
+      "join_keys": [
+        [
+          "order_id",
+          "order_id"
+        ]
+      ],
+      "right_src": "silver/shipments_timeline.py:orders_df",
+      "right_projected_cols": [
+        "order_id",
+        "customer_id"
+      ]
+    },
+    {
+      "kind": "writes",
+      "file": "silver/shipments_timeline.py",
+      "src": "silver/shipments_timeline.py:timeline_enriched",
+      "tgt": "table:main.dbdemos_ecom.shipments_timeline",
+      "mode": "overwrite",
+      "format": "delta",
+      "streaming": false
+    }
+  ],
+  "warnings": [
+    {
+      "file": "bronze/03_ingest_events.py",
+      "category": "opaque-call-fallback",
+      "message": "Unregistered function 'utils.event_parsers.parse_event_payload' called with DataFrame arg; column-set change across this call is unknown."
+    },
+    {
+      "file": "gold/product_performance.py",
+      "category": "dynamic-aggregation",
+      "message": "agg list contains star-unpacked runtime variable in gold/product_performance.py:81"
+    },
+    {
+      "file": "gold/revenue_forecast_features.py",
+      "category": "dynamic-aggregation",
+      "message": "agg list contains star-unpacked runtime variable in gold/revenue_forecast_features.py:102"
+    }
+  ]
+}

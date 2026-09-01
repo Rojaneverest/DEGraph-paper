@@ -1,0 +1,2066 @@
+{
+  "metadata": {
+    "schema_version": "0.1.0",
+    "extractor_version": "0.1.0",
+    "repo_root": "C:\\Users\\thapa\\Desktop\\Research\\_external_repos\\dbdemos-notebooks\\demo-retail\\lakehouse-retail-c360",
+    "files_parsed": 29,
+    "files_skipped": 0,
+    "extraction_seconds": 0.108
+  },
+  "tables": [
+    {
+      "id": "table:churn_users_protected",
+      "kind": "table",
+      "fqn": "churn_users_protected",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": []
+    },
+    {
+      "id": "table:simple_mask",
+      "kind": "table",
+      "fqn": "simple_mask",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": []
+    },
+    {
+      "id": "table:country_filter",
+      "kind": "table",
+      "fqn": "country_filter",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": []
+    },
+    {
+      "id": "table:churn_app_events",
+      "kind": "table",
+      "fqn": "churn_app_events",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [
+        "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py"
+      ],
+      "read_by": [
+        "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py"
+      ]
+    },
+    {
+      "id": "table:churn_orders_bronze",
+      "kind": "table",
+      "fqn": "churn_orders_bronze",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [
+        "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py"
+      ],
+      "read_by": [
+        "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py"
+      ]
+    },
+    {
+      "id": "table:churn_users_bronze",
+      "kind": "table",
+      "fqn": "churn_users_bronze",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [
+        "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py"
+      ],
+      "read_by": [
+        "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py"
+      ]
+    },
+    {
+      "id": "table:churn_users",
+      "kind": "table",
+      "fqn": "churn_users",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [
+        "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py"
+      ],
+      "read_by": [
+        "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py"
+      ]
+    },
+    {
+      "id": "table:churn_orders",
+      "kind": "table",
+      "fqn": "churn_orders",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [
+        "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py"
+      ],
+      "read_by": [
+        "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py"
+      ]
+    },
+    {
+      "id": "table:churn_features",
+      "kind": "table",
+      "fqn": "churn_features",
+      "format": null,
+      "location": null,
+      "columns": [
+        {
+          "name": "platform",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "event_count",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "session_count",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "last_event",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "order_count",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "total_amount",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "total_item",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "last_transaction",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "days_since_creation",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "days_since_last_activity",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "days_last_event",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        }
+      ],
+      "partition_cols": [],
+      "written_by": [
+        "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py"
+      ],
+      "read_by": [
+        "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+        "04-Data-Science-ML/04.1-automl-churn-prediction.py",
+        "04-Data-Science-ML/04.3-running-inference.py"
+      ]
+    },
+    {
+      "id": "table:churn_prediction",
+      "kind": "table",
+      "fqn": "churn_prediction",
+      "format": null,
+      "location": null,
+      "columns": [
+        {
+          "name": "churn_prediction",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        }
+      ],
+      "partition_cols": [],
+      "written_by": [
+        "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py"
+      ],
+      "read_by": []
+    },
+    {
+      "id": "table:spark_churn_users_bronze",
+      "kind": "table",
+      "fqn": "spark_churn_users_bronze",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": [
+        "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py"
+      ]
+    },
+    {
+      "id": "table:spark_churn_users",
+      "kind": "table",
+      "fqn": "spark_churn_users",
+      "format": null,
+      "location": null,
+      "columns": [
+        {
+          "name": "user_id",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "email",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "creation_date",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "last_activity_date",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "firstname",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "lastname",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "age_group",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "gender",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "churn",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        }
+      ],
+      "partition_cols": [],
+      "written_by": [
+        "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py"
+      ],
+      "read_by": []
+    },
+    {
+      "id": "table:spark_churn_orders_bronze",
+      "kind": "table",
+      "fqn": "spark_churn_orders_bronze",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": [
+        "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py"
+      ]
+    },
+    {
+      "id": "table:spark_churn_orders",
+      "kind": "table",
+      "fqn": "spark_churn_orders",
+      "format": null,
+      "location": null,
+      "columns": [
+        {
+          "name": "order_id",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "amount",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "item_count",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        },
+        {
+          "name": "creation_date",
+          "dtype": "<unresolved>",
+          "nullable": null,
+          "comment": null
+        }
+      ],
+      "partition_cols": [],
+      "written_by": [
+        "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py"
+      ],
+      "read_by": []
+    },
+    {
+      "id": "table:spark_churn_features",
+      "kind": "table",
+      "fqn": "spark_churn_features",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": [
+        "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py"
+      ]
+    },
+    {
+      "id": "table:<unresolved>",
+      "kind": "table",
+      "fqn": "<unresolved>",
+      "format": null,
+      "location": null,
+      "columns": [],
+      "partition_cols": [],
+      "written_by": [],
+      "read_by": [
+        "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+        "04-Data-Science-ML/04.2-automl-generated-notebook.py"
+      ]
+    }
+  ],
+  "external_sources": [
+    {
+      "id": "ext:/Volumes/main__build/dbdemos_retail_c360/c360/users",
+      "kind": "external_source",
+      "format": "json",
+      "location": "/Volumes/main__build/dbdemos_retail_c360/c360/users",
+      "columns": [],
+      "read_by": [
+        "01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py",
+        "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py"
+      ]
+    },
+    {
+      "id": "ext:/Volumes/main__build/dbdemos_retail_c360/c360/orders",
+      "kind": "external_source",
+      "format": "json",
+      "location": "/Volumes/main__build/dbdemos_retail_c360/c360/orders",
+      "columns": [],
+      "read_by": [
+        "01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py",
+        "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py"
+      ]
+    },
+    {
+      "id": "ext:/Volumes/main__build/dbdemos_retail_c360/c360/events",
+      "kind": "external_source",
+      "format": "csv",
+      "location": "/Volumes/main__build/dbdemos_retail_c360/c360/events",
+      "columns": [],
+      "read_by": [
+        "01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py",
+        "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py"
+      ]
+    }
+  ],
+  "dataframes": [
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py:12:sdf",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py",
+      "var_name": "sdf",
+      "lineno": 12,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py:17:sdf",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py",
+      "var_name": "sdf",
+      "lineno": 17,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py:23:sdf",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py",
+      "var_name": "sdf",
+      "lineno": 23,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py:11:_anon1",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py",
+      "var_name": null,
+      "lineno": 11,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py:25:_anon2",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py",
+      "var_name": null,
+      "lineno": 25,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py:39:_anon3",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py",
+      "var_name": null,
+      "lineno": 39,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:_anon1",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "var_name": null,
+      "lineno": 15,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:__pipeline_15",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "var_name": "__pipeline_15",
+      "lineno": 15,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:41:_anon2",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "var_name": null,
+      "lineno": 41,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:41:__pipeline_41",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "var_name": "__pipeline_41",
+      "lineno": 41,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:14:_anon1",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "var_name": null,
+      "lineno": 14,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:14:churn_app_events_stats_df",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "var_name": "churn_app_events_stats_df",
+      "lineno": 14,
+      "columns": [
+        "platform",
+        "event_count",
+        "session_count",
+        "last_event"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:23:_anon2",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "var_name": null,
+      "lineno": 23,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:23:churn_orders_stats_df",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "var_name": "churn_orders_stats_df",
+      "lineno": 23,
+      "columns": [
+        "order_count",
+        "total_amount",
+        "total_item",
+        "last_transaction"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:32:_anon3",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "var_name": null,
+      "lineno": 32,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:32:__pipeline_32",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "var_name": "__pipeline_32",
+      "lineno": 32,
+      "columns": [
+        "platform",
+        "event_count",
+        "session_count",
+        "last_event",
+        "order_count",
+        "total_amount",
+        "total_item",
+        "last_transaction",
+        "days_since_creation",
+        "days_since_last_activity",
+        "days_last_event"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:33:_anon4",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "var_name": null,
+      "lineno": 33,
+      "columns": [
+        "platform",
+        "event_count",
+        "session_count",
+        "last_event"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:33:_anon5",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "var_name": null,
+      "lineno": 33,
+      "columns": [
+        "platform",
+        "event_count",
+        "session_count",
+        "last_event",
+        "order_count",
+        "total_amount",
+        "total_item",
+        "last_transaction"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:63:_anon6",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "var_name": null,
+      "lineno": 63,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:63:__pipeline_63",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "var_name": "__pipeline_63",
+      "lineno": 63,
+      "columns": [
+        "churn_prediction"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon1",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "var_name": null,
+      "lineno": 176,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:__pipeline_176",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "var_name": "__pipeline_176",
+      "lineno": 176,
+      "columns": [
+        "user_id",
+        "email",
+        "creation_date",
+        "last_activity_date",
+        "firstname",
+        "lastname",
+        "age_group",
+        "gender",
+        "churn"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon2",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "var_name": null,
+      "lineno": 176,
+      "columns": [
+        "user_id",
+        "email",
+        "creation_date",
+        "last_activity_date",
+        "firstname",
+        "lastname",
+        "age_group",
+        "gender",
+        "churn"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:_anon3",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "var_name": null,
+      "lineno": 198,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:__pipeline_198",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "var_name": "__pipeline_198",
+      "lineno": 198,
+      "columns": [
+        "order_id",
+        "amount",
+        "item_count",
+        "creation_date"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:_anon4",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "var_name": null,
+      "lineno": 198,
+      "columns": [
+        "order_id",
+        "amount",
+        "item_count",
+        "creation_date"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:273:_anon5",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "var_name": null,
+      "lineno": 273,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:273:predictions",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "var_name": "predictions",
+      "lineno": 273,
+      "columns": [
+        "churn_prediction"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:141:bronze_products",
+      "kind": "dataframe",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "var_name": "bronze_products",
+      "lineno": 141,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:04-Data-Science-ML/04.1-automl-churn-prediction.py:98:churn_dataset",
+      "kind": "dataframe",
+      "file": "04-Data-Science-ML/04.1-automl-churn-prediction.py",
+      "var_name": "churn_dataset",
+      "lineno": 98,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:04-Data-Science-ML/04.2-automl-generated-notebook.py:454:conda_libs",
+      "kind": "dataframe",
+      "file": "04-Data-Science-ML/04.2-automl-generated-notebook.py",
+      "var_name": "conda_libs",
+      "lineno": 454,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:04-Data-Science-ML/04.3-running-inference.py:49:_anon1",
+      "kind": "dataframe",
+      "file": "04-Data-Science-ML/04.3-running-inference.py",
+      "var_name": null,
+      "lineno": 49,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:04-Data-Science-ML/04.3-running-inference.py:49:__pipeline_49",
+      "kind": "dataframe",
+      "file": "04-Data-Science-ML/04.3-running-inference.py",
+      "var_name": "__pipeline_49",
+      "lineno": 49,
+      "columns": [
+        "churn_prediction"
+      ],
+      "derived_from": []
+    },
+    {
+      "id": "df:04-Data-Science-ML/04.3-running-inference.py:77:_anon2",
+      "kind": "dataframe",
+      "file": "04-Data-Science-ML/04.3-running-inference.py",
+      "var_name": null,
+      "lineno": 77,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:04-Data-Science-ML/04.3-running-inference.py:77:df",
+      "kind": "dataframe",
+      "file": "04-Data-Science-ML/04.3-running-inference.py",
+      "var_name": "df",
+      "lineno": 77,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:04-Data-Science-ML/04.3-running-inference.py:127:_anon3",
+      "kind": "dataframe",
+      "file": "04-Data-Science-ML/04.3-running-inference.py",
+      "var_name": null,
+      "lineno": 127,
+      "columns": [],
+      "derived_from": []
+    },
+    {
+      "id": "df:04-Data-Science-ML/04.3-running-inference.py:127:dataset",
+      "kind": "dataframe",
+      "file": "04-Data-Science-ML/04.3-running-inference.py",
+      "var_name": "dataset",
+      "lineno": 127,
+      "columns": [],
+      "derived_from": []
+    }
+  ],
+  "expressions": [
+    {
+      "id": "expr:e01",
+      "kind": "expression",
+      "text": "rename(id -> user_id)",
+      "referenced_cols": [
+        "id"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e02",
+      "kind": "expression",
+      "text": "F.sha1(F.col('email'))",
+      "referenced_cols": [
+        "email"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e03",
+      "kind": "expression",
+      "text": "F.to_timestamp(F.col('creation_date'), 'MM-dd-yyyy HH:mm:ss')",
+      "referenced_cols": [
+        "creation_date"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e04",
+      "kind": "expression",
+      "text": "F.to_timestamp(F.col('last_activity_date'), 'MM-dd-yyyy HH:mm:ss')",
+      "referenced_cols": [
+        "last_activity_date"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e05",
+      "kind": "expression",
+      "text": "F.initcap(F.col('firstname'))",
+      "referenced_cols": [
+        "firstname"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e06",
+      "kind": "expression",
+      "text": "F.initcap(F.col('lastname'))",
+      "referenced_cols": [
+        "lastname"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e07",
+      "kind": "expression",
+      "text": "F.col('gender').cast('int')",
+      "referenced_cols": [
+        "gender"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e08",
+      "kind": "expression",
+      "text": "F.col('age_group').cast('int')",
+      "referenced_cols": [
+        "age_group"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e09",
+      "kind": "expression",
+      "text": "F.col('churn').cast('int')",
+      "referenced_cols": [
+        "churn"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e10",
+      "kind": "expression",
+      "text": "F.col('amount').cast('int')",
+      "referenced_cols": [
+        "amount"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e11",
+      "kind": "expression",
+      "text": "rename(id -> order_id)",
+      "referenced_cols": [
+        "id"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e12",
+      "kind": "expression",
+      "text": "F.col('item_count').cast('int')",
+      "referenced_cols": [
+        "item_count"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e13",
+      "kind": "expression",
+      "text": "F.to_timestamp(F.col('transaction_date'), 'MM-dd-yyyy HH:mm:ss')",
+      "referenced_cols": [
+        "transaction_date"
+      ],
+      "udf": false
+    },
+    {
+      "id": "expr:e14",
+      "kind": "expression",
+      "text": "predict_churn_udf(*columns)",
+      "referenced_cols": [],
+      "udf": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "e:r:01-Data-ingestion:01.2-SDP-python:explorations:sample_exploration:001",
+      "file": "01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py",
+      "lineno": 12,
+      "kind": "reads",
+      "source": "ext:/Volumes/main__build/dbdemos_retail_c360/c360/users",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py:12:sdf",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:01-Data-ingestion:01.2-SDP-python:explorations:sample_exploration:002",
+      "file": "01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py",
+      "lineno": 17,
+      "kind": "reads",
+      "source": "ext:/Volumes/main__build/dbdemos_retail_c360/c360/orders",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py:17:sdf",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:01-Data-ingestion:01.2-SDP-python:explorations:sample_exploration:003",
+      "file": "01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py",
+      "lineno": 23,
+      "kind": "reads",
+      "source": "ext:/Volumes/main__build/dbdemos_retail_c360/c360/events",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/explorations/sample_exploration.py:23:sdf",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:01-Data-ingestion:01.2-SDP-python:transformations:01-bronze:001",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py",
+      "lineno": 11,
+      "kind": "reads",
+      "source": "ext:/Volumes/main__build/dbdemos_retail_c360/c360/events",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py:11:_anon1",
+      "projected_cols": [],
+      "streaming": true
+    },
+    {
+      "id": "e:w:01-Data-ingestion:01.2-SDP-python:transformations:01-bronze:002",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py",
+      "lineno": 11,
+      "kind": "writes",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py:11:_anon1",
+      "target": "table:churn_app_events",
+      "mode": "append",
+      "partition_cols": [],
+      "format": null,
+      "streaming": true,
+      "sink_class": null,
+      "merge_keys": [],
+      "sink_kwargs": {}
+    },
+    {
+      "id": "e:r:01-Data-ingestion:01.2-SDP-python:transformations:01-bronze:003",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py",
+      "lineno": 25,
+      "kind": "reads",
+      "source": "ext:/Volumes/main__build/dbdemos_retail_c360/c360/orders",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py:25:_anon2",
+      "projected_cols": [],
+      "streaming": true
+    },
+    {
+      "id": "e:w:01-Data-ingestion:01.2-SDP-python:transformations:01-bronze:004",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py",
+      "lineno": 25,
+      "kind": "writes",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py:25:_anon2",
+      "target": "table:churn_orders_bronze",
+      "mode": "append",
+      "partition_cols": [],
+      "format": null,
+      "streaming": true,
+      "sink_class": null,
+      "merge_keys": [],
+      "sink_kwargs": {}
+    },
+    {
+      "id": "e:r:01-Data-ingestion:01.2-SDP-python:transformations:01-bronze:005",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py",
+      "lineno": 39,
+      "kind": "reads",
+      "source": "ext:/Volumes/main__build/dbdemos_retail_c360/c360/users",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py:39:_anon3",
+      "projected_cols": [],
+      "streaming": true
+    },
+    {
+      "id": "e:w:01-Data-ingestion:01.2-SDP-python:transformations:01-bronze:006",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py",
+      "lineno": 39,
+      "kind": "writes",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/01-bronze.py:39:_anon3",
+      "target": "table:churn_users_bronze",
+      "mode": "append",
+      "partition_cols": [],
+      "format": null,
+      "streaming": true,
+      "sink_class": null,
+      "merge_keys": [],
+      "sink_kwargs": {}
+    },
+    {
+      "id": "e:r:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:001",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 15,
+      "kind": "reads",
+      "source": "table:churn_users_bronze",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:_anon1",
+      "projected_cols": [],
+      "streaming": true
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:002",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 15,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:_anon1",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:__pipeline_15",
+      "output_col": "user_id",
+      "source_cols": [
+        "id"
+      ],
+      "expr_id": "expr:e01",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:003",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 15,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:_anon1",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:__pipeline_15",
+      "output_col": "email",
+      "source_cols": [
+        "email"
+      ],
+      "expr_id": "expr:e02",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:004",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 15,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:_anon1",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:__pipeline_15",
+      "output_col": "creation_date",
+      "source_cols": [
+        "creation_date"
+      ],
+      "expr_id": "expr:e03",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:005",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 15,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:_anon1",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:__pipeline_15",
+      "output_col": "last_activity_date",
+      "source_cols": [
+        "last_activity_date"
+      ],
+      "expr_id": "expr:e04",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:006",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 15,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:_anon1",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:__pipeline_15",
+      "output_col": "firstname",
+      "source_cols": [
+        "firstname"
+      ],
+      "expr_id": "expr:e05",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:007",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 15,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:_anon1",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:__pipeline_15",
+      "output_col": "lastname",
+      "source_cols": [
+        "lastname"
+      ],
+      "expr_id": "expr:e06",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:008",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 15,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:_anon1",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:__pipeline_15",
+      "output_col": "gender",
+      "source_cols": [
+        "gender"
+      ],
+      "expr_id": "expr:e07",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:009",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 15,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:_anon1",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:__pipeline_15",
+      "output_col": "age_group",
+      "source_cols": [
+        "age_group"
+      ],
+      "expr_id": "expr:e08",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:010",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 15,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:_anon1",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:__pipeline_15",
+      "output_col": "churn",
+      "source_cols": [
+        "churn"
+      ],
+      "expr_id": "expr:e09",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:w:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:011",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 15,
+      "kind": "writes",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:15:__pipeline_15",
+      "target": "table:churn_users",
+      "mode": "append",
+      "partition_cols": [],
+      "format": null,
+      "streaming": true,
+      "sink_class": null,
+      "merge_keys": [],
+      "sink_kwargs": {}
+    },
+    {
+      "id": "e:r:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:012",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 41,
+      "kind": "reads",
+      "source": "table:churn_orders_bronze",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:41:_anon2",
+      "projected_cols": [],
+      "streaming": true
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:013",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 41,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:41:_anon2",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:41:__pipeline_41",
+      "output_col": "amount",
+      "source_cols": [
+        "amount"
+      ],
+      "expr_id": "expr:e10",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:014",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 41,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:41:_anon2",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:41:__pipeline_41",
+      "output_col": "order_id",
+      "source_cols": [
+        "id"
+      ],
+      "expr_id": "expr:e11",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:015",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 41,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:41:_anon2",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:41:__pipeline_41",
+      "output_col": "item_count",
+      "source_cols": [
+        "item_count"
+      ],
+      "expr_id": "expr:e12",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:016",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 41,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:41:_anon2",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:41:__pipeline_41",
+      "output_col": "creation_date",
+      "source_cols": [
+        "transaction_date"
+      ],
+      "expr_id": "expr:e13",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:w:01-Data-ingestion:01.2-SDP-python:transformations:02-silver:017",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py",
+      "lineno": 41,
+      "kind": "writes",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/02-silver.py:41:__pipeline_41",
+      "target": "table:churn_orders",
+      "mode": "append",
+      "partition_cols": [],
+      "format": null,
+      "streaming": true,
+      "sink_class": null,
+      "merge_keys": [],
+      "sink_kwargs": {}
+    },
+    {
+      "id": "e:r:01-Data-ingestion:01.2-SDP-python:transformations:03-gold:001",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "lineno": 14,
+      "kind": "reads",
+      "source": "table:churn_app_events",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:14:_anon1",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:a:01-Data-ingestion:01.2-SDP-python:transformations:03-gold:002",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "lineno": 15,
+      "kind": "aggregates",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:14:_anon1",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:14:churn_app_events_stats_df",
+      "group_keys": [],
+      "agg_ops": [
+        "first",
+        "count",
+        "count_distinct",
+        "max"
+      ],
+      "agg_inputs": [
+        "platform",
+        "*",
+        "session_id",
+        "<unresolved>"
+      ],
+      "output_cols": [
+        "platform",
+        "event_count",
+        "session_count",
+        "last_event"
+      ],
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:r:01-Data-ingestion:01.2-SDP-python:transformations:03-gold:003",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "lineno": 23,
+      "kind": "reads",
+      "source": "table:churn_orders",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:23:_anon2",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:a:01-Data-ingestion:01.2-SDP-python:transformations:03-gold:004",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "lineno": 24,
+      "kind": "aggregates",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:23:_anon2",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:23:churn_orders_stats_df",
+      "group_keys": [],
+      "agg_ops": [
+        "count",
+        "sum",
+        "sum",
+        "max"
+      ],
+      "agg_inputs": [
+        "*",
+        "amount",
+        "item_count",
+        "creation_date"
+      ],
+      "output_cols": [
+        "order_count",
+        "total_amount",
+        "total_item",
+        "last_transaction"
+      ],
+      "dynamic": false,
+      "dynamic_note": null
+    },
+    {
+      "id": "e:r:01-Data-ingestion:01.2-SDP-python:transformations:03-gold:005",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "lineno": 32,
+      "kind": "reads",
+      "source": "table:churn_users",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:32:_anon3",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:j:01-Data-ingestion:01.2-SDP-python:transformations:03-gold:006",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "lineno": 33,
+      "kind": "joins",
+      "left_source": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:32:_anon3",
+      "right_source": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:14:churn_app_events_stats_df",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:33:_anon4",
+      "join_type": "inner",
+      "join_keys": [
+        [
+          "user_id",
+          "user_id"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:j:01-Data-ingestion:01.2-SDP-python:transformations:03-gold:007",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "lineno": 33,
+      "kind": "joins",
+      "left_source": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:33:_anon4",
+      "right_source": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:23:churn_orders_stats_df",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:33:_anon5",
+      "join_type": "inner",
+      "join_keys": [
+        [
+          "user_id",
+          "user_id"
+        ]
+      ],
+      "on_expr_id": null,
+      "left_projected_cols": [],
+      "right_projected_cols": []
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:03-gold:008",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "lineno": 33,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:33:_anon5",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:32:__pipeline_32",
+      "output_col": "days_since_creation",
+      "source_cols": [
+        "creation_date"
+      ],
+      "expr_id": "expr:e01",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:03-gold:009",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "lineno": 33,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:33:_anon5",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:32:__pipeline_32",
+      "output_col": "days_since_last_activity",
+      "source_cols": [
+        "last_activity_date"
+      ],
+      "expr_id": "expr:e02",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:03-gold:010",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "lineno": 33,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:33:_anon5",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:32:__pipeline_32",
+      "output_col": "days_last_event",
+      "source_cols": [
+        "last_event"
+      ],
+      "expr_id": "expr:e03",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:w:01-Data-ingestion:01.2-SDP-python:transformations:03-gold:011",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "lineno": 32,
+      "kind": "writes",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:32:__pipeline_32",
+      "target": "table:churn_features",
+      "mode": "unresolved",
+      "partition_cols": [],
+      "format": null,
+      "streaming": false,
+      "sink_class": null,
+      "merge_keys": [],
+      "sink_kwargs": {}
+    },
+    {
+      "id": "e:r:01-Data-ingestion:01.2-SDP-python:transformations:03-gold:012",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "lineno": 63,
+      "kind": "reads",
+      "source": "table:churn_features",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:63:_anon6",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:d:01-Data-ingestion:01.2-SDP-python:transformations:03-gold:013",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "lineno": 64,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:63:_anon6",
+      "target": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:63:__pipeline_63",
+      "output_col": "churn_prediction",
+      "source_cols": [],
+      "expr_id": "expr:e04",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:w:01-Data-ingestion:01.2-SDP-python:transformations:03-gold:014",
+      "file": "01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py",
+      "lineno": 63,
+      "kind": "writes",
+      "source": "df:01-Data-ingestion/01.2-SDP-python/transformations/03-gold.py:63:__pipeline_63",
+      "target": "table:churn_prediction",
+      "mode": "unresolved",
+      "partition_cols": [],
+      "format": null,
+      "streaming": false,
+      "sink_class": null,
+      "merge_keys": [],
+      "sink_kwargs": {}
+    },
+    {
+      "id": "e:r:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:001",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 176,
+      "kind": "reads",
+      "source": "table:spark_churn_users_bronze",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon1",
+      "projected_cols": [],
+      "streaming": true
+    },
+    {
+      "id": "e:d:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:002",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 176,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon1",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon2",
+      "output_col": "user_id",
+      "source_cols": [
+        "id"
+      ],
+      "expr_id": "expr:e01",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:003",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 176,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon1",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon2",
+      "output_col": "email",
+      "source_cols": [
+        "email"
+      ],
+      "expr_id": "expr:e02",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:004",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 176,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon1",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon2",
+      "output_col": "creation_date",
+      "source_cols": [
+        "creation_date"
+      ],
+      "expr_id": "expr:e03",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:005",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 176,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon1",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon2",
+      "output_col": "last_activity_date",
+      "source_cols": [
+        "last_activity_date"
+      ],
+      "expr_id": "expr:e04",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:006",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 176,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon1",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon2",
+      "output_col": "firstname",
+      "source_cols": [
+        "firstname"
+      ],
+      "expr_id": "expr:e05",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:007",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 176,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon1",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon2",
+      "output_col": "lastname",
+      "source_cols": [
+        "lastname"
+      ],
+      "expr_id": "expr:e06",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:008",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 176,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon1",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon2",
+      "output_col": "age_group",
+      "source_cols": [
+        "age_group"
+      ],
+      "expr_id": "expr:e07",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:009",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 176,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon1",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon2",
+      "output_col": "gender",
+      "source_cols": [
+        "gender"
+      ],
+      "expr_id": "expr:e08",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:010",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 176,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon1",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon2",
+      "output_col": "churn",
+      "source_cols": [
+        "churn"
+      ],
+      "expr_id": "expr:e09",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:p:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:011",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 176,
+      "kind": "projects",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:_anon2",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:__pipeline_176",
+      "removed_cols": [
+        "<unresolved>"
+      ],
+      "kept_cols": []
+    },
+    {
+      "id": "e:w:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:012",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 176,
+      "kind": "writes",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:176:__pipeline_176",
+      "target": "table:spark_churn_users",
+      "mode": "append",
+      "partition_cols": [],
+      "format": null,
+      "streaming": true,
+      "sink_class": null,
+      "merge_keys": [],
+      "sink_kwargs": {}
+    },
+    {
+      "id": "e:r:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:013",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 198,
+      "kind": "reads",
+      "source": "table:spark_churn_orders_bronze",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:_anon3",
+      "projected_cols": [],
+      "streaming": true
+    },
+    {
+      "id": "e:d:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:014",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 198,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:_anon3",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:_anon4",
+      "output_col": "order_id",
+      "source_cols": [
+        "id"
+      ],
+      "expr_id": "expr:e10",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:015",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 198,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:_anon3",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:_anon4",
+      "output_col": "amount",
+      "source_cols": [
+        "amount"
+      ],
+      "expr_id": "expr:e11",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:016",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 198,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:_anon3",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:_anon4",
+      "output_col": "item_count",
+      "source_cols": [
+        "item_count"
+      ],
+      "expr_id": "expr:e12",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:d:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:017",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 198,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:_anon3",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:_anon4",
+      "output_col": "creation_date",
+      "source_cols": [
+        "transaction_date"
+      ],
+      "expr_id": "expr:e13",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:p:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:018",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 198,
+      "kind": "projects",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:_anon4",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:__pipeline_198",
+      "removed_cols": [
+        "<unresolved>"
+      ],
+      "kept_cols": []
+    },
+    {
+      "id": "e:w:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:019",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 198,
+      "kind": "writes",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:198:__pipeline_198",
+      "target": "table:spark_churn_orders",
+      "mode": "append",
+      "partition_cols": [],
+      "format": null,
+      "streaming": true,
+      "sink_class": null,
+      "merge_keys": [],
+      "sink_kwargs": {}
+    },
+    {
+      "id": "e:r:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:020",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 273,
+      "kind": "reads",
+      "source": "table:spark_churn_features",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:273:_anon5",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:d:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:021",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 273,
+      "kind": "derives",
+      "source": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:273:_anon5",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:273:predictions",
+      "output_col": "churn_prediction",
+      "source_cols": [],
+      "expr_id": "expr:e14",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:r:01-Data-ingestion:plain-spark-delta-pipeline:01.5-Delta-pipeline-spark-churn:022",
+      "file": "01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py",
+      "lineno": 141,
+      "kind": "reads",
+      "source": "table:<unresolved>",
+      "target": "df:01-Data-ingestion/plain-spark-delta-pipeline/01.5-Delta-pipeline-spark-churn.py:141:bronze_products",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:04-Data-Science-ML:04.1-automl-churn-prediction:001",
+      "file": "04-Data-Science-ML/04.1-automl-churn-prediction.py",
+      "lineno": 98,
+      "kind": "reads",
+      "source": "table:churn_features",
+      "target": "df:04-Data-Science-ML/04.1-automl-churn-prediction.py:98:churn_dataset",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:04-Data-Science-ML:04.2-automl-generated-notebook:001",
+      "file": "04-Data-Science-ML/04.2-automl-generated-notebook.py",
+      "lineno": 454,
+      "kind": "reads",
+      "source": "table:<unresolved>",
+      "target": "df:04-Data-Science-ML/04.2-automl-generated-notebook.py:454:conda_libs",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:04-Data-Science-ML:04.3-running-inference:001",
+      "file": "04-Data-Science-ML/04.3-running-inference.py",
+      "lineno": 49,
+      "kind": "reads",
+      "source": "table:churn_features",
+      "target": "df:04-Data-Science-ML/04.3-running-inference.py:49:_anon1",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:d:04-Data-Science-ML:04.3-running-inference:002",
+      "file": "04-Data-Science-ML/04.3-running-inference.py",
+      "lineno": 49,
+      "kind": "derives",
+      "source": "df:04-Data-Science-ML/04.3-running-inference.py:49:_anon1",
+      "target": "df:04-Data-Science-ML/04.3-running-inference.py:49:__pipeline_49",
+      "output_col": "churn_prediction",
+      "source_cols": [],
+      "expr_id": "expr:e01",
+      "window_spec": null,
+      "dynamic": false,
+      "dynamic_note": null,
+      "rule_logic": null,
+      "struct_fields": null,
+      "column_var": null
+    },
+    {
+      "id": "e:r:04-Data-Science-ML:04.3-running-inference:003",
+      "file": "04-Data-Science-ML/04.3-running-inference.py",
+      "lineno": 77,
+      "kind": "reads",
+      "source": "table:churn_features",
+      "target": "df:04-Data-Science-ML/04.3-running-inference.py:77:_anon2",
+      "projected_cols": [],
+      "streaming": false
+    },
+    {
+      "id": "e:r:04-Data-Science-ML:04.3-running-inference:004",
+      "file": "04-Data-Science-ML/04.3-running-inference.py",
+      "lineno": 127,
+      "kind": "reads",
+      "source": "table:churn_features",
+      "target": "df:04-Data-Science-ML/04.3-running-inference.py:127:_anon3",
+      "projected_cols": [],
+      "streaming": false
+    }
+  ],
+  "warnings": [
+    {
+      "file": "01-Data-ingestion/01.1-SDP-SQL/01.2-SDP-churn-expectation-dashboard-data-prep.sql",
+      "lineno": null,
+      "category": "sql-parse-error",
+      "message": "sqlglot failed: Invalid expression / Unexpected token. Line 52, Col: 6.\n  sed_records`, `failed_records`\n-- MAGIC   \n\n-- COMMAND ----------\n\n-- DBTITLE 1,Lineage Information\n\u001b[4mSELECT\u001b[0m\n  details:flow_definition.output_dataset,\n  details:flow_definition.input_datasets,\n  details:flow_"
+    },
+    {
+      "file": "01-Data-ingestion/01.1-SDP-SQL/explorations/sample_exploration.sql",
+      "lineno": null,
+      "category": "sql-parse-error",
+      "message": "sqlglot failed: Invalid expression / Unexpected token. Line 13, Col: 21.\n  cuted as part of the pipeline.\n\n-- COMMAND ----------\n\n--Explore raw user data\n\nSELECT * FROM json.`\u001b[4m/\u001b[0mVolumes/main__build/dbdemos_retail_c360/c360/users`\n\n-- COMMAND ----------\n\n--Explore raw order data"
+    },
+    {
+      "file": "01-Data-ingestion/01.1-SDP-SQL/transformations/02-silver.sql",
+      "lineno": null,
+      "category": "sql-parse-error",
+      "message": "sqlglot failed: Expecting ). Line 10, Col: 73.\n   STREAMING TABLE churn_users (\n  CONSTRAINT user_valid_id EXPECT (user_id IS NOT NULL) ON VIOLATION \u001b[4mDROP\u001b[0m ROW\n)\nTBLPROPERTIES (pipelines.autoOptimize.zOrderCols = \"id\")\nCOMMENT \"User data cleaned and anony"
+    },
+    {
+      "file": "02-Data-governance/02.2-UC-metric-views.sql",
+      "lineno": null,
+      "category": "sql-parse-error",
+      "message": "sqlglot failed: Invalid expression / Unexpected token. Line 127, Col: 6.\n  lf.\n\n-- COMMAND ----------\n\n\n-- Create a Metric View with business-friendly dimensions and measures\n\u001b[4mCREATE\u001b[0m OR REPLACE VIEW churn_users_metric_view\nWITH METRICS\nLANGUAGE YAML\nCOMMENT 'Metric view demonstrati"
+    },
+    {
+      "file": "(assembler)",
+      "lineno": null,
+      "category": "orphan-table",
+      "message": "Table 'churn_users_protected' appears in DDL but is never read or written by any file in this repo."
+    },
+    {
+      "file": "(assembler)",
+      "lineno": null,
+      "category": "orphan-table",
+      "message": "Table 'simple_mask' appears in DDL but is never read or written by any file in this repo."
+    },
+    {
+      "file": "(assembler)",
+      "lineno": null,
+      "category": "orphan-table",
+      "message": "Table 'country_filter' appears in DDL but is never read or written by any file in this repo."
+    }
+  ],
+  "column_rules": {},
+  "predicate_dicts": {}
+}

@@ -1,0 +1,73 @@
+# TABLES
+TABLE main.dbdemos_ecom.orders_raw  cols=[order_id customer_id product_id quantity unit_price total_amount currency status order_ts ingested_ts source_file _rescued_data]  written_by=bronze/01_ingest_orders.py  read_by=silver/customer_profile.py,silver/orders_cleaned.py
+TABLE main.dbdemos_ecom.customers_raw  cols=[customer_id email first_name last_name country_code signup_ts marketing_opt_in ingested_ts source_file _rescued_data]  written_by=bronze/02_ingest_customers.ipynb  read_by=silver/customer_profile.py
+TABLE main.dbdemos_ecom.products_raw  cols=[product_id name category list_price active ingested_ts source_file]  written_by=-  read_by=-
+TABLE main.dbdemos_ecom.events_raw  cols=[event_id customer_id event_type product_id session_id event_ts ingested_ts payload _rescued_data]  written_by=bronze/03_ingest_events.py  read_by=silver/customer_profile.py
+TABLE main.dbdemos_ecom.customer_profile  cols=[customer_id email country_code signup_ts total_orders lifetime_revenue last_order_ts last_event_ts distinct_products_ordered]  written_by=silver/customer_profile.py  read_by=gold/customer_ltv.py
+TABLE main.dbdemos_ecom.customer_ltv  cols=[customer_id email country_code signup_ts total_orders lifetime_revenue last_order_ts last_event_ts days_since_last_order ltv_vs_country_avg revenue_quartile ltv_tier]  written_by=gold/customer_ltv.py  read_by=-
+TABLE main.dbdemos_ecom.orders_cleaned  cols=[order_id customer_id product_id quantity unit_price total_amount currency status order_ts ingested_ts order_date order_year order_month is_high_value]  written_by=silver/orders_cleaned.py  read_by=gold/product_performance.py
+TABLE main.dbdemos_ecom.product_performance  cols=[product_id order_date order_count]  written_by=gold/product_performance.py  read_by=-
+
+# LINEAGE EDGES
+READS              bronze/01_ingest_orders.py: ext:/Volumes/main/dbdemos_ecom/landing/orders -> bronze/01_ingest_orders.py:orders_landing
+DERIVES            bronze/01_ingest_orders.py: bronze/01_ingest_orders.py:orders_landing -> bronze/01_ingest_orders.py:orders_with_meta col=ingested_ts
+DERIVES            bronze/01_ingest_orders.py: bronze/01_ingest_orders.py:orders_landing -> bronze/01_ingest_orders.py:orders_with_meta col=source_file
+WRITES             bronze/01_ingest_orders.py: bronze/01_ingest_orders.py:orders_with_meta -> table:main.dbdemos_ecom.orders_raw mode=append fmt=delta
+READS              bronze/02_ingest_customers.ipynb: ext:/Volumes/main/dbdemos_ecom/landing/customers -> bronze/02_ingest_customers.ipynb:cell5:customers_landing
+DERIVES            bronze/02_ingest_customers.ipynb: bronze/02_ingest_customers.ipynb:cell5:customers_landing -> bronze/02_ingest_customers.ipynb:cell7:customers_with_meta col=ingested_ts
+DERIVES            bronze/02_ingest_customers.ipynb: bronze/02_ingest_customers.ipynb:cell5:customers_landing -> bronze/02_ingest_customers.ipynb:cell7:customers_with_meta col=source_file
+WRITES             bronze/02_ingest_customers.ipynb: bronze/02_ingest_customers.ipynb:cell7:customers_with_meta -> table:main.dbdemos_ecom.customers_raw mode=append fmt=delta
+READS              bronze/03_ingest_events.py: ext:/Volumes/main/dbdemos_ecom/landing/events -> bronze/03_ingest_events.py:events_landing
+OPAQUE_TRANSFORM   bronze/03_ingest_events.py: bronze/03_ingest_events.py:events_landing -> bronze/03_ingest_events.py:events_parsed op=utils.event_parsers.parse_event_payload
+DERIVES            bronze/03_ingest_events.py: bronze/03_ingest_events.py:events_parsed -> bronze/03_ingest_events.py:events_final col=ingested_ts
+DERIVES            bronze/03_ingest_events.py: bronze/03_ingest_events.py:events_parsed -> bronze/03_ingest_events.py:events_final col=source_file
+WRITES             bronze/03_ingest_events.py: bronze/03_ingest_events.py:events_final -> table:main.dbdemos_ecom.events_raw mode=append fmt=delta
+READS              gold/customer_ltv.py: table:main.dbdemos_ecom.customer_profile -> gold/customer_ltv.py:base_cte
+AGGREGATES         gold/customer_ltv.py: gold/customer_ltv.py:base_cte -> gold/customer_ltv.py:country_avg_cte groupby=['country_code'] ops=['avg'] out=['avg_country_ltv']
+JOINS              gold/customer_ltv.py: gold/customer_ltv.py:base_cte -> gold/customer_ltv.py:ranked_joined right=gold/customer_ltv.py:country_avg_cte type=left keys=[['country_code', 'country_code']]
+DERIVES            gold/customer_ltv.py: gold/customer_ltv.py:ranked_joined -> gold/customer_ltv.py:ranked_cte col=days_since_last_order
+DERIVES            gold/customer_ltv.py: gold/customer_ltv.py:ranked_joined -> gold/customer_ltv.py:ranked_cte col=ltv_vs_country_avg
+DERIVES            gold/customer_ltv.py: gold/customer_ltv.py:ranked_joined -> gold/customer_ltv.py:ranked_cte col=revenue_quartile window(order=['lifetime_revenue desc'])
+PROJECTS           gold/customer_ltv.py: gold/customer_ltv.py:ranked_cte -> gold/customer_ltv.py:ltv_df drop=[]
+DERIVES            gold/customer_ltv.py: gold/customer_ltv.py:ltv_df -> gold/customer_ltv.py:ltv_tiered col=ltv_tier
+WRITES             gold/customer_ltv.py: gold/customer_ltv.py:ltv_tiered -> table:main.dbdemos_ecom.customer_ltv mode=overwrite fmt=delta
+READS              gold/product_performance.py: table:main.dbdemos_ecom.orders_cleaned -> gold/product_performance.py:orders
+AGGREGATES         gold/product_performance.py: gold/product_performance.py:orders -> gold/product_performance.py:daily_perf groupby=['product_id', 'order_date'] ops=['<unresolved>', 'count'] out=['<unresolved>', 'order_count']
+WRITES             gold/product_performance.py: gold/product_performance.py:daily_perf -> table:main.dbdemos_ecom.product_performance mode=merge fmt=None merge_keys=['product_id', 'order_date']
+READS              silver/customer_profile.py: table:main.dbdemos_ecom.orders_raw -> silver/customer_profile.py:orders_df
+READS              silver/customer_profile.py: table:main.dbdemos_ecom.customers_raw -> silver/customer_profile.py:customers_df
+READS              silver/customer_profile.py: table:main.dbdemos_ecom.events_raw -> silver/customer_profile.py:events_df
+DERIVES            silver/customer_profile.py: silver/customer_profile.py:events_df -> silver/customer_profile.py:events_ranked col=rn window(order=['event_ts desc'])
+FILTERS            silver/customer_profile.py: silver/customer_profile.py:events_ranked -> silver/customer_profile.py:_anon1
+PROJECTS           silver/customer_profile.py: silver/customer_profile.py:_anon1 -> silver/customer_profile.py:events_latest drop=['rn']
+DERIVES            silver/customer_profile.py: silver/customer_profile.py:events_latest -> silver/customer_profile.py:events_suffixed col=event_id_last_event
+DERIVES            silver/customer_profile.py: silver/customer_profile.py:events_latest -> silver/customer_profile.py:events_suffixed col=customer_id_last_event
+DERIVES            silver/customer_profile.py: silver/customer_profile.py:events_latest -> silver/customer_profile.py:events_suffixed col=event_type_last_event
+DERIVES            silver/customer_profile.py: silver/customer_profile.py:events_latest -> silver/customer_profile.py:events_suffixed col=product_id_last_event
+DERIVES            silver/customer_profile.py: silver/customer_profile.py:events_latest -> silver/customer_profile.py:events_suffixed col=session_id_last_event
+DERIVES            silver/customer_profile.py: silver/customer_profile.py:events_latest -> silver/customer_profile.py:events_suffixed col=event_ts_last_event
+DERIVES            silver/customer_profile.py: silver/customer_profile.py:events_latest -> silver/customer_profile.py:events_suffixed col=ingested_ts_last_event
+DERIVES            silver/customer_profile.py: silver/customer_profile.py:events_latest -> silver/customer_profile.py:events_suffixed col=payload_last_event
+DERIVES            silver/customer_profile.py: silver/customer_profile.py:events_latest -> silver/customer_profile.py:events_suffixed col=_rescued_data_last_event
+JOINS              silver/customer_profile.py: silver/customer_profile.py:customers_df -> silver/customer_profile.py:co right=silver/customer_profile.py:orders_df type=inner keys=[['customer_id', 'customer_id']]
+JOINS              silver/customer_profile.py: silver/customer_profile.py:co -> silver/customer_profile.py:profile right=silver/customer_profile.py:events_suffixed type=left keys=[['customer_id', 'customer_id_last_event']]
+AGGREGATES         silver/customer_profile.py: silver/customer_profile.py:profile -> silver/customer_profile.py:customer_profile groupby=['customer_id', 'email', 'country_code', 'signup_ts'] ops=['count', 'sum', 'max', 'max', 'countDistinct'] out=['total_orders', 'lifetime_revenue', 'last_order_ts', 'last_event_ts', 'distinct_products_ordered']
+WRITES             silver/customer_profile.py: silver/customer_profile.py:customer_profile -> table:main.dbdemos_ecom.customer_profile mode=overwrite fmt=delta
+READS              silver/orders_cleaned.py: table:main.dbdemos_ecom.orders_raw -> silver/orders_cleaned.py:orders
+OPAQUE_TRANSFORM   silver/orders_cleaned.py: silver/orders_cleaned.py:orders -> silver/orders_cleaned.py:orders op=utils.column_transformations.trim_string_columns
+DERIVES            silver/orders_cleaned.py: silver/orders_cleaned.py:orders -> silver/orders_cleaned.py:orders col=currency
+DERIVES            silver/orders_cleaned.py: silver/orders_cleaned.py:orders -> silver/orders_cleaned.py:orders col=status
+DERIVES            silver/orders_cleaned.py: silver/orders_cleaned.py:orders -> silver/orders_cleaned.py:orders col=quantity
+DERIVES            silver/orders_cleaned.py: silver/orders_cleaned.py:orders -> silver/orders_cleaned.py:orders col=total_amount
+DERIVES            silver/orders_cleaned.py: silver/orders_cleaned.py:orders -> silver/orders_cleaned.py:orders col=order_date
+DERIVES            silver/orders_cleaned.py: silver/orders_cleaned.py:orders -> silver/orders_cleaned.py:orders col=order_year
+DERIVES            silver/orders_cleaned.py: silver/orders_cleaned.py:orders -> silver/orders_cleaned.py:orders col=order_month
+DERIVES            silver/orders_cleaned.py: silver/orders_cleaned.py:orders -> silver/orders_cleaned.py:orders col=is_high_value
+PROJECTS           silver/orders_cleaned.py: silver/orders_cleaned.py:orders -> silver/orders_cleaned.py:orders drop=['_rescued_data', 'source_file']
+FILTERS            silver/orders_cleaned.py: silver/orders_cleaned.py:orders -> silver/orders_cleaned.py:orders
+WRITES             silver/orders_cleaned.py: silver/orders_cleaned.py:orders -> table:main.dbdemos_ecom.orders_cleaned mode=overwrite fmt=delta
+
+# WARNINGS
+WARN [opaque-call-fallback] bronze/03_ingest_events.py: Unregistered function 'utils.event_parsers.parse_event_payload' called with DataFrame arg; column-set change across this call is unknown.
+WARN [dynamic-aggregation] gold/product_performance.py: agg list contains star-unpacked runtime variable in gold/product_performance.py:81
+WARN [orphan-table] (assembler): Table 'main.dbdemos_ecom.products_raw' appears in DDL but is never read or written by any file in this repo.

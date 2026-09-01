@@ -1,0 +1,647 @@
+DEGraph Q&A Experiment Report
+=================================================================
+Backend:   openrouter / google/gemini-3.1-flash-lite-20260507
+Mode:      raw_source
+Tokens:    ~23,683
+Timestamp: 20260519_222812
+
+AGGREGATE SCORES
+----------------------------------------
+  Not graded yet. Edit the JSON file and set 'score' for each answer.
+
+INDIVIDUAL ANSWERS
+=================================================================
+
+[Q1] direct-cross-file-impact / medium
+Q: If the column `customer_id` in `main.dbdemos_ecom.orders_raw` is renamed to `cust_id`, which silver and gold tables in this repo need updating? List each affected table and the reason it is affected.
+Score: None
+
+REFERENCE:
+Per the graph, `orders_raw` is read by 4 silver files: `silver/orders_cleaned.py`, `silver/customer_profile.py`, `silver/refunds_enriched.py`, and `silver/shipments_timeline.py`. Affected silver tables: (1) `silver.orders_cleaned` — `customer_id` passes through the column-set propagation chain (trim → withColumns → drop → filter) unchanged. (2) `silver.customer_profile` — `customer_id` is the join key with `customers_raw` and a `groupBy` key in the aggregate. (3) `silver.refunds_enriched` — the file joins refunds → returns → orders, and `customer_id` propagates from `orders_raw` into the silver output. (4) `silver.shipments_timeline` — joins shipments with `orders_raw.select(order_id, customer_id)`; the renamed column breaks that select. Affected gold tables: (5) `gold.customer_ltv` — inherits from `customer_profile` via the SQL `base` CTE. (6) `gold.customer_return_rate` — joins `customer_profile` (via customer_id). (7) `gold.revenue_forecast_features` — inherits from `customer_ltv`. NOT affected: `silver.returns_cleaned` (reads `returns_raw` not `orders_raw`), `silver.inventory_daily`, `silver.marketing_touchpoints`, `gold.product_performance` (groups by product_id and order_date only), `gold.inventory_turnover_daily`, `gold.attribution_funnel_daily` (the orders_cleaned-side branch uses order_id and order_date, not customer_id directly).
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+Based on the provided source code, renaming `customer_id` to `cust_id` in `main.dbdemos_ecom.orders_raw` would break the following downstream tables:
+
+### Silver Layer
+1.  **`silver/customer_profile.py`**: This notebook performs an `inner` join between `customers_raw` and `orders_raw` on the column `customer_id`. The join logic `customers_df.join(orders_df, on="customer_id", how="inner")` will fail.
+2.  **`silver/shipments_timeline.py`**: This notebook performs an `inner` join between the aggregated shipment timeline and `orders_raw` using `orders_df.select("order_id", "customer_id")`. The selection of `customer_id` will fail.
+3.  **`silver/refunds_enriched.py`**: While this notebook joins `refunds_raw` to `returns_raw` and then to `orders_raw` on `order_id`, it relies on the schema of `orders_raw` being available. If the join logic or subsequent processing expects `customer_id` to be present in the `orders_raw` DataFrame, it will fail.
+
+### Gold Layer
+1.  **`gold/attribution_funnel_daily.py`**: This notebook joins `orders_cleaned` (which is derived from `orders_raw`) to `marketing_touchpoints` using `customer_id`. If `orders_cleaned` loses the `customer_id` column due to the upstream change, this join will fail.
+2.  **`gold/customer_ltv.py`**: This notebook reads `customer_profile` (a silver table). If `customer_profile` is updated to reflect the schema change, this table remains functional; however, if the logic in `customer_profile` fails to propagate the renamed column, this table will lose its source data.
+3.  **`gold/customer_return_rate.py`**: This notebook joins `customer_profile` and `returns_cleaned` on `customer_id`. Similar to the above, it depends on the successful propagation of `customer_id` through the silver layer.
+4.  **`gold/revenue_forecast_features.py`**: This notebook joins `customer_ltv`, `product_performance`, and `inventory_turnover_daily`. It relies on `customer_id` being present in the `ltv` DataFrame (sourced from `customer_ltv`). If the upstream chain is broken, this table will fail to build.
+
+**Note:** Any table that performs a `SELECT *` or explicitly references `customer_id` in its SQL/PySpark logic will require an update to the new column name `cust_id`. Tables that do not explicitly reference `customer_id` but rely on the column being present in the upstream `orders_raw` or `customer_profile` tables will also be impacted.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q2] producer-consumer / easy
+Q: Which file in this repo produces `main.dbdemos_ecom.returns_cleaned`?
+Score: None
+
+REFERENCE:
+`silver/returns_cleaned.py` produces `main.dbdemos_ecom.returns_cleaned` via `.saveAsTable(f"{database}.returns_cleaned")` with `mode=overwrite` and `format=delta`.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+The file `silver/returns_cleaned.py` produces the table `main.dbdemos_ecom.returns_cleaned`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q3] transitive-multi-hop-impact / hard
+Q: If the column `total_amount` is dropped from `main.dbdemos_ecom.orders_raw`, which gold-tier columns become undefined? Trace the chain for each.
+Score: None
+
+REFERENCE:
+Two gold columns directly impacted via the customer_profile aggregation chain, plus dynamic effects: (1) `gold.customer_ltv.lifetime_revenue` — chain: `orders_raw.total_amount` → `silver.customer_profile.lifetime_revenue` (sum aggregate in customer_profile.py) → `customer_ltv.lifetime_revenue` (passthrough through SQL `base` CTE in customer_ltv.py). (2) `gold.customer_ltv.ltv_vs_country_avg` — derives from `lifetime_revenue` divided by country average. (3) `gold.revenue_forecast_features.lifetime_revenue` — inherits from `customer_ltv` (via the LTV read in revenue_forecast_features.py). (4) `silver.refunds_enriched.refund_ratio` = `refund_amount / total_amount` — directly dependent. NOT directly affected: `gold.product_performance` aggregates count(order_id) statically and any total_amount-dependent columns are only there if `total_amount` is in the dynamic `$METRIC_CONFIG_PATH` metric list (unknown to the graph). `gold.customer_return_rate` carries `lifetime_revenue` forward from `customer_profile` so it is also at risk. `gold.attribution_funnel_daily` uses orders for purchase counts only — not affected.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+To determine which gold-tier columns become undefined if `total_amount` is dropped from `main.dbdemos_ecom.orders_raw`, we trace the lineage chain through the silver and gold layers:
+
+### 1. Silver Layer
+*   **`silver.ecom.orders_cleaned`**:
+    *   `total_amount` is used to derive `is_high_value` (`total_amount > 1000`).
+    *   `total_amount` is also used in the `round(total_amount, 2)` transformation.
+    *   **Impact**: `total_amount` (as cleaned), `is_high_value`, and the rounded `total_amount` become undefined.
+*   **`silver.ecom.refunds_enriched`**:
+    *   `total_amount` is used to derive `refund_ratio` (`refund_amount / total_amount`).
+    *   **Impact**: `refund_ratio` becomes undefined.
+*   **`silver.ecom.customer_profile`**:
+    *   `total_amount` is aggregated via `SUM(total_amount)` to create `lifetime_revenue`.
+    *   **Impact**: `lifetime_revenue` becomes undefined.
+
+### 2. Gold Layer
+*   **`gold.ecom.customer_ltv`**:
+    *   Depends on `silver.ecom.customer_profile.lifetime_revenue`.
+    *   Uses `lifetime_revenue` to compute `ltv_vs_country_avg` and `revenue_quartile`.
+    *   **Impact**: `lifetime_revenue`, `ltv_vs_country_avg`, and `revenue_quartile` become undefined.
+*   **`gold.ecom.customer_return_rate`**:
+    *   Depends on `silver.ecom.customer_profile.lifetime_revenue`.
+    *   **Impact**: `lifetime_revenue` becomes undefined.
+*   **`gold.ecom.revenue_forecast_features`**:
+    *   Depends on `gold.ecom.customer_ltv.lifetime_revenue` and `gold.ecom.customer_ltv.total_orders`.
+    *   **Impact**: `lifetime_revenue` becomes undefined.
+
+### Summary of Undefined Gold Columns:
+1.  **`gold.ecom.customer_ltv`**: `lifetime_revenue`, `ltv_vs_country_avg`, `revenue_quartile`.
+2.  **`gold.ecom.customer_return_rate`**: `lifetime_revenue`.
+3.  **`gold.ecom.revenue_forecast_features`**: `lifetime_revenue`.
+
+*(Note: `gold.ecom.attribution_funnel_daily` and `gold.ecom.inventory_turnover_daily` do not depend on `total_amount` and remain unaffected.)*
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q4] reverse-lineage / hard
+Q: Which bronze-layer columns contribute, directly or transitively, to `gold.revenue_forecast_features.lifetime_revenue`? List each source table and column and the path it takes through the silver and gold layers.
+Score: None
+
+REFERENCE:
+A single bronze column: `main.dbdemos_ecom.orders_raw.total_amount`. The reverse trace is 5 hops: `gold.revenue_forecast_features.lifetime_revenue` ← (Python `F.first('lifetime_revenue')` aggregate in revenue_forecast_features.py groupBy step) ← `gold.customer_ltv.lifetime_revenue` (read via `spark.table(customer_ltv)` in revenue_forecast_features.py) ← (Projects passthrough through `base` CTE in customer_ltv.py) ← `silver.customer_profile.lifetime_revenue` (read via `FROM customer_profile` in customer_ltv.py base CTE) ← `F.sum('total_amount').alias('lifetime_revenue')` in customer_profile.py (AggregatesEdge with agg_ops including 'sum') ← `bronze.orders_raw.total_amount` (after joins with customers_raw and events_raw). Note: this 5-hop reverse trace is precisely the multi-hop pattern the small-benchmark Q4 failed on for the 2B model; here the chain is one hop deeper.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+To determine the lineage of `gold.revenue_forecast_features.lifetime_revenue`, we trace the dependencies backward from the gold table through the silver layer to the bronze source.
+
+### 1. Lineage Path
+*   **Gold Layer:** `gold.revenue_forecast_features`
+    *   The column `lifetime_revenue` is derived from `gold.customer_ltv` via `F.first("lifetime_revenue")` in the final aggregation.
+*   **Gold Layer:** `gold.customer_ltv`
+    *   The column `lifetime_revenue` is sourced directly from the `base` CTE, which selects it from `silver.customer_profile`.
+*   **Silver Layer:** `silver.customer_profile`
+    *   The column `lifetime_revenue` is computed as `F.sum("total_amount")` from the joined DataFrame of `customers_raw` and `orders_raw`.
+*   **Bronze Layer:** `bronze.orders_raw`
+    *   The column `total_amount` is the source of the revenue calculation.
+
+### 2. Contributing Bronze Columns
+The column `gold.revenue_forecast_features.lifetime_revenue` traces back to:
+
+| Source Table | Column | Path |
+| :--- | :--- | :--- |
+| `main.dbdemos_ecom.orders_raw` | `total_amount` | `orders_raw` → `silver.customer_profile` (via `SUM`) → `gold.customer_ltv` → `gold.revenue_forecast_features` |
+
+**Note on Transitive Dependencies:**
+While `silver.customer_profile` joins `orders_raw` with `customers_raw` and `events_raw`, the `lifetime_revenue` metric is strictly an aggregation of the `total_amount` field from `orders_raw`. The other bronze tables (`customers_raw`, `events_raw`) contribute to the *grain* and *filtering* of the customer profile, but they do not contribute values to the `lifetime_revenue` sum itself.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q5] join-chain / hard
+Q: In `silver/refunds_enriched.py`, the result joins three bronze tables. List the join keys for each join and explain what happens if `return_id` becomes nullable in `bronze.refunds_raw`.
+Score: None
+
+REFERENCE:
+Two joins in the file: (1) `refunds_raw` ⨝ `returns_raw` ON `return_id` (inner join), (2) the result ⨝ `orders_raw` ON `order_id` (left join). If `return_id` becomes nullable in `refunds_raw`, the inner join on `return_id` silently drops every refund row with null return_id — silver.refunds_enriched will under-report refund volume. The downstream `refund_ratio = refund_amount / total_amount` derivation cannot compute for those dropped rows. Because the second join is LEFT, the orders side does not introduce additional row loss, but `total_amount` becomes NULL for orphan-order refunds. Net effect: any analytics on refund volume or refund-to-order ratio become biased toward the subset of refunds that arrived with a non-null return_id.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+In `silver/refunds_enriched.py`, the join chain is as follows:
+
+1.  **First Join (`refunds_df` ⨝ `returns_df`):** The join key is `return_id`. This is an **inner join**, meaning any refund record in `refunds_raw` that lacks a corresponding `return_id` in `returns_raw` will be dropped from the resulting silver table.
+2.  **Second Join (`enriched` ⨝ `orders_df`):** The join key is `order_id`. This is a **left join**, meaning all records from the previous join (refunds + returns) are preserved, and matching order information is appended if available.
+
+**Impact of `return_id` becoming nullable in `bronze.refunds_raw`:**
+If `return_id` becomes nullable, any refund record with a `NULL` value will fail the inner join condition (`on="return_id"`) against `returns_raw`. Consequently, these records will be **silently dropped** from the `refunds_enriched` silver table. Because the join is inner, the pipeline will effectively filter out all refunds that are not explicitly linked to a return, leading to a loss of data in the silver layer for any orphaned or non-return-linked refund transactions.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q6] producer-consumer / easy
+Q: Which file consumes `main.dbdemos_ecom.marketing_attribution_raw`, and what table does that file produce?
+Score: None
+
+REFERENCE:
+`silver/marketing_touchpoints.py` is the sole consumer of `main.dbdemos_ecom.marketing_attribution_raw`. It joins attribution with `events_raw` on session_id, applies a first-touch window function, and aggregates per (customer_id, utm_campaign). The file produces `main.dbdemos_ecom.marketing_touchpoints`.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+The file `silver/marketing_touchpoints.py` consumes `main.dbdemos_ecom.marketing_attribution_raw`. It produces the table `main.dbdemos_ecom.marketing_touchpoints`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q7] aggregate-semantics / hard
+Q: What columns from `silver.orders_cleaned` are aggregated into `gold.product_performance`, and what aggregation functions are applied? Be precise about what the graph can and cannot tell you.
+Score: None
+
+REFERENCE:
+STATICALLY KNOWN from the graph: `gold.product_performance` is grouped by `product_id` and `order_date` from `silver.orders_cleaned`; the only fully-resolved aggregation is `count(order_id) AS order_count`. STATICALLY UNKNOWN: the Aggregates edge has `dynamic=true` with `agg_ops=["count", "<unresolved>"]` and `output_cols=["order_count", "<unresolved>"]`. Per the edge's `dynamic_note` and the corresponding `dynamic-aggregation` GraphWarning, the rest of the agg list is built at runtime by looping over `metric_columns` loaded from `$METRIC_CONFIG_PATH` (default `/dbfs/configs/metrics.json`); the loop applies `sum`, `avg`, and `max` to each metric column, but specific columns are runtime-determined and not enumerable from the code alone.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+Based on the provided source code and the DEGraph extraction notes, here is the analysis of the aggregation in `gold/product_performance.py`:
+
+**What the graph can tell you:**
+* **Static Aggregation:** The graph explicitly captures the `F.count("order_id")` operation, which is applied to the `order_id` column to produce the `order_count` output column.
+* **Aggregation Structure:** The graph records one `Aggregates` edge for the `groupBy("product_id", "order_date")` operation. This edge contains a `dynamic=True` flag and a `dynamic_note` explaining that the full list of metrics could not be enumerated.
+
+**What the graph cannot tell you:**
+* **Dynamic Metrics:** The graph cannot identify the specific columns being aggregated from `silver.orders_cleaned` (e.g., `quantity`, `unit_price`, `total_amount`) because the list of metrics is loaded at runtime from an external JSON file (`/dbfs/configs/metrics.json`) via an environment variable.
+* **Dynamic Aggregation Functions:** The graph cannot identify the specific functions applied to these dynamic columns (the `sum`, `avg`, and `max` operations) because the `aggregations` list is built dynamically via a loop and star-unpacked (`*aggregations`) into the `.agg()` call.
+
+**Summary:**
+The graph identifies that `order_id` is counted, but it represents the remaining metrics as `<unresolved>` entries within the `Aggregates` edge. An impact-analysis query on `silver.orders_cleaned` would flag this notebook as a consumer, but the graph lacks the column-level lineage for the dynamic metrics due to the runtime configuration pattern.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q8] transitive-multi-hop-impact / medium
+Q: If the column `warehouse_id` is dropped from `main.dbdemos_ecom.inventory_snapshots_raw`, which silver and gold tables break, and what specifically fails in each?
+Score: None
+
+REFERENCE:
+Two tables break: (1) `silver.inventory_daily` — its dedup window partitions by `(warehouse_id, product_id, snapshot_date)`; removing warehouse_id makes the partition spec invalid and the latest-snapshot-per-day filter becomes ambiguous. The silver output also propagates `warehouse_id` as a column. (2) `gold.inventory_turnover_daily` — its `DeltaMergeSink` uses `merge_keys=[product_id, warehouse_id, snapshot_date]`; without warehouse_id, the merge target grain is unbuildable and the merge cannot apply. `gold.revenue_forecast_features` reads `inventory_turnover_daily` only for turnover_rate (a derived column, not for warehouse_id directly), so it sees a transitive failure but no direct column-rename.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+Based on the provided repository context, dropping `warehouse_id` from `main.dbdemos_ecom.inventory_snapshots_raw` causes the following failures:
+
+### 1. Silver Layer
+*   **`silver/inventory_daily.py`**:
+    *   **Failure**: The `dedup_window` definition (`Window.partitionBy("warehouse_id", ...)`) will fail at runtime because the column `warehouse_id` no longer exists in the input DataFrame `snapshots`.
+    *   **Impact**: The silver table `main.dbdemos_ecom.inventory_daily` will fail to build.
+
+### 2. Gold Layer
+*   **`gold/inventory_turnover_daily.py`**:
+    *   **Failure**: The `inventory_base` CTE selects `warehouse_id` from `main.dbdemos_ecom.inventory_daily`. Since the silver table `inventory_daily` depends on the logic in `silver/inventory_daily.py` (which is now broken), this table will either be missing or contain stale data. Furthermore, the `DeltaMergeSink` uses `warehouse_id` as part of its `merge_keys`.
+    *   **Impact**: The merge operation will fail due to the missing join/merge key.
+*   **`gold/revenue_forecast_features.py`**:
+    *   **Failure**: This table joins `inventory_turnover_daily` (which is now broken/stale). While it does not explicitly select `warehouse_id` in its final output, it relies on the turnover metrics derived from the broken inventory pipeline.
+    *   **Impact**: The feature table will be populated with stale or incomplete data, potentially leading to downstream model failure.
+
+### Summary of Dependencies
+*   **`silver/inventory_daily.py`** is the direct point of failure (code-level error).
+*   **`gold/inventory_turnover_daily.py`** fails due to both the missing upstream silver table and the inability to perform the `DeltaMergeSink` upsert using the missing `warehouse_id` key.
+*   **`gold/revenue_forecast_features.py`** suffers from data-quality failure (stale/missing inputs).
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q9] custom-sink / easy
+Q: What table does `gold/inventory_turnover_daily.py` write to, what write mode does it use, and what merge keys does the sink apply?
+Score: None
+
+REFERENCE:
+Writes to `main.dbdemos_ecom.inventory_turnover_daily` using `mode=merge` via the registered `DeltaMergeSink` custom sink class. The merge keys are `[product_id, warehouse_id, snapshot_date]`.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+Based on the provided source code for `gold/inventory_turnover_daily.py`, the notebook writes to the table `main.dbdemos_ecom.inventory_turnover_daily` using the `DeltaMergeSink` class.
+
+*   **Target Table:** `main.dbdemos_ecom.inventory_turnover_daily`
+*   **Write Mode:** `merge`
+*   **Merge Keys:** `["product_id", "warehouse_id", "snapshot_date"]`
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q10] coverage-of-unknowns / medium
+Q: What lineage gaps or unknowns does the DEGraph itself report for this larger repo? List each warning, the file/location it applies to, and what the gap means for downstream analysis.
+Score: None
+
+REFERENCE:
+The graph reports three GraphWarnings. (1) `opaque-call-fallback` — at `bronze/03_ingest_events.py`, the helper `utils.event_parsers.parse_event_payload` is not registered in `.degraph/helpers.json`; the extractor emitted an OpaqueTransform edge with `is_passthrough=false`, meaning the column-set change across that call (drops `payload`, adds `page_url`, `referrer`, `user_agent`, `cart_total`) is unknown to DEGraph. (2) `dynamic-aggregation` — at `gold/product_performance.py` line 81, the `*aggregations` list star-unpacked into `.agg()` is built from a runtime JSON config at `$METRIC_CONFIG_PATH`. (3) `dynamic-aggregation` — at `gold/revenue_forecast_features.py` line 102, the same pattern with `$FORECAST_CONFIG_PATH`; specific avg/max/stddev columns produced cannot be enumerated statically. NOTE: no `orphan-table` warnings in this benchmark because every DDL-declared bronze table has at least an ingest file writing it.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+Based on the provided repository context, the DEGraph extractor reports the following lineage gap:
+
+*   **Warning:** Unregistered helper `parse_event_payload`
+*   **Location:** `bronze/03_ingest_events.py`
+*   **Meaning:** The `parse_event_payload` function performs a non-trivial transformation (dropping the `payload` column and adding four new columns: `page_url`, `referrer`, `user_agent`, and `cart_total`). Because this helper is not registered in `.degraph/helpers.json`, the extractor cannot infer the schema change. It emits an `OpaqueTransform` edge with `is_passthrough=false`, meaning the lineage chain is preserved, but the column-level lineage is broken. Downstream analysis cannot trace the origin of the four new columns back to the `payload` source, and impact analysis on those specific columns will fail to propagate upstream.
+
+**Note on other potential "unknowns":**
+While `gold/product_performance.py` and `gold/revenue_forecast_features.py` involve dynamic aggregation lists that the extractor cannot enumerate, the context specifies that the extractor handles these via the "Gap E" mechanism (emitting an `Aggregates` edge with `dynamic=True` and a `dynamic_note`). This is a documented feature of the extractor's design rather than an "unregistered" lineage gap or missing metadata warning.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q11] direct-cross-file-impact / medium
+Q: If the column `order_id` in `main.dbdemos_ecom.orders_raw` is renamed to `ord_id`, how many silver and gold tables are affected? List them.
+Score: None
+
+REFERENCE:
+Wide fan-out because `order_id` is the natural join key across the orders / refunds / shipments / fulfillment subgraphs. Affected silver: (1) `silver.orders_cleaned` (column propagation), (2) `silver.customer_profile` (count(order_id) in the per-customer aggregate), (3) `silver.refunds_enriched` (join key against returns→orders chain), (4) `silver.shipments_timeline` (join key with orders_raw to bring in customer_id, also the groupBy key for the shipment aggregate). Affected gold: (5) `gold.customer_ltv` (inherits total_orders count from customer_profile), (6) `gold.customer_return_rate` (uses total_orders), (7) `gold.product_performance` (count(order_id) AS order_count), (8) `gold.attribution_funnel_daily` (count(distinct order_id) in the purchases CTE), (9) `gold.revenue_forecast_features` (inherits total_orders from customer_ltv). 9 tables total.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+To determine the impact of renaming `order_id` in `main.dbdemos_ecom.orders_raw` to `ord_id`, we must trace the lineage of the `order_id` column through the repository.
+
+### Affected Tables
+The following **7** tables are affected:
+
+**Silver Layer:**
+1.  **`silver.ecom.orders_cleaned`**: Directly reads `orders_raw`. It uses `order_id` as a primary identifier and join key.
+2.  **`silver.ecom.refunds_enriched`**: Joins `refunds_raw` to `orders_raw` on `order_id`.
+3.  **`silver.ecom.shipments_timeline`**: Joins `shipments_raw` to `orders_raw` on `order_id`.
+4.  **`silver.ecom.customer_profile`**: Joins `orders_raw` to `customers_raw` on `customer_id`, but the notebook logic explicitly reads `orders_raw` and uses `order_id` for aggregation (`F.count("order_id")`).
+
+**Gold Layer:**
+5.  **`gold.ecom.attribution_funnel_daily`**: Reads `orders_cleaned` and joins it on `order_id`.
+6.  **`gold.ecom.inventory_turnover_daily`**: Reads `orders_cleaned` and aggregates by `order_id` (`COUNT(order_id)`).
+7.  **`gold.ecom.product_performance`**: Reads `orders_cleaned` and aggregates by `order_id` (`F.count("order_id")`).
+
+### Summary of Impact
+*   **Silver Tables (4):** `customer_profile`, `orders_cleaned`, `refunds_enriched`, `shipments_timeline`.
+*   **Gold Tables (3):** `attribution_funnel_daily`, `inventory_turnover_daily`, `product_performance`.
+
+*Note: `revenue_forecast_features` is also downstream, but it consumes the gold tables listed above. Depending on the scope of "affected," it would also require updates to its join/aggregation logic if it references the renamed column directly.*
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q12] counterfactual / hard
+Q: If the `trim_string_columns(returns)` call were removed from `silver/returns_cleaned.py`, what specifically changes in the lineage graph, and does it affect the column set of `silver.returns_cleaned`?
+Score: None
+
+REFERENCE:
+Mirrors the small-benchmark Q5 behavior. Structural changes in the graph: (a) the OpaqueTransform edge for `utils.column_transformations.trim_string_columns` with `is_passthrough=true` disappears; (b) the DataFrame node produced by that call disappears; (c) the subsequent `withColumn` derives edges re-source from the upstream DataFrame node directly. The column set of `silver.returns_cleaned` is UNCHANGED because `trim_string_columns` is registered in `.degraph/helpers.json` as `"kind": "passthrough"` — it preserves the column set, only mutating string values. Functional difference (whitespace not stripped) but lineage-as-information is identical.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+If the `trim_string_columns(returns)` call were removed from `silver/returns_cleaned.py`, the following changes would occur in the lineage graph:
+
+1.  **Removal of an `OpaqueTransform` edge:** The graph would no longer contain the `OpaqueTransform` edge (with `is_passthrough=true`) that previously represented the whitespace-trimming operation.
+2.  **Lineage Chain:** The lineage chain would now connect the `Reads` edge (from `bronze.returns_raw`) directly to the subsequent `Derives` edges (the `withColumn` transformations).
+
+**Does it affect the column set?**
+**No.** The column set of `silver.returns_cleaned` remains unchanged. Because `trim_string_columns` is a registered passthrough helper, it is explicitly defined as schema-preserving (it mutates values but does not add, remove, or rename columns). Removing the call simply removes the transformation step from the lineage path without altering the resulting table's schema.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q13] window-function-impact / medium
+Q: The window function in `silver/inventory_daily.py` partitions on `(warehouse_id, product_id, snapshot_date)` and orders by `snapshot_ts` descending. If `snapshot_ts` becomes nullable in `bronze.inventory_snapshots_raw`, which downstream silver and gold columns are at risk?
+Score: None
+
+REFERENCE:
+The window's `row_number()==1` filter determines 'latest snapshot per (warehouse, product, day)'; with nullable order key, Spark's null-handling makes the latest-snapshot selection ambiguous, so every downstream column inheriting from the deduped snapshot becomes unreliable. At-risk silver columns in `silver.inventory_daily`: `on_hand_units`, `reserved_units`, `available_units`, `utilization_pct` (latter is derived from on_hand_units and reserved_units). At-risk gold columns in `gold.inventory_turnover_daily`: `turnover_rate` (= sold_qty / on_hand_units) and `days_of_stock` (= on_hand_units / sold_qty). Transitively, `gold.revenue_forecast_features.avg_turnover` (computed via `F.avg('turnover_rate')`) inherits the same risk. The funnel and customer_ltv tables do not consume inventory and are unaffected.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+Based on the provided repository context, if `snapshot_ts` becomes nullable in `bronze.inventory_snapshots_raw`, the following downstream columns are at risk:
+
+**Silver Layer:**
+*   **`silver.inventory_daily`**:
+    *   **`snapshot_date`**: This column is derived via `F.to_date(F.col("snapshot_ts"))`. If `snapshot_ts` is null, `snapshot_date` will be null, which will cause the window function's partition key `(warehouse_id, product_id, snapshot_date)` to group null-date records together, potentially leading to incorrect deduplication logic.
+    *   **`rn` (internal helper)**: The window function `orderBy(F.col("snapshot_ts").desc())` will be affected by nulls, potentially causing non-deterministic ranking for records where `snapshot_ts` is null.
+
+**Gold Layer:**
+*   **`gold.inventory_turnover_daily`**:
+    *   **`snapshot_date`**: This column is inherited from `silver.inventory_daily`. Since the `DeltaMergeSink` uses `snapshot_date` as part of the `merge_keys=["product_id", "warehouse_id", "snapshot_date"]`, null values in this column will cause the merge logic to fail or produce incorrect upserts.
+*   **`gold.revenue_forecast_features`**:
+    *   **`forecast_date`**: This column is a rename of `snapshot_date` from the `inventory_turnover_daily` table. It is used as part of the grain for the feature table `(customer_id, product_id, forecast_date)`, meaning nulls here will corrupt the primary key grain of the feature store.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q14] join-chain / hard
+Q: In `silver/shipments_timeline.py`, the file joins shipments_raw with orders_raw. What is the join key, and what columns from orders_raw propagate into the silver output?
+Score: None
+
+REFERENCE:
+Join key: `order_id` (inner join). The orders side is narrowed via `.select('order_id', 'customer_id')` before the join, so only `customer_id` propagates into `silver.shipments_timeline` from `orders_raw` (in addition to the join key `order_id`). The other orders columns (quantity, total_amount, currency, etc.) do not appear in the silver output because of that projection. The aggregated shipment columns (shipment_count, first_ship_ts, last_delivered_ts, carriers_used) come from the shipments aggregate, not from orders_raw.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+In `silver/shipments_timeline.py`, the join key is **`order_id`**.
+
+Regarding the columns from `orders_raw` that propagate into the silver output:
+The notebook explicitly selects only the **`order_id`** and **`customer_id`** columns from `orders_df` before performing the join (`orders_df.select("order_id", "customer_id")`). Consequently, only **`customer_id`** is added to the resulting `shipments_timeline` table (as `order_id` is already present from the `timeline` DataFrame).
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q15] aggregate-semantics / medium
+Q: In `silver/marketing_touchpoints.py`, what columns are used as group keys for the final aggregate, and what aggregation functions are applied? Identify any column that requires multi-source reasoning.
+Score: None
+
+REFERENCE:
+Group keys: `[customer_id, utm_campaign]`. Aggregation functions: `count(event_id) AS event_count`, `max(visit_ts) AS last_seen_ts`, `countDistinct(session_id) AS session_count`. Multi-source reasoning: `customer_id` and `utm_campaign` originate from `marketing_attribution_raw`; `event_id` and `session_id` originate from `events_raw`. The aggregate is meaningful only because the prior `attribution ⨝ events ON session_id` join has populated all four columns onto the same row. Before the aggregate, a first-touch window function (partitionBy session_id orderBy visit_ts asc, filter rn=1) keeps only the originating visit per session.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+In `silver/marketing_touchpoints.py`, the final aggregation is performed on the `first_touch` DataFrame using the following:
+
+*   **Group Keys:** `customer_id` and `utm_campaign`.
+*   **Aggregation Functions:**
+    *   `F.count("event_id")` aliased as `event_count`.
+    *   `F.max("visit_ts")` aliased as `last_seen_ts`.
+    *   `F.countDistinct("session_id")` aliased as `session_count`.
+
+**Multi-source reasoning:**
+The `first_touch` DataFrame is the result of an inner join between `marketing_attribution_raw` and `events_raw` on `session_id`. Consequently, the columns used in the aggregation require multi-source reasoning:
+*   `event_id` originates from `events_raw`.
+*   `visit_ts` originates from `marketing_attribution_raw`.
+*   `session_id` is the join key linking both sources.
+*   `customer_id` and `utm_campaign` (the group keys) are present in the joined result, with `customer_id` originating from `events_raw` and `utm_campaign` originating from `marketing_attribution_raw`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q16] reverse-lineage / hard
+Q: Which bronze tables contribute, directly or transitively, to `gold.attribution_funnel_daily.conversion_rate`? List each and the role it plays.
+Score: None
+
+REFERENCE:
+Three bronze contributors: (1) `bronze.marketing_attribution_raw` — supplies `utm_campaign` (funnel grain) and indirectly `visit_count` via the marketing_touchpoints silver intermediate. (2) `bronze.events_raw` — supplies `event_type` filters for cart-stage and checkout-stage funnel counts, and `session_id` for the distinct-session count. The attribution_funnel_daily file reads events_raw directly (not via marketing_touchpoints). (3) `bronze.orders_raw` — supplies `order_id` for the purchase-stage count via `silver.orders_cleaned` (which propagates order_id and order_date forward). The `conversion_rate` derivation is `purchase_count / visit_count` from the marketing/orders branches.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+Based on the provided source code, the following bronze tables contribute to `gold.attribution_funnel_daily.conversion_rate`:
+
+1.  **`main.dbdemos_ecom.marketing_attribution_raw`**:
+    *   **Role**: Provides the raw visit data. It is ingested into `silver.marketing_touchpoints` (via `silver/marketing_touchpoints.py`), which is then used by the gold notebook to calculate the `visit_count` (the denominator of the conversion rate).
+2.  **`main.dbdemos_ecom.events_raw`**:
+    *   **Role**: Provides the behavioral event data (specifically `add_to_cart` and `checkout` event types). It is joined with `marketing_touchpoints` in the gold notebook to calculate the intermediate funnel stages (`cart_count` and `checkout_count`).
+3.  **`main.dbdemos_ecom.orders_raw`**:
+    *   **Role**: Provides the purchase data. It is cleaned in `silver/orders_cleaned.py` and then used in the gold notebook to calculate the `purchase_count` (the numerator of the conversion rate).
+4.  **`main.dbdemos_ecom.customers_raw`**:
+    *   **Role**: Provides the customer identity context. It is used in `silver/marketing_touchpoints.py` to aggregate engagement by `customer_id`, and it is used in the gold notebook to join the attribution data with the order data (via `customer_id`) to attribute purchases to specific marketing campaigns.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q17] producer-consumer / easy
+Q: Which files in this repo READ `main.dbdemos_ecom.orders_cleaned`? List all consumer files.
+Score: None
+
+REFERENCE:
+Three consumers per the graph: `gold/attribution_funnel_daily.py`, `gold/inventory_turnover_daily.py`, and `gold/product_performance.py`.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+Based on the provided repository files, the following notebooks consume `main.dbdemos_ecom.orders_cleaned`:
+
+1.  **`gold/attribution_funnel_daily.py`**: Reads `orders_cleaned` to compute the purchase stage of the marketing funnel.
+2.  **`gold/inventory_turnover_daily.py`**: Reads `orders_cleaned` to aggregate daily sales quantities and counts for turnover metrics.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q18] custom-sink / easy
+Q: List every table in this repo that is written using `mode=merge` (rather than overwrite or append), and the merge keys used for each.
+Score: None
+
+REFERENCE:
+Two merge-mode writes, both via the registered `DeltaMergeSink`: (1) `gold.product_performance` with `merge_keys=[product_id, order_date]`. (2) `gold.inventory_turnover_daily` with `merge_keys=[product_id, warehouse_id, snapshot_date]`.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+Based on the provided source code, the following tables are written using `mode=merge` via the `DeltaMergeSink` class:
+
+1.  **`main.dbdemos_ecom.inventory_turnover_daily`**
+    *   **Merge Keys:** `["product_id", "warehouse_id", "snapshot_date"]`
+    *   *Source:* `gold/inventory_turnover_daily.py`
+
+2.  **`main.dbdemos_ecom.product_performance`**
+    *   **Merge Keys:** `["product_id", "order_date"]`
+    *   *Source:* `gold/product_performance.py`
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q19] counterfactual / hard
+Q: If the file `silver/marketing_touchpoints.py` were deleted from the repo, what changes in the graph and which downstream gold tables become unbuildable?
+Score: None
+
+REFERENCE:
+Removed from the graph: (a) ReadsEdges from `marketing_attribution_raw` and `events_raw` originating in that file; (b) the JoinsEdge on session_id, the window-function DerivesEdge with window_spec, the filter on rn==1, and the AggregatesEdge with group_keys=[customer_id, utm_campaign]; (c) all intermediate DataFrame nodes in the file; (d) the WritesEdge to `silver.marketing_touchpoints`; (e) the Table node `silver.marketing_touchpoints` itself loses its only writer. Affected downstream: `gold.attribution_funnel_daily` becomes unbuildable for its visits CTE and the JOIN-on-customer_id branches that feed cart_events / checkout_events / purchases — it could degrade partially but would lose `visit_count` entirely and therefore `conversion_rate`. NEW WARNINGS: `marketing_attribution_raw` becomes orphan (no remaining consumer), so an `orphan-table` GraphWarning would be emitted (none currently). `events_raw` retains other consumers (`silver/customer_profile.py`, `gold/attribution_funnel_daily.py`) so it does not become orphan.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+If `silver/marketing_touchpoints.py` were deleted, the following impacts would occur:
+
+### 1. Graph Changes
+*   **Node Removal:** The `silver.dbdemos_ecom.marketing_touchpoints` Table node would be removed.
+*   **Edge Removal:**
+    *   The `Writes` edge from `silver/marketing_touchpoints.py` to the table node would be removed.
+    *   All `Reads` edges originating from the `silver.dbdemos_ecom.marketing_touchpoints` Table node to downstream gold notebooks would be removed.
+*   **Orphaned Edges:** The `Reads` edges from `silver/marketing_touchpoints.py` to `bronze.dbdemos_ecom.marketing_attribution_raw` and `bronze.dbdemos_ecom.events_raw` would be removed.
+
+### 2. Downstream Impact
+The following gold tables would become **unbuildable** because they depend on the `marketing_touchpoints` table as a source:
+
+*   **`gold.dbdemos_ecom.attribution_funnel_daily`**: This notebook explicitly reads from `marketing_touchpoints` to compute visit counts and campaign labels.
+*   **`gold.dbdemos_ecom.revenue_forecast_features`**: While this notebook does not read `marketing_touchpoints` directly, it depends on `gold.dbdemos_ecom.product_performance` and `gold.dbdemos_ecom.inventory_turnover_daily`. However, if the dependency chain were to include the attribution funnel (which is a common downstream consumer), the pipeline would be broken. Based strictly on the provided code, **`gold.dbdemos_ecom.attribution_funnel_daily`** is the direct consumer that would fail to execute.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q20] transitive-multi-hop-impact / medium
+Q: If the column `event_ts` in `main.dbdemos_ecom.events_raw` becomes nullable, which downstream silver and gold columns are at risk? Trace the impact through every file that touches event_ts.
+Score: None
+
+REFERENCE:
+Only one file uses `event_ts` in a way that depends on its non-nullness for correctness: `silver/customer_profile.py` window partitionBy customer_id orderBy event_ts desc, filter rn==1. With nullable order key, latest-event selection becomes ambiguous and `last_event_ts = max(event_ts_last_event)` (the aggregate output) is unreliable. Downstream impact: `gold.customer_ltv.last_event_ts` inherits the value via the base CTE. `silver/marketing_touchpoints.py` does NOT use event_ts in its window (it uses visit_ts from marketing_attribution_raw); it only joins on session_id and counts event_id, so the touchpoints branch is not at risk from event_ts nullability. `gold/attribution_funnel_daily.py` reads events_raw but uses event_ts only inside `DATE(ev.event_ts)` for funnel_date grouping — null event_ts would produce null funnel_date and those rows would be dropped from the funnel aggregate, biasing the visit/cart/checkout counts downward but not corrupting them.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+To determine the impact of `event_ts` becoming nullable, we trace its lineage through the repository:
+
+1.  **`bronze/03_ingest_events.py`**: The `events_raw` table is populated from the landing zone. `event_ts` is a direct column in this table.
+2.  **`silver/customer_profile.py`**:
+    *   Reads `events_raw`.
+    *   Uses `event_ts` in a window function: `Window.partitionBy("customer_id").orderBy(F.col("event_ts").desc())`.
+    *   Aggregates it: `F.max("event_ts_last_event").alias("last_event_ts")`.
+    *   **Risk**: The `last_event_ts` column in `silver.customer_profile` is at risk.
+3.  **`silver/marketing_touchpoints.py`**:
+    *   Reads `events_raw`.
+    *   Uses `event_ts` in a window function: `Window.partitionBy("session_id").orderBy(F.col("visit_ts").asc())`. (Note: While it joins `events_raw` and `marketing_attribution_raw`, the `event_ts` is carried through).
+    *   Aggregates it: `F.max("visit_ts").alias("last_seen_ts")`.
+    *   **Risk**: The `last_seen_ts` column in `silver.marketing_touchpoints` is at risk.
+4.  **`gold/customer_ltv.py`**:
+    *   Reads `silver.customer_profile`.
+    *   Includes `last_event_ts` in the `base` CTE and the final `ranked` CTE.
+    *   **Risk**: The `last_event_ts` column in `gold.customer_ltv` is at risk.
+
+**Summary of Impacted Columns:**
+*   **`silver.customer_profile.last_event_ts`**
+*   **`silver.marketing_touchpoints.last_seen_ts`**
+*   **`gold.customer_ltv.last_event_ts`**
+
+*Note: `silver/shipments_timeline.py` and `silver/refunds_enriched.py` read `orders_raw` and `returns_raw` but do not consume `events_raw` or `event_ts`, so they are unaffected.*
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q21] aggregate-semantics / hard
+Q: Compare the dynamic-aggregation handling in `gold/product_performance.py` and `gold/revenue_forecast_features.py`. What does each file load dynamically, from which configuration source, and how does the graph represent each unknown?
+Score: None
+
+REFERENCE:
+Two distinct dynamic-aggregation patterns: (1) `gold/product_performance.py` loads `metric_columns` from `$METRIC_CONFIG_PATH` (default `/dbfs/configs/metrics.json`), key `product_performance`. Loop applies `sum(col)`, `avg(col)`, `max(col)` per metric → output cols `sum_*`, `avg_*`, `max_*`. (2) `gold/revenue_forecast_features.py` loads `feature_columns` from `$FORECAST_CONFIG_PATH` (default `/dbfs/configs/forecast.json`), key `revenue_forecast`. Loop applies `avg(col)`, `max(col)`, `stddev(col)` per feature → output cols `avg_*`, `max_*`, `stddev_*`. Graph representation: in BOTH cases the extractor emits one AggregatesEdge with `dynamic=true`, `<unresolved>` entries in agg_ops/output_cols, and a `dynamic_note` pointing to the env-var-controlled config path. Two corresponding `dynamic-aggregation` GraphWarning entries — at product_performance.py line 81 and revenue_forecast_features.py line 102. The static aggregates (count(order_id) for product_performance; first(lifetime_revenue) / first(total_orders) / avg(turnover_rate) for revenue_forecast_features) ARE statically captured in the same edges.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+Based on the provided source code, here is the comparison of dynamic-aggregation handling in the two files:
+
+### 1. `gold/product_performance.py`
+*   **What is loaded:** A list of numeric columns (`metric_columns`) to be rolled up per product per day.
+*   **Configuration Source:** A JSON file located at the path specified by the environment variable `METRIC_CONFIG_PATH` (defaulting to `/dbfs/configs/metrics.json`).
+*   **Graph Representation:** The extractor emits **one `Aggregates` edge** with `dynamic=True`. The `agg_ops` and `output_cols` fields contain `<unresolved>` markers for the dynamic portion, while the static `F.count("order_id")` operation is preserved in the same edge. A `dynamic_note` is included to describe why the list could not be enumerated.
+
+### 2. `gold/revenue_forecast_features.py`
+*   **What is loaded:** A list of feature columns (`feature_columns`) to be aggregated (avg, max, stddev) for the feature table.
+*   **Configuration Source:** A JSON file located at the path specified by the environment variable `FORECAST_CONFIG_PATH` (defaulting to `/dbfs/configs/forecast.json`).
+*   **Graph Representation:** Similar to `product_performance.py`, the extractor emits **one `Aggregates` edge** with `dynamic=True`. The dynamic operations generated by the loop are represented as `<unresolved>` entries in `agg_ops` and `output_cols`, while the static aggregates (`lifetime_revenue`, `total_orders`, `avg_turnover`) are preserved in the same edge. A `dynamic_note` is also included.
+
+**Summary:** Both files follow the same pattern for handling runtime-determined aggregation lists that the `SafeEvaluator` cannot resolve. They both result in a single `Aggregates` edge marked as `dynamic=True`, containing a mix of resolved static operations and `<unresolved>` markers for the dynamic components, accompanied by a descriptive `dynamic_note`.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q22] direct-cross-file-impact / medium
+Q: If the column `product_id` is renamed across all bronze tables that have it (orders_raw, products_raw, events_raw, returns_raw, inventory_snapshots_raw), which silver and gold tables need any updating?
+Score: None
+
+REFERENCE:
+Wide fan-out — `product_id` is the natural product-dimension key throughout the warehouse. Silver tables affected: `orders_cleaned` (column propagation), `customer_profile` (countDistinct(product_id) in aggregate), `returns_cleaned` (column propagation), `refunds_enriched` (transitive via returns_raw and orders_raw joins), `inventory_daily` (window partition key and groupBy key), `marketing_touchpoints` (events_raw.product_id is in the join input but not used downstream — minimal direct impact). Gold tables affected: `product_performance` (group key), `inventory_turnover_daily` (join key for daily_sales CTE AND merge key for the sink), `revenue_forecast_features` (groupBy key and inherits from upstream golds). 8-9 tables touched depending on whether one counts marketing_touchpoints (which carries product_id from events_raw through but does not reference it explicitly).
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+Based on the provided repository context, renaming `product_id` in the bronze tables would require updates to the following downstream notebooks and their associated logic:
+
+### Silver Layer
+*   **`silver/customer_profile.py`**: This notebook joins `orders_raw` and `events_raw`. It performs a `groupBy` that includes `product_id` (via the join chain) and aggregates `distinct_products_ordered`.
+*   **`silver/inventory_daily.py`**: This notebook reads `inventory_snapshots_raw` and performs a window function partition and join logic on `product_id`.
+*   **`silver/shipments_timeline.py`**: While this notebook primarily joins `shipments_raw` and `orders_raw`, it relies on the schema of `orders_raw`. If `product_id` is used in any future expansion or if the join logic is modified, it would be impacted.
+
+### Gold Layer
+*   **`gold/attribution_funnel_daily.py`**: This notebook joins `events_raw` (via `events_cleaned` logic) and `orders_cleaned`. It relies on the `product_id` column for funnel stage calculations.
+*   **`gold/customer_return_rate.py`**: This notebook joins `returns_cleaned` and `customer_profile`. It relies on the `product_id` column present in the `returns_raw` (and subsequently `returns_cleaned`) source.
+*   **`gold/inventory_turnover_daily.py`**: This notebook performs a join between `inventory_daily` and `orders_cleaned` on `product_id`.
+*   **`gold/product_performance.py`**: This notebook performs a `groupBy("product_id", ...)` and is the primary consumer of product-level metrics.
+*   **`gold/revenue_forecast_features.py`**: This notebook joins `product_performance` and `inventory_turnover_daily` on `product_id`.
+
+### Summary of Impact
+Any notebook performing a `groupBy`, `join`, or `select` operation involving `product_id` will break. Specifically:
+1.  **Joins**: All notebooks joining on `product_id` (e.g., `inventory_turnover_daily`, `revenue_forecast_features`) will fail to resolve the join key.
+2.  **Aggregations**: All notebooks grouping by `product_id` (e.g., `product_performance`, `inventory_daily`) will fail.
+3.  **Schema Dependencies**: Because the DDL (`ddl/bronze_tables.sql`) defines the schema, the DDL must be updated first, followed by every silver and gold notebook that references the column name in its SQL or PySpark transformations.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q23] reverse-lineage / medium
+Q: Which bronze table(s) contribute to `silver.refunds_enriched.refund_ratio`, and which specific columns?
+Score: None
+
+REFERENCE:
+Two bronze contributions: (1) `bronze.refunds_raw.refund_amount` (numerator of the ratio, passed through unchanged from refunds_raw). (2) `bronze.orders_raw.total_amount` (denominator, joined into the file via the chain refunds → returns → orders on (return_id, then order_id)). `bronze.returns_raw` sits on the join path between refunds_raw and orders_raw but does not contribute a column to refund_ratio itself; it provides the `return_id → order_id` mapping that makes the orders join possible.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+To determine the lineage of `silver.refunds_enriched.refund_ratio`, we trace the dependencies through the provided source files:
+
+1.  **`silver/refunds_enriched.py`**: The `refund_ratio` is derived as:
+    `F.col("refund_amount") / F.when(F.col("total_amount") == 0, F.lit(None)).otherwise(F.col("total_amount"))`
+    *   `refund_amount` originates from `refunds_raw`.
+    *   `total_amount` originates from `orders_raw`.
+
+2.  **`bronze/06_ingest_refunds.py`**: Defines `main.dbdemos_ecom.refunds_raw`. The DDL in `ddl/bronze_tables.sql` confirms the column `refund_amount` exists in this table.
+
+3.  **`bronze/01_ingest_orders.py`**: Defines `main.dbdemos_ecom.orders_raw`. The DDL in `ddl/bronze_tables.sql` confirms the column `total_amount` exists in this table.
+
+**Conclusion:**
+The bronze tables contributing to `silver.refunds_enriched.refund_ratio` are:
+*   **`main.dbdemos_ecom.refunds_raw`**: Contributes the **`refund_amount`** column.
+*   **`main.dbdemos_ecom.orders_raw`**: Contributes the **`total_amount`** column.
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q24] window-function-impact / medium
+Q: Identify every window function (`Window.partitionBy(...).orderBy(...)`) in the entire repo. For each, name the file, the partition keys, and the order keys.
+Score: None
+
+REFERENCE:
+Four PySpark window functions: (1) `silver/customer_profile.py`: partitionBy(customer_id) orderBy(event_ts desc) — for latest-event-per-customer dedup. (2) `silver/inventory_daily.py`: partitionBy(warehouse_id, product_id, snapshot_date) orderBy(snapshot_ts desc) — for latest-snapshot-per-day dedup. (3) `silver/marketing_touchpoints.py`: partitionBy(session_id) orderBy(visit_ts asc) — for first-touch-per-session selection. (4) `silver/shipments_timeline.py`: partitionBy(order_id) orderBy(ship_ts asc) — for within-order shipment sequencing. Plus one SQL window: `gold/customer_ltv.py` SQL block has `NTILE(4) OVER (ORDER BY lifetime_revenue DESC)` with no partition.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+Based on the provided repository files, here are the identified window functions:
+
+1.  **File:** `silver/customer_profile.py`
+    *   **Partition Keys:** `["customer_id"]`
+    *   **Order Keys:** `["event_ts"]` (descending)
+
+2.  **File:** `silver/inventory_daily.py`
+    *   **Partition Keys:** `["warehouse_id", "product_id", "snapshot_date"]`
+    *   **Order Keys:** `["snapshot_ts"]` (descending)
+
+3.  **File:** `silver/marketing_touchpoints.py`
+    *   **Partition Keys:** `["session_id"]`
+    *   **Order Keys:** `["visit_ts"]` (ascending)
+
+4.  **File:** `silver/shipments_timeline.py`
+    *   **Partition Keys:** `["order_id"]`
+    *   **Order Keys:** `["ship_ts"]` (ascending)
+
+5.  **File:** `gold/customer_ltv.py`
+    *   **Partition Keys:** None (Global window)
+    *   **Order Keys:** `["lifetime_revenue"]` (descending)
+
+Notes: 
+-----------------------------------------------------------------
+
+[Q25] coverage-of-unknowns / medium
+Q: How many `<unresolved>` markers does the compact graph contain for this repo, and what does each one mean? Group them by category.
+Score: None
+
+REFERENCE:
+Three `<unresolved>` markers: (a) Table node `<unresolved>` read by `bronze/04_ingest_products.py` — the JDBC source URL `jdbc:postgresql://catalog/products` cannot be resolved to a Table FQN in the catalog; the extractor records the read but the source is opaque. (b) AggregatesEdge in `gold/product_performance.py` has `<unresolved>` entries in agg_ops and output_cols representing the runtime-loop-built aggregation list from `$METRIC_CONFIG_PATH`. (c) AggregatesEdge in `gold/revenue_forecast_features.py` has the same pattern from `$FORECAST_CONFIG_PATH`. Each `<unresolved>` is the extractor faithfully signalling 'I do not know' rather than guessing. The first is a source-side unknown (external system); the latter two are runtime-config unknowns flagged via the dynamic-aggregation GraphWarnings.
+
+MODEL (google/gemini-3.1-flash-lite-20260507):
+Based on the provided repository context and the DEGraph extraction methodology described in the file headers, there are **two** categories of `<unresolved>` markers in the compact graph.
+
+### 1. Dynamic Aggregation Markers (`dynamic=True`)
+These markers appear in the `Aggregates` edges for notebooks that load aggregation lists from external JSON files at runtime. Because the `SafeEvaluator` cannot resolve the environment variables or the file contents, the specific columns and operations are opaque.
+
+*   **`gold/product_performance.py`**: Contains **one** `Aggregates` edge with `<unresolved>` markers.
+    *   **Meaning**: The list of metrics to aggregate (sum, avg, max) is loaded from a JSON file path defined by `os.environ.get("METRIC_CONFIG_PATH")`. The extractor cannot enumerate the columns or the operations, so it marks them as unresolved while preserving the static `F.count("order_id")` operation.
+*   **`gold/revenue_forecast_features.py`**: Contains **one** `Aggregates` edge with `<unresolved>` markers.
+    *   **Meaning**: The list of features to aggregate (avg, max, stddev) is loaded from a JSON file path defined by `os.environ.get("FORECAST_CONFIG_PATH")`. The extractor cannot enumerate these dynamic features, so it marks them as unresolved while preserving the static aggregates (`lifetime_revenue`, `total_orders`, `avg_turnover`).
+
+### 2. Unregistered Helper Markers
+These markers appear when the extractor encounters a function call that modifies the DataFrame but lacks a corresponding entry in the `.degraph/helpers.json` registry.
+
+*   **`bronze/03_ingest_events.py`**: Contains **one** `OpaqueTransform` edge with `<unresolved>` column-level semantics.
+    *   **Meaning**: The call `parse_event_payload(events_landing)` is not registered. The extractor emits an `OpaqueTransform` with `is_passthrough=false` because it cannot determine how the schema changes (specifically, the dropping of `payload` and the addition of four parsed columns). This is accompanied by a `GraphWarning` in the metadata.
+
+***
+
+**Summary Table**
+
+| File | Edge Type | Marker Category |
+| :--- | :--- | :--- |
+| `gold/product_performance.py` | `Aggregates` | Dynamic aggregation list |
+| `gold/revenue_forecast_features.py` | `Aggregates` | Dynamic aggregation list |
+| `bronze/03_ingest_events.py` | `OpaqueTransform` | Unregistered helper |
+
+*Note: While `utils/sinks.py` and `utils/column_transformations.py` are used, they are explicitly registered in the provided context, so they do not produce `<unresolved>` markers.*
+
+Notes: 
+-----------------------------------------------------------------
