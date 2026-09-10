@@ -27,8 +27,11 @@ lineage tools cannot answer before a merge:
 | `results/graphs/` | extracted graphs, including the committed real-code fixture so the third-party scenarios reproduce without the external repo |
 | `results/metrics/` | evaluation outputs |
 
-The preprint source is **not** mirrored here. It lives on arXiv, which is the single
-canonical copy; keeping a second one in this repository only invites the two to drift.
+The preprint source is **not** mirrored here, and the preprint is **not yet posted
+publicly**: arXiv endorsement for `cs.SE` has not been granted, so there is no canonical link
+to give yet. A link will be added here once it is posted. Nothing in this artifact release
+depends on the preprint being available; the code, the benchmarks, the ground truth and the
+evaluation harnesses all stand on their own and reproduce the numbers directly.
 
 ## What is not here, and why
 
