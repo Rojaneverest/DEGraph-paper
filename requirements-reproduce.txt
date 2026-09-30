@@ -1,0 +1,4 @@
+pydantic==2.13.4
+sqlglot==30.16.0
+click==8.3.1
+pytest==8.4.2

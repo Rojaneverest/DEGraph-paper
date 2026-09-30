@@ -1,0 +1,42 @@
+=== A1: DEGraph vs pyspark-ast-lineage (v0.1.1) ===
+
+[sanity] pyspark-ast-lineage on its OWN bundled example:
+   recovered 7 table/path strings, 9 detail records -> TOOL IS FUNCTIONAL
+   sample: ['/data/2024/march/json', '/data/2024/march_sales.csv', '/data/2024/processed_sales']
+
+=== repo_synthetic_small recovery (GT: 8 tables, 57 typed edges) ===
+
+                                pyspark-ast-lineage    DEGraph
+----------------------------------------------------------------
+table NODES (of 8 GT)                             0          8
+typed lineage EDGES               0 (none produced)         57
+column-level lineage                             no        yes
+   pyspark-ast-lineage raw output on benchmark: 0 strings []
+   (per-extractor detail records: {})
+
+=== capability matrix ===
+
+capability                                  pyspark-ast-lineage   DEGraph
+--------------------------------------------------------------------------
+Enumerates table/path names                                yes*       yes
+Resolves f-string / %run-config FQNs                         no       yes
+Reads edges (source -> df)                                 flat       yes
+Writes edges (df -> sink)                                  flat       yes
+Distinguishes source vs sink                                 no       yes
+Transformation edges (withColumn/...)                        no       yes
+Join / aggregate / filter semantics                          no       yes
+Column-level provenance                                      no       yes
+Impact / blast-radius queryable graph                        no       yes
+
+  * pyspark-ast-lineage returns a flat SET of strings (no edges,
+    no direction); 'flat' = the name appears but with no graph edge.
+
+=== DEGraph typed-edge breakdown (what the other tool cannot emit) ===
+   aggregates         GT=  3  DEGraph=  3
+   derives            GT= 28  DEGraph= 28
+   filters            GT=  2  DEGraph=  2
+   joins              GT=  3  DEGraph=  3
+   opaque_transform   GT=  2  DEGraph=  2
+   projects           GT=  3  DEGraph=  3
+   reads              GT=  9  DEGraph=  9
+   writes             GT=  7  DEGraph=  7

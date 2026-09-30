@@ -138,15 +138,12 @@ def test_imperative_assignment_still_works(tmp_path):
 # 3. Column-level impact resolves through a known chain (Fix #12)              #
 # --------------------------------------------------------------------------- #
 
-DBDEMOS_SDP = Path(
-    r"C:\Users\thapa\Desktop\Research\_external_repos\dbdemos-notebooks"
-    r"\demo-retail\lakehouse-retail-c360\01-Data-ingestion"
-    r"\01.2-SDP-python\transformations")
-
+import os
+DBDEMOS_SDP = Path(os.environ.get("DBDEMOS_SDP", str(REPO / "reference/dbdemos-notebooks/demo-retail/lakehouse-retail-c360/01-Data-ingestion/01.2-SDP-python/transformations")))
 
 def test_real_code_precision_no_false_positives():
     """The real-code ground truth (dbdemos retail SDP) must keep 100% precision —
-    zero false positives — the no-hallucination property impact analysis relies on.
+    zero false positives on this specific labeled slice.
     Skips when the (gitignored) dbdemos clone is absent."""
     if not DBDEMOS_SDP.exists():
         pytest.skip("dbdemos clone not present")

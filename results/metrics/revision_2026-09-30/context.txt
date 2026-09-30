@@ -1,0 +1,10 @@
+Gemini 2.0 Flash — RAW / BM25 / DSL (sealed test, /40):
+
+bench         RAW   BM25    DSL  BM25-DSL
+small       80.0%  77.5%  75.0%   +2.5pp
+clinical    87.5%  82.5%  77.5%   +5.0pp
+medium      90.0%  85.0%  72.5%  +12.5pp
+--------------------------------------------
+POOLED      85.8%  81.7%  75.0%   +6.7pp
+
+BM25 > DSL on all 3 benchmarks. See module docstring for interpretation.

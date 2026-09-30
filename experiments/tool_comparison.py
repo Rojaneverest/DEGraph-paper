@@ -37,7 +37,8 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "src"))
 from degraph.extractor.assembler import extract_repo  # noqa: E402
 
-PAL_EXAMPLE = Path(r"C:\Users\thapa\Desktop\Research\pyspark-ast-lineage\examples\example_data_processing.py")
+import argparse
+PAL_EXAMPLE = Path(os.environ.get("PAL_EXAMPLE", str(REPO / "reference/pyspark-ast-lineage/examples/example_data_processing.py")))
 BENCH = REPO / "data" / "benchmarks" / "repo_synthetic_small"
 GT = REPO / "data" / "ground_truth" / "repo_synthetic_small.graph.json"
 
@@ -69,11 +70,16 @@ def pal_over_repo(repo: Path) -> tuple[set[str], dict[str, int]]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--baseline-example", type=Path, default=PAL_EXAMPLE)
+    args = parser.parse_args()
+    if not args.baseline_example.is_file():
+        parser.error("baseline example missing; pass --baseline-example or set PAL_EXAMPLE")
     # --- 0. Sanity: pyspark-ast-lineage works on its own example ----------
     print("=== A1: DEGraph vs pyspark-ast-lineage (v0.1.1) ===\n")
     print("[sanity] pyspark-ast-lineage on its OWN bundled example:")
-    if PAL_EXAMPLE.exists():
-        ex_tables, ex_det = run_pal(PAL_EXAMPLE)
+    if args.baseline_example.exists():
+        ex_tables, ex_det = run_pal(args.baseline_example)
         print(f"   recovered {len(ex_tables)} table/path strings, "
               f"{len(ex_det)} detail records -> TOOL IS FUNCTIONAL")
         print(f"   sample: {sorted(ex_tables)[:3]}")

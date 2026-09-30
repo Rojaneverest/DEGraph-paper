@@ -62,10 +62,12 @@ def main() -> int:
         graph = extract_repo(repo_dir)
         new_text = _dump(graph)
         old_text = out.read_text(encoding="utf-8") if out.exists() else ""
-        # compare ignoring the volatile extraction_seconds line
-        def _strip(t: str) -> str:
-            return "\n".join(l for l in t.splitlines() if "extraction_seconds" not in l)
-        if _strip(new_text) == _strip(old_text):
+        # Compare graph content, not machine/runtime provenance in metadata.
+        def _content(t: str):
+            obj = json.loads(t) if t else {}
+            obj.pop("metadata", None)
+            return obj
+        if _content(new_text) == _content(old_text):
             print(f"  {b:26s} unchanged ({len(graph.edges)} edges)")
             continue
         changed += 1

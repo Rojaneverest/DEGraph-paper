@@ -35,17 +35,14 @@ sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(REPO / "experiments"))
 from degraph.compact import _build_column_provenance  # noqa: E402
 from impact_eval import SCENARIOS, _short  # noqa: E402
-from run_qa_experiment import call_openrouter  # noqa: E402
+
 
 JUDGES = ["openai/gpt-4o", "google/gemini-2.5-flash"]
 MAX_NEG = 8          # negatives sampled per scenario
 RNG_SEED = 20260530  # reproducible negative sampling
 
-DBDEMOS_ROOT = Path(
-    r"C:\Users\thapa\Desktop\Research\_external_repos\dbdemos-notebooks"
-    r"\demo-retail\lakehouse-retail-c360\01-Data-ingestion\01.2-SDP-python\transformations"
-)
-
+import os
+DBDEMOS_ROOT = Path(os.environ.get("DBDEMOS_SDP", str(REPO / "reference/dbdemos-notebooks/demo-retail/lakehouse-retail-c360/01-Data-ingestion/01.2-SDP-python/transformations")))
 
 def _benchmark_source(bench: str) -> str | None:
     """Concatenate the pipeline source the judge reasons over."""
@@ -107,6 +104,7 @@ def _judge_call(model: str, source: str, table: str, col: str, cands: list[str])
         f'Respond with a JSON object exactly like {{"affected": ["table.col", ...]}} and '
         f"nothing else. Include a candidate only if you are confident it is affected."
     )
+    from run_qa_experiment import call_openrouter
     txt, _ = call_openrouter(model, _SYS, user)
     txt = txt.strip()
     # strip code fences if present
@@ -174,7 +172,9 @@ def main() -> int:
               f"raw agreement {po*100:.0f}% | judge-vs-author P{prec*100:.0f}/R{rec*100:.0f}/F1{f1*100:.0f}")
         print(f"     confusion (author/judge): yy={ayjy} yn={ayjn} ny={anjy} nn={anjn}")
 
-    out = REPO / "results" / "metrics" / "llm_judge_impact.json"
+    from datetime import datetime, timezone
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    out = REPO / "results" / "metrics" / f"llm_judge_impact_{stamp}.json"
     out.write_text(json.dumps(records, indent=2), encoding="utf-8")
     print(f"\nsaved per-item judgments: {out}")
     return 0

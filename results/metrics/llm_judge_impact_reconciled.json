@@ -1,0 +1,71 @@
+{
+  "source_sha256": "5c900ed46f2c72fb910f537d4b8eb9689beda9017a6d649e8e25f83e5b6e2762",
+  "canonical_labels_sha256": "94417bd315a77ce0b8173b669221e4db80f386ee739fa787e6becacedfd256eb",
+  "method": "Archived candidate lists and judge responses; author labels aligned to current impact scenarios; no new judge calls.",
+  "summary": {
+    "google/gemini-2.5-flash": {
+      "n": 229,
+      "n_scenarios": 21,
+      "author_positive": 59,
+      "agreement": 0.9563318777292577,
+      "kappa": 0.891828058573453,
+      "confusion_author_judge": {
+        "00": 160,
+        "01": 10,
+        "10": 0,
+        "11": 59
+      }
+    },
+    "openai/gpt-4o": {
+      "n": 229,
+      "n_scenarios": 21,
+      "author_positive": 59,
+      "agreement": 0.9344978165938864,
+      "kappa": 0.8368868417303764,
+      "confusion_author_judge": {
+        "00": 158,
+        "01": 12,
+        "10": 3,
+        "11": 56
+      }
+    }
+  },
+  "author_label_corrections": [
+    {
+      "judge": "openai/gpt-4o",
+      "bench": "repo_synthetic_small",
+      "change": "orders_raw.total_amount",
+      "candidate": "customer_ltv.avg_country_ltv",
+      "author": 1,
+      "judge_label": 1,
+      "corrected_author": 0
+    },
+    {
+      "judge": "openai/gpt-4o",
+      "bench": "repo_synthetic_small",
+      "change": "customers_raw.country_code",
+      "candidate": "customer_ltv.avg_country_ltv",
+      "author": 1,
+      "judge_label": 1,
+      "corrected_author": 0
+    },
+    {
+      "judge": "google/gemini-2.5-flash",
+      "bench": "repo_synthetic_small",
+      "change": "orders_raw.total_amount",
+      "candidate": "customer_ltv.avg_country_ltv",
+      "author": 1,
+      "judge_label": 1,
+      "corrected_author": 0
+    },
+    {
+      "judge": "google/gemini-2.5-flash",
+      "bench": "repo_synthetic_small",
+      "change": "customers_raw.country_code",
+      "candidate": "customer_ltv.avg_country_ltv",
+      "author": 1,
+      "judge_label": 1,
+      "corrected_author": 0
+    }
+  ]
+}

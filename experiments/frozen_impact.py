@@ -1,4 +1,7 @@
-"""Static change-impact analysis over a DEGraph lineage graph.
+"""Historical pre-repair implementation (paper artifact 0dba91d).
+Do not use for current analysis. Preserved for experimental comparisons.
+
+Static change-impact analysis over a DEGraph lineage graph.
 
 The paper's spine (post-BM25 pivot): given a column (or table) that a developer
 is about to change, compute the set of downstream columns/tables affected —
@@ -27,7 +30,7 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from .compact import _build_column_provenance
+from degraph.compact import _build_column_provenance
 
 
 def _col_id(table: str, col: str) -> str:
@@ -51,11 +54,20 @@ def column_impact(graph: dict, table: str, column: str,
     """Forward transitive closure: all `table.col` downstream of `table.column`.
 
     `table` may be a bare name (e.g. 'orders_raw') or a fully-qualified FQN; we
-    match whole identifier suffixes and reject ambiguous table qualifications.
+    match on suffix so callers need not know the catalog/schema prefix.
     """
     fwd = _fwd if _fwd is not None else build_forward_index(graph)
     nodes = _all_nodes(fwd)
-    seeds, _ = _resolve_seed_keys(nodes, table, column)
+    # Resolve seed key(s). Provenance sources appear at varying granularity:
+    #   * table-qualified  "main.db.orders_raw.total_amount"  (resolved to source)
+    #   * bare file-local  "claim_status_hdr"                 (suffix-renamed / SQL CTE)
+    # Prefer table-qualified matches; if none, fall back to bare-name matches so
+    # single-file / suffix-renamed pipelines (e.g. clinical) still seed.
+    qualified = [k for k in nodes if k.endswith(f".{column}") and table in k]
+    if qualified:
+        seeds = qualified
+    else:
+        seeds = [k for k in nodes if k == column or k.endswith(f".{column}")]
     seen: set[str] = set()
     stack: list[str] = list(seeds)
     while stack:
@@ -65,39 +77,6 @@ def column_impact(graph: dict, table: str, column: str,
                 seen.add(child)
                 stack.append(child)
     return seen
-
-
-def _resolve_seed_keys(nodes: set[str], table: str, column: str) -> tuple[list[str], str]:
-    """Resolve whole identifier segments, rejecting conflicting qualifiers.
-
-    Table identifiers are compared case-insensitively; column identifiers retain
-    the extractor's case-sensitive convention. Missing leading qualifiers are
-    tolerated only when compatible qualified candidates identify one table.
-    A unique bare column is a legacy heuristic, not proof of table membership.
-    """
-    tail = "." + column
-    requested = tuple(table.lower().split("."))
-    qualified = {k: tuple(k[:-len(tail)].lower().split("."))
-                 for k in nodes if k.endswith(tail)}
-
-    def suffix(a, b):
-        return len(a) >= len(b) and a[-len(b):] == b
-
-    compatible = {k: t for k, t in qualified.items()
-                  if suffix(t, requested) or suffix(requested, t)}
-    # An explicitly qualified exact match can disambiguate a shorter spelling.
-    exact = [k for k, t in compatible.items() if t == requested]
-    if len(requested) > 1 and exact:
-        return sorted(exact), "qualified"
-    names = set(compatible.values())
-    maximal = {t for t in names if not any(t != u and suffix(u, t) for u in names)}
-    if len(maximal) == 1:
-        return sorted(compatible), "qualified"
-    if compatible:
-        return [], "ambiguous"
-    if column in nodes and not qualified:
-        return [column], "unqualified_heuristic"
-    return [], "unresolved"
 
 
 def _all_nodes(fwd: dict[str, set[str]]) -> set[str]:
@@ -150,14 +129,8 @@ def table_impact(graph: dict, table: str) -> set[str]:
 def impact_report(graph: dict, table: str, column: str | None = None) -> dict:
     """Structured impact report for a CLI / programmatic use."""
     if column:
-        fwd = build_forward_index(graph)
-        seeds, resolution = _resolve_seed_keys(_all_nodes(fwd), table, column)
-        cols = sorted(column_impact(graph, table, column, _fwd=fwd))
+        cols = sorted(column_impact(graph, table, column))
         tables = sorted({c.rsplit(".", 1)[0] for c in cols})
         return {"target": f"{table}.{column}", "impacted_columns": cols,
-                "impacted_tables": tables, "seed_resolution": resolution,
-                "status": ("cannot_determine" if not seeds else
-                           "impact_detected" if cols else "no_impact_detected"),
-                "coverage_complete": False,
-                "note": "No detected impact is not a proof of safety; extraction may be incomplete."}
+                "impacted_tables": tables}
     return {"target": table, "impacted_tables": sorted(table_impact(graph, table))}

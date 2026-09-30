@@ -1,64 +1,80 @@
 # DEGraph
 
-Static, execution-free **column-level data lineage for the PySpark DataFrame API**, and the
-change-impact and version-diff analyses built on it.
+A research prototype for static column lineage, change-impact analysis and lineage diff
+on supported PySpark/SQL patterns. Extraction uses Python AST analysis and SQLGlot,
+without running the analyzed pipelines or invoking a language model.
 
-This repository is the artifact release accompanying the preprint:
+**Manuscript:** *What Breaks Static Column-Level Lineage in Production PySpark? A Tool
+and Two Industrial Case Studies*, Rojan Raj Thapa. Research manuscript, not peer reviewed.
+The manuscript is undergoing final review; a public PDF link will be added when available.
 
-> **What Breaks Static Column-Level Lineage in Production PySpark? A Tool and Two Industrial
-> Case Studies.** Rojan Raj Thapa.
+## Snapshot
 
-DEGraph parses PySpark repositories (`.py`, `.ipynb`, `.sql`) via Python's `ast` module and
-`sqlglot`. **No Spark cluster, no execution, no LLM at extraction time.** It produces a typed,
-column-level lineage graph over eight edge types, and answers two questions that runtime
-lineage tools cannot answer before a merge:
+This is the `degraph-2026-09-30` software snapshot, package 0.1.1. `MANIFEST.sha256` identifies the
+snapshot's contents. Earlier repository revisions contain the pre-repair impact seed
+resolver; use this snapshot and the commands in [REPRODUCIBILITY.md](REPRODUCIBILITY.md)
+for the revised manuscript. Publication of a paper is separate from this software release.
 
-- **Change impact.** Given a changed column, which downstream columns and tables break?
-- **Lineage diff.** Given two revisions, which changes are breaking, and what is the blast radius?
-
-## What is here
-
-| Path | Contents |
-|---|---|
-| `src/degraph/` | the extractor, graph model, impact and diff analyses |
-| `data/benchmarks/` | the three synthetic benchmarks |
-| `data/ground_truth/` | hand-labeled ground truth and the sealed test manifest |
-| `experiments/` | `impact_eval.py`, `diff_eval.py`, `extractor_precision.py`, `tool_comparison.py`, and the LLM-judge harness |
-| `results/graphs/` | extracted graphs, including the committed real-code fixture so the third-party scenarios reproduce without the external repo |
-| `results/metrics/` | evaluation outputs |
-
-The preprint source is **not** mirrored here, and the preprint is **not yet posted
-publicly**: arXiv endorsement for `cs.SE` has not been granted, so there is no canonical link
-to give yet. A link will be added here once it is posted. Nothing in this artifact release
-depends on the preprint being available; the code, the benchmarks, the ground truth and the
-evaluation harnesses all stand on their own and reproduce the numbers directly.
-
-## What is not here, and why
-
-The paper's §5.5 external-validity study ran on **two proprietary production pipelines at an
-industrial partner**. That corpus is not redistributable and is not in this repository. The
-paper reports those results in anonymized form; nothing in this release depends on them, and
-every number outside §5.5 reproduces from the committed synthetic and third-party material.
-
-Third-party corpora (Databricks `dbdemos`) are not vendored. See the paper for provenance.
-
-## Reproducing the paper's numbers
+## Reproduce the public deterministic results
 
 ```bash
-pip install -e .
-python experiments/regenerate_graphs.py      # re-extract all benchmarks from src
-python experiments/impact_eval.py            # 21 change scenarios
-python experiments/diff_eval.py              # 6 edits, breaking vs safe
-python experiments/extractor_precision.py    # extractor P/R/F1 vs hand-labeled GT
+python -m venv .venv
+# Activate .venv using your platform's command.
+python -m pip install -r requirements-reproduce.txt
+python -m pip install --no-deps -e .
+python experiments/regenerate_graphs.py --check
+python experiments/extractor_precision.py
+python experiments/impact_eval.py
+python experiments/diff_eval.py
+python experiments/score_cached_judges.py
+python experiments/_grade_bm25_gemini.py
+python -m pytest tests/ -q
 ```
 
-## Honest scope
+The optional real-source regression test skips without the separately downloaded Databricks
+corpus. Its evaluation command instead exits with an error if the requested corpus is missing.
+See the reproduction guide for real-source and baseline comparisons.
 
-DEGraph is **intra-procedural** and performs **no alias analysis**. Both are design choices
-that buy the precision property the paper relies on, and both cost recall. The paper states
-where, and §5.5 measures it on a held-out pipeline rather than asserting it does not happen.
-Read §6.2 before relying on the tool.
+## Evaluated scope
+
+- Synthetic normalized edge-key recovery: 56/57 matched, with 1 false positive and 1 miss.
+  This key omits some provenance payloads; it is not a full source-column accuracy metric.
+- Impact: 21 selected scenarios, TP 49 / FP 0 / FN 14 (100% precision, 77.8% recall).
+- Diff: 10/10 structural column changes, all six breaking/safe classifications correct;
+  11/11 expected downstream persisted columns on three breaking edits.
+- Cached judge agreement against reconciled labels: kappa 0.837 and 0.892.
+- Gemini context grades: raw 85.8%, BM25 81.7%, graph 75.0% of available grading points.
+
+These are sample results. DEGraph supplies neither a completeness proof nor a universal
+zero-false-positive guarantee. `impact_report` distinguishes unresolved/ambiguous seeds from
+resolved queries; it reports the bare-column compatibility heuristic explicitly and marks
+coverage incomplete. No detected impact is not proof that a change is safe.
+
+## Artifact layout
+
+- `src/degraph/`: public extractor and analyses.
+- `data/`: synthetic benchmarks and reference labels.
+- `experiments/`: deterministic evaluators, cached-response scoring and optional model harnesses.
+- `results/metrics/revision_2026-09-30/`: current public evaluation outputs.
+- `results/metrics/llm_judge_impact.json`: archived, unchanged model selections and original labels.
+- `results/metrics/llm_judge_impact_reconciled.json`: derived scoring against current labels,
+  with label differences and hashes recorded.
+- `results/graphs/`: graph fixtures, including real-code impact fixture.
+
+Other experimental logs are historical development records; current manuscript results use
+the documented snapshot and derived outputs above.
+
+## Industrial study and third-party inputs
+
+The two industrial pipelines and their anonymized evaluation bundles are restricted and
+are **not included**. The industrial extractor variant and its original freeze point are
+separate from the public benchmark implementation. Aggregate results in the manuscript do
+not imply public access to the source or bundles. The optional bundle-scoring script accepts
+local paths to authorized copies and never downloads or publishes them.
+
+Databricks and baseline source repositories are not redistributed here. Obtain their pinned
+revisions separately as documented. MIT licensing of DEGraph does not replace upstream terms.
 
 ## License
 
-MIT. See `LICENSE`.
+MIT; see `LICENSE`.

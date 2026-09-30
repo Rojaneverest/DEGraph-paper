@@ -1,0 +1,10 @@
+{
+  "python": "3.14.6",
+  "dbdemos_revision": "fc48898c335df24745491f41c12a66cd0de438ca",
+  "baseline_revision": "1aaa0dabaab4b9f1a1527ccee057a7ffa5fb1b75",
+  "dbdemos_files": {
+    "01-bronze.py": "2750a9951af6f3a90242ade4923814fc66fcf8e718dabb60a4853d85b18c149c",
+    "02-silver.py": "b4e4d30a34398c1ac58618341a4f902b0af182a62039188ce150c3c8c77a6ac2",
+    "03-gold.py": "29d2e77d72b20e38b604baf53339a7d6439120bfa110a0dc76f36b943321125f"
+  }
+}

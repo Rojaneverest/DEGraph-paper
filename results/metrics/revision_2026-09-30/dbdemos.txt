@@ -1,0 +1,14 @@
+=== Extractor P/R/F1 vs hand-labeled REAL code (dbdemos retail SDP) ===
+edge type        GT   EX   TP   FP   FN      P     R    F1
+----------------------------------------------------------------
+reads             9    9    9    0    0   100%  100%  100%
+writes            7    7    7    0    0   100%  100%  100%
+derives          17   17   17    0    0   100%  100%  100%
+aggregates        2    2    2    0    0   100%  100%  100%
+joins             1    1    1    0    0   100%  100%  100%
+----------------------------------------------------------------
+OVERALL          36   36   36    0    0   100%  100%  100%
+tables            7    7    7    0    0   100%  100%  100%
+
+False negatives (GT edges the extractor missed):
+False positives (extracted edges not in GT):

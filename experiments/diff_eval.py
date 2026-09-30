@@ -53,6 +53,7 @@ def _short(fqn: str) -> str:
     return fqn
 
 
+# Expected blast radius includes persisted output columns, not intermediate CTE fields.
 # Each edit: (label, benchmark, file, old_str, new_str, GT). GT fields:
 #   removed/added  : columns the edit changes at the lineage level (table.col)
 #   breaking       : True if a removed/renamed column has downstream dependents
@@ -69,7 +70,7 @@ EDITS = [
         added={"customer_profile.ltv_total"},
         breaking=True,
         blast={
-            "customer_ltv.lifetime_revenue", "customer_ltv.avg_country_ltv",
+            "customer_ltv.lifetime_revenue",
             "customer_ltv.ltv_vs_country_avg", "customer_ltv.revenue_quartile",
             "customer_ltv.ltv_tier",
         },
@@ -91,7 +92,7 @@ EDITS = [
         added={"customer_profile.ltv_total"},
         breaking=True,
         blast={
-            "customer_ltv.lifetime_revenue", "customer_ltv.avg_country_ltv",
+            "customer_ltv.lifetime_revenue",
             "customer_ltv.ltv_vs_country_avg", "customer_ltv.revenue_quartile",
             "customer_ltv.ltv_tier", "revenue_forecast_features.lifetime_revenue",
         },
@@ -208,7 +209,7 @@ def main() -> int:
           f"(false alarms={false_alarm}, missed breaks={missed_break})")
     bR = b_tp / (b_tp + b_fn) if (b_tp + b_fn) else 1.0
     print(f"BLAST-RADIUS RECALL (breaking edits): {bR*100:.0f}%  (tp={b_tp} fn={b_fn}) "
-          f"-- inherits impact recall; misses are the residual named gaps")
+          f"-- measured on the three evaluated breaking edits")
     return 0
 
 

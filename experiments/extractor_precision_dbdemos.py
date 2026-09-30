@@ -29,9 +29,9 @@ sys.path.insert(0, str(REPO / "src"))
 from degraph.extractor.assembler import extract_repo  # noqa: E402
 
 GT_PATH = REPO / "data" / "ground_truth" / "dbdemos_retail_sdp.graph.json"
-SLICE = Path(r"C:\Users\thapa\Desktop\Research\_external_repos\dbdemos-notebooks"
-             r"\demo-retail\lakehouse-retail-c360\01-Data-ingestion"
-             r"\01.2-SDP-python\transformations")
+import argparse
+import os
+SLICE = Path(os.environ.get("DBDEMOS_SDP", str(REPO / "reference/dbdemos-notebooks/demo-retail/lakehouse-retail-c360/01-Data-ingestion/01.2-SDP-python/transformations")))
 EDGE_KINDS = ["reads", "writes", "derives", "aggregates", "joins"]
 
 
@@ -75,11 +75,14 @@ def _prf(tp: int, fp: int, fn: int) -> tuple[float, float, float]:
 
 
 def main() -> int:
-    if not SLICE.exists():
-        print(f"[skip] corpus not found: {SLICE}")
-        return 0
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--source-dir", type=Path, default=SLICE)
+    args = parser.parse_args()
+    source = args.source_dir
+    if not source.is_dir():
+        parser.error("source directory is missing; pass --source-dir or set DBDEMOS_SDP")
     gt = json.loads(GT_PATH.read_text(encoding="utf-8"))
-    ex = json.loads(extract_repo(SLICE).model_dump_json())
+    ex = json.loads(extract_repo(source).model_dump_json())
     gtb, exb = _keys_by_kind(gt), _keys_by_kind(ex)
 
     print("=== Extractor P/R/F1 vs hand-labeled REAL code (dbdemos retail SDP) ===")

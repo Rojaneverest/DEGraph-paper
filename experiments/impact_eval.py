@@ -210,7 +210,7 @@ def main() -> int:
         tp = len(found & gt)
         fp = len(found - gt)
         fn = len(gt - found)
-        prec = tp / (tp + fp) if (tp + fp) else 1.0
+        prec = tp / (tp + fp) if (tp + fp) else float("nan")
         rec = tp / (tp + fn) if (tp + fn) else 1.0
         f1 = 2 * prec * rec / (prec + rec) if (prec + rec) else 0.0
         tot_tp += tp
@@ -221,7 +221,7 @@ def main() -> int:
         b[1] += fp
         b[2] += fn
         name = f"{bench.split('_')[-1] if bench != 'dbdemos_retail_sdp' else 'dbdemos'}: {table}.{col}"
-        print(f"{name:54s} {prec*100:4.0f}% {rec*100:4.0f}% {f1*100:4.0f}%  {tp}+{fp}fp/{len(gt)}")
+        print(f"{name:54s} {('N/A' if tp + fp == 0 else f'{prec*100:.0f}%'):>5s} {rec*100:4.0f}% {f1*100:4.0f}%  {tp}+{fp}fp/{len(gt)}")
         miss = gt - found
         if miss:
             print(f"    missed (recall gap): {sorted(miss)}")
@@ -232,13 +232,13 @@ def main() -> int:
     # per-benchmark
     for bench in sorted(by_bench):
         tp, fp, fn = by_bench[bench]
-        P = tp / (tp + fp) if (tp + fp) else 1.0
+        P = tp / (tp + fp) if (tp + fp) else float("nan")
         R = tp / (tp + fn) if (tp + fn) else 1.0
         F1 = 2 * P * R / (P + R) if (P + R) else 0.0
         print(f"  {bench:30s} P {P*100:3.0f}%  R {R*100:3.0f}%  F1 {F1*100:3.0f}%  "
               f"(tp={tp} fp={fp} fn={fn})")
     print("-" * 86)
-    P = tot_tp / (tot_tp + tot_fp) if (tot_tp + tot_fp) else 1.0
+    P = tot_tp / (tot_tp + tot_fp) if (tot_tp + tot_fp) else float("nan")
     R = tot_tp / (tot_tp + tot_fn) if (tot_tp + tot_fn) else 1.0
     F1 = 2 * P * R / (P + R) if (P + R) else 0.0
     print(f"{'POOLED (micro, %d scenarios)' % len(SCENARIOS):54s} "

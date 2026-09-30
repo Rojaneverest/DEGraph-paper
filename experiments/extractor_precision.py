@@ -42,7 +42,8 @@ def _sem_key(e: dict) -> str:
     Same operation, same columns, different intermediate label -> a strict match
     counts these as errors. The semantic key drops df-intermediate identities,
     keeping only stable anchors (table:/ext: endpoints) + the content
-    discriminator, to measure whether the *lineage* was recovered.
+    discriminator, to measure normalized edge-key recovery. This key omits source_cols on
+    derives and is not a complete column-provenance correctness metric.
     """
     kind = e.get("kind", "?")
     file = e.get("file", "?")
@@ -92,7 +93,7 @@ def main() -> int:
         gt = json.loads(gt_path.read_text(encoding="utf-8"))
         ex = json.loads(extract_repo(REPO / "data" / "benchmarks" / bench).model_dump_json())
         for label, keyfn in (("STRICT (node-name-sensitive)", _edge_key),
-                             ("SEMANTIC (node-name-agnostic)", _sem_key)):
+                             ("NORMALIZED EDGE KEY (node-name-agnostic)", _sem_key)):
             _report(bench, gt, ex, label, keyfn)
     return 0
 

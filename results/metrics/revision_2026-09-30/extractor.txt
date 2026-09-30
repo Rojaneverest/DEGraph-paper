@@ -1,0 +1,30 @@
+
+=== repo_synthetic_small — extractor P/R/F1 per edge type — STRICT (node-name-sensitive) ===
+edge type            GT   EX   TP   FP   FN      P     R    F1
+----------------------------------------------------------------------
+reads                 9    9    9    0    0   100%  100%  100%
+writes                7    7    6    1    1    86%   86%   86%
+derives              28   28   20    8    8    71%   71%   71%
+filters               2    2    1    1    1    50%   50%   50%
+joins                 3    3    3    0    0   100%  100%  100%
+aggregates            3    3    3    0    0   100%  100%  100%
+opaque_transform      2    2    1    1    1    50%   50%   50%
+projects              3    3    2    1    1    67%   67%   67%
+----------------------------------------------------------------------
+OVERALL (micro)      57   57   45   12   12    79%   79%   79%
+tables                8    8    8    0    0   100%  100%  100%
+
+=== repo_synthetic_small — extractor P/R/F1 per edge type — NORMALIZED EDGE KEY (node-name-agnostic) ===
+edge type            GT   EX   TP   FP   FN      P     R    F1
+----------------------------------------------------------------------
+reads                 9    9    9    0    0   100%  100%  100%
+writes                7    7    7    0    0   100%  100%  100%
+derives              28   28   28    0    0   100%  100%  100%
+filters               2    2    2    0    0   100%  100%  100%
+joins                 3    3    3    0    0   100%  100%  100%
+aggregates            3    3    3    0    0   100%  100%  100%
+opaque_transform      2    2    2    0    0   100%  100%  100%
+projects              3    3    2    1    1    67%   67%   67%
+----------------------------------------------------------------------
+OVERALL (micro)      57   57   56    1    1    98%   98%   98%
+tables                8    8    8    0    0   100%  100%  100%
